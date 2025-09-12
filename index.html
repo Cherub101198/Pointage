@@ -1,25 +1,22 @@
-<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>Pointages Intérim – Suite complète</title>
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Pointages Intérim – Suite complète</title>
 <style>
 :root{--bg:#f8fafc;--panel:#fff;--muted:#64748b;--border:#e2e8f0;--text:#0f172a;--accent:#0ea5e9;--danger:#ef4444}
 *{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;background:linear-gradient(#f8fafc,#fff);color:var(--text)}
-.container{max-width:1300px;margin:24px auto;padding:0 16px}.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}.sp{height:8px}
+.container{max-width:1400px;margin:24px auto;padding:0 16px}.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}.sp{height:8px}.muted{color:var(--muted)}.right{display:flex;justify-content:flex-end}
 .panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;box-shadow:0 1px 2px rgba(0,0,0,.04)}.panel .hd{padding:12px 16px;border-bottom:1px solid var(--border)}.panel .bd{padding:14px 16px}
 label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px}
-input[type=text],input[type=date],select,textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;font-size:14px;outline:none}
-textarea{min-height:44px}
-button{appearance:none;border:1px solid var(--border);background:#fff;padding:9px 12px;border-radius:10px;font-weight:600;cursor:pointer}
-button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
-.badge{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid var(--border);border-radius:999px;background:#fff;font-size:12px}
-.badges{display:flex;flex-wrap:wrap;gap:8px}.grid{display:grid;gap:12px}
-.scroll{overflow:auto}table{width:100%;border-collapse:separate;border-spacing:0;min-width:980px}
+input[type=text],input[type=date],select,textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;font-size:14px;outline:none}textarea{min-height:44px}
+button{appearance:none;border:1px solid var(--border);background:#fff;padding:9px 12px;border-radius:10px;font-weight:600;cursor:pointer}button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid var(--border);border-radius:999px;background:#fff;font-size:12px}.badges{display:flex;flex-wrap:wrap;gap:8px}
+.grid{display:grid;gap:12px}.scroll{overflow:auto}
+table{width:100%;border-collapse:separate;border-spacing:0;min-width:980px}
 th,td{border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:8px 10px;background:#fff;vertical-align:top}
-th:first-child,td:first-child{border-left:1px solid var(--border)}tr:first-child th{border-top:1px solid var(--border)}
-th{position:sticky;top:0;background:#f8fafc;font-size:13px;text-align:left;z-index:1}
-tfoot td{background:#f1f5f9;font-weight:700}.right{display:flex;justify-content:flex-end}.small{font-size:12px;color:var(--muted)}
+th:first-child,td:first-child{border-left:1px solid var(--border)}tr:first-child th{border-top:1px solid var(--border)}th{position:sticky;top:0;background:#f8fafc;font-size:13px;text-align:left;z-index:1}
+tfoot td{background:#f1f5f9;font-weight:700}.small{font-size:12px;color:var(--muted)}.hidden{display:none}
 .nav{position:sticky;top:0;background:#ffffffcc;backdrop-filter:saturate(180%) blur(4px);border-bottom:1px solid var(--border);z-index:10}
-.nav .wrap{max-width:1300px;margin:0 auto;padding:10px 16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.nav a{padding:8px 12px;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:inherit}
-.nav a.active{background:#e0f2fe;border-color:#bae6fd}.hidden{display:none}
+.nav .wrap{max-width:1400px;margin:0 auto;padding:10px 16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.nav a{padding:8px 12px;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:inherit}.nav a.active{background:#e0f2fe;border-color:#bae6fd}
+.col-week{background:#eef6ff;font-weight:700;text-align:center}.col-day{font-size:11px;color:#334155}
 </style></head><body>
 <div class="nav"><div class="wrap"><strong>Pointages Intérim</strong>
 <a href="#home" data-page="home" class="active">Accueil</a>
@@ -27,8 +24,8 @@ tfoot td{background:#f1f5f9;font-weight:700}.right{display:flex;justify-content:
 <a href="#ouvriers" data-page="ouvriers">Ouvriers</a>
 <a href="#agences" data-page="agences">Agences</a>
 <a href="#pointage" data-page="pointage">Pointage hebdo</a>
-<a href="#recap" data-page="recap">Historique</a>
 <a href="#planning" data-page="planning">Planning annuel</a>
+<a href="#diffusion" data-page="diffusion">Diffusion</a>
 </div></div>
 
 <div class="container">
@@ -42,8 +39,8 @@ tfoot td{background:#f1f5f9;font-weight:700}.right{display:flex;justify-content:
         <a class="badge" href="#ouvriers" data-page="ouvriers">Ouvriers</a>
         <a class="badge" href="#agences" data-page="agences">Agences</a>
         <a class="badge" href="#pointage" data-page="pointage">Pointage hebdo</a>
-        <a class="badge" href="#recap" data-page="recap">Historique</a>
         <a class="badge" href="#planning" data-page="planning">Planning annuel</a>
+        <a class="badge" href="#diffusion" data-page="diffusion">Diffusion</a>
       </div>
       <div class="sp"></div><p class="small">Les données sont stockées en local (navigateur).</p>
     </div>
@@ -54,8 +51,16 @@ tfoot td{background:#f1f5f9;font-weight:700}.right{display:flex;justify-content:
 <section id="page-chantiers" class="hidden">
   <div class="panel"><div class="hd"><strong>Chantiers</strong></div>
     <div class="bd">
-      <div class="row"><input type="text" id="new-chantier" placeholder="Ex : M96 W01S" style="flex:1"><button id="btn-add-chantier" class="primary">Ajouter</button></div>
-      <div class="sp"></div><div id="list-chantiers" class="badges"></div>
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
+        <div><label>Nom du chantier</label><input type="text" id="ch-nom" placeholder="Ex : M96 W01S"></div>
+        <div><label>Code DA</label><input type="text" id="ch-code" placeholder="Code DA"></div>
+        <div><label>Nom DA</label><input type="text" id="ch-nomda" placeholder="Nom DA"></div>
+        <div><label>Encadrant</label><input type="text" id="ch-enc" placeholder="Encadrant"></div>
+        <div style="grid-column:1/-1"><label>Adresse</label><input type="text" id="ch-addr" placeholder="Adresse complète"></div>
+        <div style="align-self:end"><button id="btn-add-chantier" class="primary">Ajouter le chantier</button></div>
+      </div>
+      <div class="sp"></div>
+      <div class="scroll"><table id="tbl-chantiers"></table></div>
     </div>
   </div>
 </section>
@@ -64,13 +69,16 @@ tfoot td{background:#f1f5f9;font-weight:700}.right{display:flex;justify-content:
 <section id="page-ouvriers" class="hidden">
   <div class="panel"><div class="hd"><strong>Ouvriers</strong></div>
     <div class="bd">
-      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr))">
         <div><label>Prénom</label><input type="text" id="ov-prenom"></div>
         <div><label>Nom</label><input type="text" id="ov-nom"></div>
         <div><label>Agence</label><select id="ov-agence"></select></div>
+        <div><label>Métier</label><input type="text" id="ov-metier" placeholder="Plâquiste, carreleur…"></div>
+        <div><label>Qualification</label><select id="ov-qual"><option></option><option>N1P1</option><option>N2P1</option><option>N2P2</option><option>N3P1</option><option>N3P2</option></select></div>
         <div style="align-self:end"><button id="btn-add-ouvrier" class="primary">Ajouter l'ouvrier</button></div>
       </div>
-      <div class="sp"></div><div class="scroll"><table id="tbl-ouvriers"></table></div>
+      <div class="sp"></div>
+      <div class="scroll"><table id="tbl-ouvriers"></table></div>
     </div>
   </div>
 </section>
@@ -84,7 +92,8 @@ tfoot td{background:#f1f5f9;font-weight:700}.right{display:flex;justify-content:
         <div><label>Contact e-mail</label><input type="text" id="ag-mail" placeholder="contact@agence.fr"></div>
         <div style="align-self:end"><button id="btn-add-agence" class="primary">Ajouter l'agence</button></div>
       </div>
-      <div class="sp"></div><div class="scroll"><table id="tbl-agences"></table></div>
+      <div class="sp"></div>
+      <div class="scroll"><table id="tbl-agences"></table></div>
     </div>
   </div>
 </section>
@@ -93,26 +102,19 @@ tfoot td{background:#f1f5f9;font-weight:700}.right{display:flex;justify-content:
 <section id="page-pointage" class="hidden">
   <div class="row" style="justify-content:space-between;align-items:flex-end">
     <div><h1 style="margin:0 0 4px;font-size:28px">Pointage hebdo</h1><div class="small" id="subtitle"></div></div>
-    <div class="row"><button class="primary" id="btn-add-row">Nouvelle ligne</button><label class="badge"><input type="checkbox" id="chk-lock"> Verrouiller</label></div>
+    <div class="row"><label class="badge"><input type="checkbox" id="chk-lock"> Verrouiller</label></div>
   </div>
   <div class="panel" style="margin-top:16px">
     <div class="hd"><strong>Paramètres & filtres</strong></div>
     <div class="bd grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
       <div><label>Semaine à pointer</label><div class="row"><input type="date" id="inp-week-pointer"><button id="btn-week-today">Aujourd'hui</button></div></div>
-      <div><label>Recherche</label><input type="text" id="inp-search" placeholder="Nom, mission, agence, chantier…"></div>
+      <div><label>Recherche</label><input type="text" id="inp-search" placeholder="Nom, agence, chantier…"></div>
     </div>
     <div class="bd row"><div><div class="small">Filtre Agence</div><div id="badges-agencies" class="badges"></div></div><div><div class="small">Filtre Chantier</div><div id="badges-chantiers" class="badges"></div></div></div>
   </div>
   <div class="panel" style="margin-top:16px">
-    <div class="hd"><strong>Saisie hebdomadaire</strong><div class="small">Heures via liste 0 → 10 par 0,5 + chantier par jour.</div></div>
+    <div class="hd"><strong>Saisie hebdomadaire</strong><div class="small">Toutes les lignes sont créées depuis la page Ouvriers. Saisir seulement heures (0→10 par 0,5) et chantier par jour.</div></div>
     <div class="bd scroll"><table id="tbl-rows"></table></div>
-  </div>
-</section>
-
-<!-- Historique (multi-semaines) -->
-<section id="page-recap" class="hidden">
-  <div class="panel"><div class="hd"><strong>Historique des semaines</strong><div class="small">Toutes les semaines affichées à la suite (même format que la saisie).</div></div>
-    <div class="bd" id="recap-container"></div>
   </div>
 </section>
 
@@ -122,7 +124,21 @@ tfoot td{background:#f1f5f9;font-weight:700}.right{display:flex;justify-content:
     <div class="bd">
       <div class="row"><div><label>Année</label><input type="text" id="pl-year" placeholder="2025" style="width:120px"></div><div style="align-self:end"><button id="btn-pl-generate" class="primary">Générer</button></div></div>
       <div class="sp"></div><div class="scroll"><table id="tbl-planning"></table></div>
-      <div class="small">Chaque case : <em>jour:heures chantier</em> si pointé (ex: 12:7.5h M96).</div>
+      <div class="small">Colonnes = jours regroupés par semaines (n° semaine). Cellule : <em>heures chantier</em>.</div>
+    </div>
+  </div>
+</section>
+
+<!-- Diffusion -->
+<section id="page-diffusion" class="hidden">
+  <div class="panel"><div class="hd"><strong>Diffusion aux agences</strong></div>
+    <div class="bd">
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
+        <div><label>Semaine à diffuser</label><input type="date" id="df-week"></div>
+        <div><label>Agences</label><div id="df-agencies" class="badges"></div></div>
+      </div>
+      <div class="sp"></div><div class="right"><button id="btn-df-generate" class="primary">Générer les tableaux</button></div>
+      <div class="sp"></div><div id="df-results"></div>
     </div>
   </div>
 </section>
@@ -131,109 +147,126 @@ tfoot td{background:#f1f5f9;font-weight:700}.right{display:flex;justify-content:
 <script>
 (()=>{"use strict";
 const DAY_KEYS=["mon","tue","wed","thu","fri","sat","sun"],DAY_LABELS={mon:"Lun",tue:"Mar",wed:"Mer",thu:"Jeu",fri:"Ven",sat:"Sam",sun:"Dim"};
-const LS_ROWS="ptg_rows_v3",LS_META="ptg_meta_v3",LS_ENTS="ptg_entities_v3",MAX_DAILY=10,MAX_WEEKLY=48,$=s=>document.querySelector(s);
+const LS_ROWS="ptg_rows_v4",LS_META="ptg_meta_v4",LS_ENTS="ptg_entities_v4",MAX_DAILY=10,MAX_WEEKLY=48,$=s=>document.querySelector(s);
 const fmt=d=>new Date(d).toLocaleDateString("fr-FR"),isoWeekStart=d=>{let x=new Date(d),g=(x.getDay()+6)%7;x.setDate(x.getDate()-g);x.setHours(0,0,0,0);return x};
-const addDays=(d,n)=>{let x=new Date(d);x.setDate(x.getDate()+n);return x},toDateInput=d=>{let x=new Date(d.getTime()-d.getTimezoneOffset()*6e4);return x.toISOString().slice(0,10)};
-const uid=()=>Math.random().toString(36).slice(2,9),hourOptions=Array.from({length:21},(_,i)=>(i*.5).toFixed(1).replace(/\.0$/,""));
+const addDays=(d,n)=>{let x=new Date(d);x.setDate(x.getDate()+n);return x},toDateInput=d=>{let x=new Date(d.getTime()-d.getTimezoneOffset()*6e4);return x.toISOString().slice(0,10)},uid=()=>Math.random().toString(36).slice(2,9);
+const hourOptions=Array.from({length:21},(_,i)=>(i*.5).toFixed(1).replace(/\.0$/,""));
 let weekStart=isoWeekStart(new Date),search="",agencyFilter=[],chantierFilter=[],lock=false;
-let data={rows:[],agencies:[],chantiers:[],ouvriers:[]};
-function load(){try{let e=JSON.parse(localStorage.getItem(LS_ENTS)||"null");if(e){data.agencies=e.agencies||[];data.chantiers=e.chantiers||[];data.ouvriers=e.ouvriers||[]}}catch{}
-try{let r=JSON.parse(localStorage.getItem(LS_ROWS)||"null");if(Array.isArray(r))data.rows=r}catch{}
-try{let m=JSON.parse(localStorage.getItem(LS_META)||"null");if(m){if(m.weekStart)weekStart=new Date(m.weekStart);if(m.lock)lock=!!m.lock}}catch{}
-if(!data.agencies.length)data.agencies=[{name:"SAMSIC",email:""},{name:"BPS",email:""},{name:"SOVITRAT",email:""},{name:"YES",email:""}];
-if(!data.chantiers.length)data.chantiers=["M91","M96","M65","M01"]}
+let data={agencies:[],chantiers:[],ouvriers:[],rows:[]}; // rows: {id,week,workerId,days:{mon:{h,chantier},...}}
 function save(){localStorage.setItem(LS_ENTS,JSON.stringify({agencies:data.agencies,chantiers:data.chantiers,ouvriers:data.ouvriers}));localStorage.setItem(LS_ROWS,JSON.stringify(data.rows));localStorage.setItem(LS_META,JSON.stringify({weekStart,lock}))}
+function load(){try{let e=JSON.parse(localStorage.getItem(LS_ENTS)||"null");if(e){data.agencies=e.agencies||[];data.chantiers=e.chantiers||[];data.ouvriers=e.ouvriers||[]}}catch{}
+try{let r=JSON.parse(localStorage.getItem(LS_ROWS)||"null");if(Array.isArray(r))data.rows=r}catch{};try{let m=JSON.parse(localStorage.getItem(LS_META)||"null");if(m){if(m.weekStart)weekStart=new Date(m.weekStart);if(m.lock)lock=!!m.lock}}catch{}
+if(!data.agencies.length)data.agencies=[{name:"SAMSIC",email:""},{name:"BPS",email:""},{name:"SOVITRAT",email:""},{name:"YES",email:""}];
+if(!data.chantiers.length)data.chantiers=[{id:uid(),name:"M91",code:"",nomda:"",enc:"",addr:""},{id:uid(),name:"M96",code:"",nomda:"",enc:"",addr:""}]}
 load();
+
 function toWeekKey(d){const s=isoWeekStart(d);let t=new Date(Date.UTC(s.getFullYear(),s.getMonth(),s.getDate())),dn=t.getUTCDay()||7;t.setUTCDate(t.getUTCDate()+4-dn);const yStart=new Date(Date.UTC(t.getUTCFullYear(),0,1));const w=Math.ceil((((t-yStart)/864e5)+1)/7);return `${t.getUTCFullYear()}-W${String(w).padStart(2,"0")}`}
-function showPage(n){["home","chantiers","ouvriers","agences","pointage","recap","planning"].forEach(p=>{const el=$("#page-"+p);if(!el)return;el.classList.toggle("hidden",p!==n)});document.querySelectorAll(".nav a").forEach(a=>a.classList.toggle("active",a.dataset.page===n));
-if(n==="chantiers")renderChantiers();if(n==="ouvriers")renderOuvriers();if(n==="agences")renderAgences();if(n==="pointage")renderPointage();if(n==="recap")renderRecap()}
+function showPage(n){["home","chantiers","ouvriers","agences","pointage","planning","diffusion"].forEach(p=>{const el=$("#page-"+p);if(!el)return;el.classList.toggle("hidden",p!==n)});document.querySelectorAll(".nav a").forEach(a=>a.classList.toggle("active",a.dataset.page===n));
+if(n==="chantiers")renderChantiers();if(n==="ouvriers")renderOuvriers();if(n==="agences")renderAgences();if(n==="pointage")renderPointage();if(n==="planning"){}if(n==="diffusion")renderDiffusionBadges()}
 document.querySelectorAll(".nav a,.badge[data-page]").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();showPage(a.dataset.page)}));
 function setSubtitle(){$("#subtitle").textContent=`Semaine du ${fmt(isoWeekStart(weekStart))}`}function fillWeekInput(){const el=$("#inp-week-pointer");if(el)el.value=toDateInput(weekStart)}
+
 function hoursSelect(v){const s=document.createElement("select");s.innerHTML=hourOptions.map(x=>`<option value="${x}" ${String(v)===String(x)?"selected":""}>${x}</option>`).join("");return s}
-function renderBadges(){const bag=$("#badges-agencies");if(!bag)return;bag.innerHTML="";const allA=Array.from(new Set(data.agencies.map(a=>a.name).concat(data.rows.map(r=>r.agency).filter(Boolean)))).sort();
-allA.forEach(a=>{const b=document.createElement("button");b.className="badge";b.textContent=a;if(agencyFilter.includes(a))b.style.background="#e0f2fe";b.onclick=()=>{agencyFilter=agencyFilter.includes(a)?agencyFilter.filter(x=>x!==a):[...agencyFilter,a];renderPointage()};bag.appendChild(b)});
-const rz=document.createElement("button");rz.className="badge";rz.textContent="Réinitialiser";rz.onclick=()=>{agencyFilter=[];renderPointage()};bag.appendChild(rz);
-const bch=$("#badges-chantiers");bch.innerHTML="";const allC=Array.from(new Set(data.chantiers.concat(data.rows.flatMap(r=>Object.values(r.days||{}).map(d=>d.chantier||""))))).filter(Boolean).sort();
-allC.forEach(c=>{const b=document.createElement("button");b.className="badge";b.textContent=c;if(chantierFilter.includes(c))b.style.background="#e0f2fe";b.onclick=()=>{chantierFilter=chantierFilter.includes(c)?chantierFilter.filter(x=>x!==c):[...chantierFilter,c];renderPointage()};bch.appendChild(b)});
-const rz2=document.createElement("button");rz2.className="badge";rz2.textContent="Réinitialiser";rz2.onclick=()=>{chantierFilter=[];renderPointage()};bch.appendChild(rz2)}
-function renderChantiers(){const zone=$("#list-chantiers");zone.innerHTML="";data.chantiers.sort().forEach(c=>{const span=document.createElement("span");span.className="badge";span.textContent=c+" ";const x=document.createElement("button");x.textContent="×";x.onclick=()=>{data.chantiers=data.chantiers.filter(z=>z!==c);save();renderChantiers()};span.appendChild(x);zone.appendChild(span)})}
-$("#btn-add-chantier")?.addEventListener("click",()=>{const v=$("#new-chantier").value.trim();if(v){data.chantiers=Array.from(new Set([...data.chantiers,v]));$("#new-chantier").value="";save();renderChantiers()}})
-function renderOuvriers(){const sel=$("#ov-agence");sel.innerHTML='<option value=""></option>'+data.agencies.map(a=>`<option>${a.name}</option>`).join("");const tbl=$("#tbl-ouvriers");tbl.innerHTML="";
-const th=document.createElement("thead");const trh=document.createElement("tr");["Prénom","Nom","Agence"," "].forEach(h=>{const th1=document.createElement("th");th1.textContent=h;trh.appendChild(th1)});th.appendChild(trh);tbl.appendChild(th);
-const tb=document.createElement("tbody");data.ouvriers.forEach(o=>{const tr=document.createElement("tr");
-let td=document.createElement("td");const inpf=document.createElement("input");inpf.type="text";inpf.value=o.first||"";inpf.oninput=()=>{o.first=inpf.value;save()};td.appendChild(inpf);tr.appendChild(td);
-td=document.createElement("td");const inpl=document.createElement("input");inpl.type="text";inpl.value=o.last||"";inpl.oninput=()=>{o.last=inpl.value;save()};td.appendChild(inpl);tr.appendChild(td);
-td=document.createElement("td");const s=document.createElement("select");s.innerHTML='<option value=""></option>'+data.agencies.map(a=>`<option ${o.agency===a.name?"selected":""}>${a.name}</option>`).join("");s.onchange=()=>{o.agency=s.value;save()};td.appendChild(s);tr.appendChild(td);
-td=document.createElement("td");const del=document.createElement("button");del.textContent="×";del.onclick=()=>{if(confirm("Supprimer ?")){data.ouvriers=data.ouvriers.filter(x=>x.id!==o.id);save();renderOuvriers()}};td.appendChild(del);tr.appendChild(td);
-tb.appendChild(tr)});tbl.appendChild(tb)}
-$("#btn-add-ouvrier")?.addEventListener("click",()=>{const f=$("#ov-prenom").value.trim(),l=$("#ov-nom").value.trim(),ag=$("#ov-agence").value;if(f||l){data.ouvriers.unshift({id:uid(),first:f,last:l,agency:ag||""});$("#ov-prenom").value="";$("#ov-nom").value="";save();renderOuvriers()}})
-function renderAgences(){const tbl=$("#tbl-agences");tbl.innerHTML="";const th=document.createElement("thead");const trh=document.createElement("tr");["Agence","E-mail"," "].forEach(h=>{const th1=document.createElement("th");th1.textContent=h;trh.appendChild(th1)});th.appendChild(trh);tbl.appendChild(th);
-const tb=document.createElement("tbody");data.agencies.forEach(a=>{const tr=document.createElement("tr");
-let td=document.createElement("td");const inpn=document.createElement("input");inpn.type="text";inpn.value=a.name;inpn.oninput=()=>{a.name=inpn.value;save()};td.appendChild(inpn);tr.appendChild(td);
+
+function renderAgences(){const tbl=$("#tbl-agences");tbl.innerHTML="";const th=document.createElement("thead"),trh=document.createElement("tr");["Agence","E-mail"," "].forEach(h=>{const th1=document.createElement("th");th1.textContent=h;trh.appendChild(th1)});th.appendChild(trh);tbl.appendChild(th);
+const tb=document.createElement("tbody");data.agencies.forEach(a=>{const tr=document.createElement("tr");let td=document.createElement("td");const inpn=document.createElement("input");inpn.type="text";inpn.value=a.name;inpn.oninput=()=>{a.name=inpn.value;save()};td.appendChild(inpn);tr.appendChild(td);
 td=document.createElement("td");const inpe=document.createElement("input");inpe.type="text";inpe.value=a.email||"";inpe.oninput=()=>{a.email=inpe.value;save()};td.appendChild(inpe);tr.appendChild(td);
-td=document.createElement("td");const del=document.createElement("button");del.textContent="×";del.onclick=()=>{if(confirm("Supprimer ?")){data.agencies=data.agencies.filter(x=>x!==a);save();renderAgences()}};td.appendChild(del);tr.appendChild(td);
-tb.appendChild(tr)});tbl.appendChild(tb)}
+td=document.createElement("td");const del=document.createElement("button");del.textContent="×";del.onclick=()=>{if(confirm("Supprimer ?")){data.agencies=data.agencies.filter(x=>x!==a);save();renderAgences()}};td.appendChild(del);tr.appendChild(td);tb.appendChild(tr)});tbl.appendChild(tb)}
 $("#btn-add-agence")?.addEventListener("click",()=>{const n=$("#ag-nom").value.trim(),m=$("#ag-mail").value.trim();if(n){data.agencies.unshift({name:n,email:m});$("#ag-nom").value="";$("#ag-mail").value="";save();renderAgences()}})
 
+function renderChantiers(){const tbl=$("#tbl-chantiers");tbl.innerHTML="";const th=document.createElement("thead"),trh=document.createElement("tr");["Nom chantier","Code DA","Nom DA","Encadrant","Adresse"," "].forEach(h=>{const th1=document.createElement("th");th1.textContent=h;trh.appendChild(th1)});th.appendChild(trh);tbl.appendChild(th);
+const tb=document.createElement("tbody");data.chantiers.forEach(c=>{const tr=document.createElement("tr");let td=document.createElement("td");const in1=document.createElement("input");in1.value=c.name||"";in1.oninput=()=>{c.name=in1.value;save()};td.appendChild(in1);tr.appendChild(td);
+td=document.createElement("td");const in2=document.createElement("input");in2.value=c.code||"";in2.oninput=()=>{c.code=in2.value;save()};td.appendChild(in2);tr.appendChild(td);
+td=document.createElement("td");const in3=document.createElement("input");in3.value=c.nomda||"";in3.oninput=()=>{c.nomda=in3.value;save()};td.appendChild(in3);tr.appendChild(td);
+td=document.createElement("td");const in4=document.createElement("input");in4.value=c.enc||"";in4.oninput=()=>{c.enc=in4.value;save()};td.appendChild(in4);tr.appendChild(td);
+td=document.createElement("td");const in5=document.createElement("input");in5.value=c.addr||"";in5.oninput=()=>{c.addr=in5.value;save()};td.appendChild(in5);tr.appendChild(td);
+td=document.createElement("td");const del=document.createElement("button");del.textContent="×";del.onclick=()=>{if(confirm("Supprimer ?")){data.chantiers=data.chantiers.filter(x=>x!==c);save();renderChantiers()}};td.appendChild(del);tr.appendChild(td);tb.appendChild(tr)});tbl.appendChild(tb)}
+$("#btn-add-chantier")?.addEventListener("click",()=>{const nom=$("#ch-nom").value.trim(),code=$("#ch-code").value.trim(),nomda=$("#ch-nomda").value.trim(),enc=$("#ch-enc").value.trim(),addr=$("#ch-addr").value.trim();if(nom){data.chantiers.unshift({id:uid(),name:nom,code,nomda,enc,addr});["#ch-nom","#ch-code","#ch-nomda","#ch-enc","#ch-addr"].forEach(s=>$(s).value="");save();renderChantiers()}})
+
+function renderOuvriers(){const sel=$("#ov-agence");sel.innerHTML='<option value=""></option>'+data.agencies.map(a=>`<option>${a.name}</option>`).join("");
+const tbl=$("#tbl-ouvriers");tbl.innerHTML="";const th=document.createElement("thead"),trh=document.createElement("tr");["Prénom","Nom","Agence","Métier","Qualification"," "].forEach(h=>{const th1=document.createElement("th");th1.textContent=h;trh.appendChild(th1)});th.appendChild(trh);tbl.appendChild(th);
+const tb=document.createElement("tbody");data.ouvriers.forEach(o=>{const tr=document.createElement("tr");
+let td=document.createElement("td");const inpf=document.createElement("input");inpf.value=o.first||"";inpf.oninput=()=>{o.first=inpf.value;save()};td.appendChild(inpf);tr.appendChild(td);
+td=document.createElement("td");const inpl=document.createElement("input");inpl.value=o.last||"";inpl.oninput=()=>{o.last=inpl.value;save()};td.appendChild(inpl);tr.appendChild(td);
+td=document.createElement("td");const s=document.createElement("select");s.innerHTML='<option value=""></option>'+data.agencies.map(a=>`<option ${o.agency===a.name?"selected":""}>${a.name}</option>`).join("");s.onchange=()=>{o.agency=s.value;save()};td.appendChild(s);tr.appendChild(td);
+td=document.createElement("td");const met=document.createElement("input");met.value=o.metier||"";met.oninput=()=>{o.metier=met.value;save()};td.appendChild(met);tr.appendChild(td);
+td=document.createElement("td");const q=document.createElement("select");q.innerHTML='<option></option><option>N1P1</option><option>N2P1</option><option>N2P2</option><option>N3P1</option><option>N3P2</option>';q.value=o.qual||"";q.onchange=()=>{o.qual=q.value;save()};td.appendChild(q);tr.appendChild(td);
+td=document.createElement("td");const del=document.createElement("button");del.textContent="×";del.onclick=()=>{if(confirm("Supprimer ?")){data.ouvriers=data.ouvriers.filter(x=>x.id!==o.id);data.rows=data.rows.filter(r=>r.workerId!==o.id);save();renderOuvriers()}};td.appendChild(del);tr.appendChild(td);
+tb.appendChild(tr)});tbl.appendChild(tb)}
+$("#btn-add-ouvrier")?.addEventListener("click",()=>{const f=$("#ov-prenom").value.trim(),l=$("#ov-nom").value.trim(),ag=$("#ov-agence").value,met=$("#ov-metier").value.trim(),qual=$("#ov-qual").value;if(f||l){data.ouvriers.unshift({id:uid(),first:f,last:l,agency:ag||"",metier:met||"",qual:qual||""});["#ov-prenom","#ov-nom","#ov-metier"].forEach(s=>$(s).value="");$("#ov-qual").value="";save();renderOuvriers()}})
+
 function rowsForWeek(ws){const key=toWeekKey(ws);return data.rows.filter(r=>r.week===key)}
-function filtered(list){return list.filter(r=>{const okA=agencyFilter.length?agencyFilter.includes(r.agency):true;const chs=Object.values(r.days||{}).map(d=>d.chantier).filter(Boolean);
-const okC=chantierFilter.length?chs.some(c=>chantierFilter.includes(c)):true;const fn=`${r.workerFirst||""} ${r.workerLast||""}`.toLowerCase();
-const okS=!search||(fn+" "+(r.mission||"")+" "+(r.agency||"")+" "+chs.join(" ")).toLowerCase().includes(search.toLowerCase());return okA&&okC&&okS})}
+function ensureWeekRows(ws){const wk=toWeekKey(ws);const have=new Set(rowsForWeek(ws).map(r=>r.workerId));data.ouvriers.forEach(o=>{if(!have.has(o.id)){data.rows.push({id:uid(),week:wk,workerId:o.id,days:{mon:{h:0,chantier:""},tue:{h:0,chantier:""},wed:{h:0,chantier:""},thu:{h:0,chantier:""},fri:{h:0,chantier:""},sat:{h:0,chantier:""},sun:{h:0,chantier:""}}})}});save()}
+function workerById(id){return data.ouvriers.find(o=>o.id===id)||{first:"",last:"",agency:"",metier:"",qual:""}}
+function chantierOptionsSel(val){const s=document.createElement("select");s.innerHTML='<option value=""></option>'+data.chantiers.map(c=>`<option ${val===c.name?"selected":""}>${c.name}</option>`).join("");return s}
+function filtered(list){return list.filter(r=>{const w=workerById(r.workerId),okA=agencyFilter.length?agencyFilter.includes(w.agency):true,chs=Object.values(r.days||{}).map(d=>d.chantier).filter(Boolean),okC=chantierFilter.length?chs.some(c=>chantierFilter.includes(c)):true,okS=!search||(`${w.first} ${w.last} ${w.agency} ${w.metier} ${w.qual} ${chs.join(" ")}`.toLowerCase().includes(search.toLowerCase()));return okA&&okC&&okS})}
 function wTotal(r){return DAY_KEYS.reduce((s,k)=>s+(typeof(r.days?.[k]?.h)==="number"?r.days[k].h:0),0)}
-function tPerDay(list){const t={mon:0,tue:0,wed:0,thu:0,fri:0,sat:0,sun:0};filtered(list).forEach(r=>{DAY_KEYS.forEach(k=>{const v=r.days?.[k]?.h;if(typeof v==="number")t[k]+=v})});return t}
-function tWeekAll(list){const t=tPerDay(list);return Object.values(t).reduce((a,b)=>a+b,0)}
-function renderPointage(){setSubtitle();fillWeekInput();renderBadges();const tbl=$("#tbl-rows");tbl.innerHTML="";
-const thead=document.createElement("thead"),trh=document.createElement("tr");["Agence","Prénom","Nom","Mission","Lun","Mar","Mer","Jeu","Ven","Sam","Dim","Total","Notes"," "].forEach((h,i)=>{const th=document.createElement("th");th.textContent=h;if(i>=4&&i<=10){const d=addDays(isoWeekStart(weekStart),i-4);th.innerHTML=`<div>${h}</div><div class='small'>${fmt(d)}</div>`}trh.appendChild(th)});thead.appendChild(trh);tbl.appendChild(thead);
-const tbody=document.createElement("tbody");
-filtered(rowsForWeek(weekStart)).forEach(r=>{const tr=document.createElement("tr");
-let td=document.createElement("td");const selA=document.createElement("select");selA.disabled=lock;selA.innerHTML='<option value=""></option>'+data.agencies.map(a=>`<option ${r.agency===a.name?"selected":""}>${a.name}</option>`).join("");selA.onchange=()=>{r.agency=selA.value;save()};td.appendChild(selA);tr.appendChild(td);
-td=document.createElement("td");const inpf=document.createElement("input");inpf.type="text";inpf.value=r.workerFirst||"";inpf.disabled=lock;inpf.oninput=()=>{r.workerFirst=inpf.value;save()};td.appendChild(inpf);tr.appendChild(td);
-td=document.createElement("td");const inpl=document.createElement("input");inpl.type="text";inpl.value=r.workerLast||"";inpl.disabled=lock;inpl.oninput=()=>{r.workerLast=inpl.value;save()};td.appendChild(inpl);tr.appendChild(td);
-td=document.createElement("td");const inpm=document.createElement("input");inpm.type="text";inpm.value=r.mission||"";inpm.disabled=lock;inpm.oninput=()=>{r.mission=inpm.value;save()};td.appendChild(inpm);tr.appendChild(td);
+function totalsPerDay(list){const t={mon:0,tue:0,wed:0,thu:0,fri:0,sat:0,sun:0};filtered(list).forEach(r=>{DAY_KEYS.forEach(k=>{const v=r.days?.[k]?.h;if(typeof v==="number")t[k]+=v})});return t}
+
+function renderBadges(){const bag=$("#badges-agencies");if(!bag)return;bag.innerHTML="";const allA=Array.from(new Set(data.agencies.map(a=>a.name).concat(data.ouvriers.map(o=>o.agency).filter(Boolean)))).sort();
+allA.forEach(a=>{const b=document.createElement("button");b.className="badge";b.textContent=a;if(agencyFilter.includes(a))b.style.background="#e0f2fe";b.onclick=()=>{agencyFilter=agencyFilter.includes(a)?agencyFilter.filter(x=>x!==a):[...agencyFilter,a];renderPointage()};bag.appendChild(b)});
+const rz=document.createElement("button");rz.className="badge";rz.textContent="Réinitialiser";rz.onclick=()=>{agencyFilter=[];renderPointage()};bag.appendChild(rz);
+const bch=$("#badges-chantiers");bch.innerHTML="";const allC=Array.from(new Set(data.chantiers.map(c=>c.name).concat(data.rows.flatMap(r=>Object.values(r.days||{}).map(d=>d.chantier||""))))).filter(Boolean).sort();
+allC.forEach(c=>{const b=document.createElement("button");b.className="badge";b.textContent=c;if(chantierFilter.includes(c))b.style.background="#e0f2fe";b.onclick=()=>{chantierFilter=chantierFilter.includes(c)?chantierFilter.filter(x=>x!==c):[...chantierFilter,c];renderPointage()};bch.appendChild(b)});
+const rz2=document.createElement("button");rz2.className="badge";rz2.textContent="Réinitialiser";rz2.onclick=()=>{chantierFilter=[];renderPointage()};bch.appendChild(rz2)}
+
+function renderPointage(){ensureWeekRows(weekStart);setSubtitle();fillWeekInput();renderBadges();
+const tbl=$("#tbl-rows");tbl.innerHTML="";const thead=document.createElement("thead"),trh=document.createElement("tr");
+["Agence","Prénom","Nom","Métier","Qualification","Lun","Mar","Mer","Jeu","Ven","Sam","Dim","Total"].forEach((h,i)=>{const th=document.createElement("th");th.textContent=h;if(i>=5&&i<=11){const d=addDays(isoWeekStart(weekStart),i-5);th.innerHTML=`<div>${h}</div><div class='small'>${fmt(d)}</div>`}trh.appendChild(th)});thead.appendChild(trh);tbl.appendChild(thead);
+const list=filtered(rowsForWeek(weekStart));const tbody=document.createElement("tbody");
+list.forEach(r=>{const w=workerById(r.workerId);const tr=document.createElement("tr");
+let td=document.createElement("td");td.textContent=w.agency||"";tr.appendChild(td);
+td=document.createElement("td");td.textContent=w.first||"";tr.appendChild(td);
+td=document.createElement("td");td.textContent=w.last||"";tr.appendChild(td);
+td=document.createElement("td");td.textContent=w.metier||"";tr.appendChild(td);
+td=document.createElement("td");td.textContent=w.qual||"";tr.appendChild(td);
 DAY_KEYS.forEach(k=>{const cell=document.createElement("td"),wrap=document.createElement("div");
 const selH=hoursSelect(r.days?.[k]?.h===""?"":(typeof r.days?.[k]?.h==="number"?r.days[k].h:""));selH.disabled=lock;selH.onchange=()=>{r.days=r.days||{};r.days[k]=r.days[k]||{h:"",chantier:""};r.days[k].h=Number(selH.value);selH.style.borderColor=r.days[k].h>MAX_DAILY?"var(--danger)":"var(--border)";save();renderPointage()};
-const selC=document.createElement("select");selC.disabled=lock;selC.innerHTML='<option value=""></option>'+data.chantiers.map(c=>`<option ${(r.days?.[k]?.chantier===c)?"selected":""}>${c}</option>`).join("");selC.onchange=()=>{r.days=r.days||{};r.days[k]=r.days[k]||{h:"",chantier:""};r.days[k].chantier=selC.value;save()};
+const selC=chantierOptionsSel(r.days?.[k]?.chantier||"");selC.disabled=lock;selC.onchange=()=>{r.days=r.days||{};r.days[k]=r.days[k]||{h:"",chantier:""};r.days[k].chantier=selC.value;save()};
 wrap.appendChild(selH);const s=document.createElement("div");s.className="sp";wrap.appendChild(s);wrap.appendChild(selC);cell.appendChild(wrap);tr.appendChild(cell)});
-td=document.createElement("td");td.style.textAlign="right";td.style.fontWeight="700";const tot=wTotal(r);td.textContent=tot;if(tot>MAX_WEEKLY)td.style.color="var(--danger)";tr.appendChild(td);
-td=document.createElement("td");const ta=document.createElement("textarea");ta.value=r.notes||"";ta.disabled=lock;ta.oninput=()=>{r.notes=ta.value;save()};td.appendChild(ta);tr.appendChild(td);
-td=document.createElement("td");const del=document.createElement("button");del.textContent="×";del.onclick=()=>{if(confirm("Supprimer la ligne ?")){data.rows=data.rows.filter(x=>x.id!==r.id);save();renderPointage()}};td.appendChild(del);tr.appendChild(td);
+td=document.createElement("td");td.style.textAlign="right";td.style.fontWeight="700";td.textContent=String(DAY_KEYS.reduce((a,k)=>a+(r.days?.[k]?.h||0),0));tr.appendChild(td);
 tbody.appendChild(tr)});tbl.appendChild(tbody);
-const tfoot=document.createElement("tfoot"),trf=document.createElement("tr"),tdb=document.createElement("td");tdb.colSpan=4;trf.appendChild(tdb);
-DAY_KEYS.forEach(k=>{const td=document.createElement("td");td.style.textAlign="center";td.style.fontWeight="700";td.textContent=String(tPerDay(rowsForWeek(weekStart))[k]);trf.appendChild(td)});
-const tdw=document.createElement("td");tdw.style.textAlign="right";tdw.style.fontWeight="800";tdw.textContent=String(tWeekAll(rowsForWeek(weekStart)));trf.appendChild(tdw);
-trf.appendChild(document.createElement("td"));trf.appendChild(document.createElement("td"));tfoot.appendChild(trf);tbl.appendChild(tfoot)}
-$("#btn-add-row")?.addEventListener("click",()=>{data.rows.unshift({id:uid(),week:toWeekKey(weekStart),agency:"",workerFirst:"",workerLast:"",mission:"",days:{mon:{h:0,chantier:""},tue:{h:0,chantier:""},wed:{h:0,chantier:""},thu:{h:0,chantier:""},fri:{h:0,chantier:""},sat:{h:0,chantier:""},sun:{h:0,chantier:""}},notes:""});save();renderPointage()});
-$("#chk-lock")?.addEventListener("change",()=>{lock=$("#chk-lock").checked;save();renderPointage()});
+const tfoot=document.createElement("tfoot"),trf=document.createElement("tr"),tdb=document.createElement("td");tdb.colSpan=5;trf.appendChild(tdb);
+DAY_KEYS.forEach(k=>{const td=document.createElement("td");td.style.textAlign="center";td.style.fontWeight="700";td.textContent=String(totalsPerDay(rowsForWeek(weekStart))[k]);trf.appendChild(td)});const tdt=document.createElement("td");tdt.style.fontWeight="800";tdt.style.textAlign="right";tdt.textContent=String(Object.values(totalsPerDay(rowsForWeek(weekStart))).reduce((a,b)=>a+b,0));trf.appendChild(tdt);tfoot.appendChild(trf);tbl.appendChild(tfoot)
+}
+
 $("#btn-week-today")?.addEventListener("click",()=>{weekStart=isoWeekStart(new Date);save();renderPointage()});
 $("#inp-week-pointer")?.addEventListener("change",e=>{weekStart=isoWeekStart(new Date(e.target.value));save();renderPointage()});
+$("#chk-lock")?.addEventListener("change",()=>{lock=$("#chk-lock").checked;save();renderPointage()});
 $("#inp-search")?.addEventListener("input",e=>{search=e.target.value;renderPointage()});
 
-function renderRecap(){const zone=$("#recap-container");zone.innerHTML="";const groups={};data.rows.forEach(r=>{(groups[r.week]=groups[r.week]||[]).push(r)});const weeks=Object.keys(groups).sort();
-if(!weeks.length){zone.innerHTML='<div class="small">Aucune donnée enregistrée.</div>';return}
-weeks.forEach(wk=>{const wrap=document.createElement("div");wrap.className="panel";wrap.style.marginBottom="16px";const hd=document.createElement("div");hd.className="hd";hd.innerHTML="<strong>Semaine "+wk+"</strong>";wrap.appendChild(hd);
-const bd=document.createElement("div");bd.className="bd";const tbl=document.createElement("table");const thead=document.createElement("thead"),trh=document.createElement("tr");
-["Agence","Prénom","Nom","Mission","Lun","Mar","Mer","Jeu","Ven","Sam","Dim","Total","Notes"].forEach(h=>{const th=document.createElement("th");th.textContent=h;trh.appendChild(th)});thead.appendChild(trh);tbl.appendChild(thead);
-const tb=document.createElement("tbody");groups[wk].forEach(r=>{const tr=document.createElement("tr");
-let td=document.createElement("td");td.textContent=r.agency||"";tr.appendChild(td);
-td=document.createElement("td");td.textContent=r.workerFirst||"";tr.appendChild(td);
-td=document.createElement("td");td.textContent=r.workerLast||"";tr.appendChild(td);
-td=document.createElement("td");td.textContent=r.mission||"";tr.appendChild(td);
-DAY_KEYS.forEach(k=>{const tdj=document.createElement("td");const h=r.days?.[k]?.h||0,c=r.days?.[k]?.chantier||"";tdj.textContent=h?`${h} (${c})`:"";tr.appendChild(tdj)});
-td=document.createElement("td");td.style.textAlign="right";td.style.fontWeight="700";td.textContent=String(wTotal(r));tr.appendChild(td);
-td=document.createElement("td");td.textContent=r.notes||"";tr.appendChild(td);
-tb.appendChild(tr)});tbl.appendChild(tb);bd.appendChild(tbl);wrap.appendChild(bd);zone.appendChild(wrap)})}
-
 function renderPlanning(){const tbl=$("#tbl-planning");tbl.innerHTML="";const year=parseInt($("#pl-year").value||String(new Date().getFullYear()),10);if(!year){tbl.innerHTML='<tr><td class="small">Saisir une année valide.</td></tr>';return}
-const thead=document.createElement("thead"),trh=document.createElement("tr");["Ouvrier","Jan","Fév","Mar","Avr","Mai","Juin","Juil","Août","Sep","Oct","Nov","Déc"].forEach(h=>{const th=document.createElement("th");th.textContent=h;trh.appendChild(th)});thead.appendChild(trh);tbl.appendChild(thead);
-const tb=document.createElement("tbody");if(!data.ouvriers.length){const tr=document.createElement("tr"),td=document.createElement("td");td.colSpan=13;td.className="small";td.textContent="Ajoutez des ouvriers pour générer le planning.";tr.appendChild(td);tb.appendChild(tr);tbl.appendChild(tb);return}
+const start=new Date(year,0,1),end=new Date(year,11,31);const days=[];for(let d=new Date(start);d<=end;d.setDate(d.getDate()+1)){days.push(new Date(d))}
+const weeks=[];let curW="";days.forEach(d=>{const wk=toWeekKey(d);if(wk!==curW){weeks.push({key:wk,days:[d]});curW=wk}else weeks[weeks.length-1].days.push(d)});
+const thead=document.createElement("thead"),trWeek=document.createElement("tr"),trDay=document.createElement("tr");
+const thName=document.createElement("th");thName.rowSpan=2;thName.textContent="Ouvrier";trWeek.appendChild(thName);
+weeks.forEach(w=>{const th=document.createElement("th");th.colSpan=w.days.length;th.className="col-week";th.textContent=w.key;trWeek.appendChild(th);w.days.forEach(d=>{const thd=document.createElement("th");thd.className="col-day";thd.textContent=d.toLocaleDateString("fr-FR",{weekday:"short",day:"2-digit",month:"2-digit"});trDay.appendChild(thd)})});
+thead.appendChild(trWeek);thead.appendChild(trDay);tbl.appendChild(thead);
+const tb=document.createElement("tbody");if(!data.ouvriers.length){const tr=document.createElement("tr"),td=document.createElement("td");td.colSpan=weeks.reduce((a,w)=>a+w.days.length,1);td.className="small";td.textContent="Ajoutez des ouvriers pour générer le planning.";tr.appendChild(td);tb.appendChild(tr);tbl.appendChild(tb);return}
 data.ouvriers.forEach(o=>{const tr=document.createElement("tr");let td=document.createElement("td");td.textContent=`${o.first||""} ${o.last||""}`.trim();tr.appendChild(td);
-for(let m=0;m<12;m++){const tdM=document.createElement("td"),box=document.createElement("div");box.style.minWidth="200px";box.style.minHeight="120px";box.style.display="grid";box.style.gridTemplateColumns="repeat(7,1fr)";box.style.gap="2px";
-const daysInMonth=new Date(year,m+1,0).getDate();for(let d=1;d<=daysInMonth;d++){const cell=document.createElement("div");cell.style.border="1px solid var(--border)";cell.style.padding="2px";cell.style.fontSize="10px";
-const date=new Date(year,m,d),wkKey=toWeekKey(isoWeekStart(date));const rows=data.rows.filter(r=>r.week===wkKey&&(r.workerFirst||"")===(o.first||"")&&(r.workerLast||"")===(o.last||""));
-let h="",c="";if(rows.length){const idx=date.getDay(),map=["sun","mon","tue","wed","thu","fri","sat"],dk=map[idx],rr=rows[0],de=rr.days?.[dk];if(de&&typeof de.h==="number"&&de.h>0){h=String(de.h);c=de.chantier||""}}
-cell.textContent=h?`${d}:${h}h ${c}`:String(d);cell.title=`${String(d).padStart(2,"0")}/${String(m+1).padStart(2,"0")}/${year}`;box.appendChild(cell)}
-tdM.appendChild(box);tr.appendChild(tdM)}tb.appendChild(tr)});tbl.appendChild(tb)}
+weeks.forEach(w=>{w.days.forEach(d=>{const cell=document.createElement("td");const wk=toWeekKey(d);const rr=data.rows.find(r=>r.week===wk&&r.workerId===o.id);if(rr){const map=["sun","mon","tue","wed","thu","fri","sat"];const dk=map[d.getDay()];const de=rr.days?.[dk];if(de&&de.h>0){cell.textContent=`${de.h} ${de.chantier||""}`}}tr.appendChild(cell)})});tb.appendChild(tr)});tbl.appendChild(tb)
+}
 $("#btn-pl-generate")?.addEventListener("click",()=>renderPlanning());
+
+let dfSelected=new Set();
+function renderDiffusionBadges(){const box=$("#df-agencies");box.innerHTML="";data.agencies.forEach(a=>{const b=document.createElement("button");b.className="badge";b.textContent=a.name;if(dfSelected.has(a.name))b.style.background="#e0f2fe";b.onclick=()=>{dfSelected.has(a.name)?dfSelected.delete(a.name):dfSelected.add(a.name);renderDiffusionBadges()};box.appendChild(b)});
+const rz=document.createElement("button");rz.className="badge";rz.textContent="Tout";rz.onclick=()=>{if(dfSelected.size===data.agencies.length)dfSelected.clear();else dfSelected=new Set(data.agencies.map(a=>a.name));renderDiffusionBadges()};box.appendChild(rz)}
+function renderDiffusionTables(){const zone=$("#df-results");zone.innerHTML="";const d=$("#df-week").value;const wk=toWeekKey(new Date(d||new Date));const rows=data.rows.filter(r=>r.week===wk);
+const byAgency={};rows.forEach(r=>{const w=workerById(r.workerId);if(!w.agency)return; if(dfSelected.size&& !dfSelected.has(w.agency))return;(byAgency[w.agency]=byAgency[w.agency]||[]).push({w,r})});
+const daysLabels=DAY_KEYS.map((k,i)=>({k,label:["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"][i]}));
+Object.keys(byAgency).sort().forEach(ag=>{const wrap=document.createElement("div");wrap.className="panel";wrap.style.marginBottom="16px";
+const hd=document.createElement("div");hd.className="hd";hd.innerHTML=`<strong>${ag}</strong> — semaine ${wk}`;wrap.appendChild(hd);
+const bd=document.createElement("div");bd.className="bd";const tbl=document.createElement("table");
+const thead=document.createElement("thead"),trh=document.createElement("tr");["Prénom","Nom","Métier","Qualif","Lun","Mar","Mer","Jeu","Ven","Sam","Dim","Total"].forEach(h=>{const th=document.createElement("th");th.textContent=h;trh.appendChild(th)});thead.appendChild(trh);tbl.appendChild(thead);
+const tb=document.createElement("tbody");byAgency[ag].forEach(({w,r})=>{const tr=document.createElement("tr");let td=document.createElement("td");td.textContent=w.first||"";tr.appendChild(td);
+td=document.createElement("td");td.textContent=w.last||"";tr.appendChild(td);
+td=document.createElement("td");td.textContent=w.metier||"";tr.appendChild(td);
+td=document.createElement("td");td.textContent=w.qual||"";tr.appendChild(td);
+DAY_KEYS.forEach(k=>{const tdj=document.createElement("td");const h=r.days?.[k]?.h||0;const c=r.days?.[k]?.chantier||"";tdj.textContent=h?`${h} (${c})`:"";tr.appendChild(tdj)});
+td=document.createElement("td");td.style.textAlign="right";td.style.fontWeight="700";td.textContent=String(DAY_KEYS.reduce((a,k)=>a+(r.days?.[k]?.h||0),0));tr.appendChild(td);
+tb.appendChild(tr)});tbl.appendChild(tb);bd.appendChild(tbl);wrap.appendChild(bd);zone.appendChild(wrap)});
+if(!Object.keys(byAgency).length){zone.innerHTML='<div class="small">Aucune donnée pour cette sélection.</div>'}}
+$("#btn-df-generate")?.addEventListener("click",renderDiffusionTables);
 
 function init(){setSubtitle();fillWeekInput();showPage("home")}
 init();
