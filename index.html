@@ -1,406 +1,242 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Pointages Intérim – HTML</title>
-  <style>
-    :root{--bg:#f8fafc;--panel:#ffffff;--muted:#64748b;--border:#e2e8f0;--text:#0f172a;--accent:#0ea5e9;--danger:#ef4444}
-    *{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;background:linear-gradient(#f8fafc,#fff);color:var(--text)}
-    .container{max-width:1200px;margin:24px auto;padding:0 16px}
-    h1{margin:0 0 4px;font-size:28px} .muted{color:var(--muted)}
-    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-    .panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
-    .panel .hd{padding:14px 16px;border-bottom:1px solid var(--border)}
-    .panel .bd{padding:16px}
-    .panel .ft{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;justify-content:space-between}
-    label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px}
-    input[type="text"], input[type="date"], select, textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;font-size:14px;outline:none}
-    textarea{min-height:44px}
-    button{appearance:none;border:1px solid var(--border);background:#fff;padding:10px 12px;border-radius:10px;font-weight:600;cursor:pointer}
-    button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
-    button.ghost{background:transparent}
-    button.danger{border-color:var(--danger);color:var(--danger)}
-    .badge{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid var(--border);border-radius:999px;background:#fff;font-size:12px}
-    .badges{display:flex;flex-wrap:wrap;gap:8px}
-    .grid{display:grid;gap:12px}
-    .scroll{overflow:auto}
-    table{width:100%;border-collapse:separate;border-spacing:0;min-width:1000px}
-    th,td{border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:8px 10px;background:#fff;vertical-align:top}
-    th:first-child,td:first-child{border-left:1px solid var(--border)}
-    tr:first-child th{border-top:1px solid var(--border)}
-    th{position:sticky;top:0;background:#f8fafc;font-size:13px;text-align:left}
-    tfoot td{background:#f8fafc;font-weight:700}
-    .ring-danger{outline:2px solid rgba(239,68,68,.5)}
-    .pill{padding:4px 8px;border:1px solid var(--border);border-radius:999px;background:#fff}
-    .right{display:flex;justify-content:flex-end}
-    .spacer{height:8px}
-    .small{font-size:12px;color:var(--muted)}
-    .section-title{font-weight:700;margin-bottom:6px}
-  </style>
-  <!-- SheetJS for XLSX import/export -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.20.1/dist/xlsx.full.min.js"></script>
-</head>
-<body>
-  <div class="container">
-    <div class="row" style="justify-content:space-between;align-items:flex-end">
-      <div>
-        <h1>Pointages Intérim</h1>
-        <div class="muted" id="subtitle"></div>
-      </div>
-      <div class="row">
-        <button class="primary" id="btn-add-row">Nouvelle ligne</button>
-        <button id="btn-lock">Verrouiller</button>
-        <button id="btn-export-global">Export Excel (global)</button>
-        <button id="btn-export-agency">Export par Agence</button>
-        <button id="btn-send">Simuler envoi</button>
-      </div>
-    </div>
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>Pointages Intérim – Suite complète</title>
+<style>
+:root{--bg:#f8fafc;--panel:#fff;--muted:#64748b;--border:#e2e8f0;--text:#0f172a;--accent:#0ea5e9;--danger:#ef4444}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;background:linear-gradient(#f8fafc,#fff);color:var(--text)}
+.container{max-width:1300px;margin:24px auto;padding:0 16px}.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}.sp{height:8px}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;box-shadow:0 1px 2px rgba(0,0,0,.04)}.panel .hd{padding:12px 16px;border-bottom:1px solid var(--border)}.panel .bd{padding:14px 16px}
+label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px}
+input[type=text],input[type=date],select,textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;font-size:14px;outline:none}
+textarea{min-height:44px}
+button{appearance:none;border:1px solid var(--border);background:#fff;padding:9px 12px;border-radius:10px;font-weight:600;cursor:pointer}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid var(--border);border-radius:999px;background:#fff;font-size:12px}
+.badges{display:flex;flex-wrap:wrap;gap:8px}.grid{display:grid;gap:12px}
+.scroll{overflow:auto}table{width:100%;border-collapse:separate;border-spacing:0;min-width:980px}
+th,td{border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:8px 10px;background:#fff;vertical-align:top}
+th:first-child,td:first-child{border-left:1px solid var(--border)}tr:first-child th{border-top:1px solid var(--border)}
+th{position:sticky;top:0;background:#f8fafc;font-size:13px;text-align:left;z-index:1}
+tfoot td{background:#f1f5f9;font-weight:700}.right{display:flex;justify-content:flex-end}.small{font-size:12px;color:var(--muted)}
+.nav{position:sticky;top:0;background:#ffffffcc;backdrop-filter:saturate(180%) blur(4px);border-bottom:1px solid var(--border);z-index:10}
+.nav .wrap{max-width:1300px;margin:0 auto;padding:10px 16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.nav a{padding:8px 12px;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:inherit}
+.nav a.active{background:#e0f2fe;border-color:#bae6fd}.hidden{display:none}
+</style></head><body>
+<div class="nav"><div class="wrap"><strong>Pointages Intérim</strong>
+<a href="#home" data-page="home" class="active">Accueil</a>
+<a href="#chantiers" data-page="chantiers">Chantiers</a>
+<a href="#ouvriers" data-page="ouvriers">Ouvriers</a>
+<a href="#agences" data-page="agences">Agences</a>
+<a href="#pointage" data-page="pointage">Pointage hebdo</a>
+<a href="#recap" data-page="recap">Historique</a>
+<a href="#planning" data-page="planning">Planning annuel</a>
+</div></div>
 
-    <!-- Paramètres & filtres -->
-    <div class="panel" style="margin-top:16px">
-      <div class="hd"><strong>Paramètres semaine & filtres</strong><div class="small">Choisissez les semaines et filtrez par agence/chantier/nom.</div></div>
-      <div class="bd grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
-        <div>
-          <label>Semaine à pointer</label>
-          <div class="row">
-            <input type="date" id="inp-week-pointer" />
-            <button id="btn-week-today">Aujourd'hui</button>
-          </div>
-        </div>
-        <div>
-          <label>Semaine à envoyer</label>
-          <input type="date" id="inp-week-send" />
-        </div>
-        <div>
-          <label>Recherche</label>
-          <input type="text" id="inp-search" placeholder="Nom, mission, agence, chantier…" />
-        </div>
+<div class="container">
+<!-- Accueil -->
+<section id="page-home">
+  <div class="panel"><div class="hd"><strong>Bienvenue</strong></div>
+    <div class="bd">
+      <p>Accès rapide :</p>
+      <div class="badges">
+        <a class="badge" href="#chantiers" data-page="chantiers">Chantiers</a>
+        <a class="badge" href="#ouvriers" data-page="ouvriers">Ouvriers</a>
+        <a class="badge" href="#agences" data-page="agences">Agences</a>
+        <a class="badge" href="#pointage" data-page="pointage">Pointage hebdo</a>
+        <a class="badge" href="#recap" data-page="recap">Historique</a>
+        <a class="badge" href="#planning" data-page="planning">Planning annuel</a>
       </div>
-      <div class="ft">
-        <div class="row" style="gap:16px;flex-wrap:wrap">
-          <div>
-            <div class="section-title small">Filtre Agence</div>
-            <div id="badges-agencies" class="badges"></div>
-          </div>
-          <div>
-            <div class="section-title small">Filtre Chantier</div>
-            <div id="badges-chantiers" class="badges"></div>
-          </div>
-        </div>
-        <div class="row">
-          <input type="file" id="file-add" accept=".xlsx,.xls,.csv" hidden />
-          <button id="btn-import-add">Importer (ajouter)</button>
-          <input type="file" id="file-init" accept=".xlsx,.xls" hidden />
-          <button id="btn-import-init" title="Feuilles: Ouvriers, Agences, Chantiers">Initialiser depuis Excel</button>
-          <button class="danger" id="btn-clear">Tout effacer</button>
-          <div class="pill"><label><input type="checkbox" id="chk-lock"/> Verrouiller la saisie</label></div>
-        </div>
-      </div>
+      <div class="sp"></div><p class="small">Les données sont stockées en local (navigateur).</p>
     </div>
-
-    <!-- Gestion Agences & Chantiers -->
-    <div class="row" style="margin-top:16px">
-      <div class="panel" style="flex:1">
-        <div class="hd"><strong>Agences (CRUD)</strong><div class="small">Ajoutez/supprimez des agences disponibles.</div></div>
-        <div class="bd">
-          <div class="row"><input type="text" id="new-agency" placeholder="Nouvelle agence" style="flex:1"/><button id="btn-add-agency">Ajouter</button></div>
-          <div class="spacer"></div>
-          <div id="list-agencies" class="badges"></div>
-        </div>
-      </div>
-      <div class="panel" style="flex:1">
-        <div class="hd"><strong>Chantiers (CRUD)</strong><div class="small">Gérez la liste des chantiers référencés.</div></div>
-        <div class="bd">
-          <div class="row"><input type="text" id="new-chantier" placeholder="Nouveau chantier (ex: M96 W01S)" style="flex:1"/><button id="btn-add-chantier">Ajouter</button></div>
-          <div class="spacer"></div>
-          <div id="list-chantiers" class="badges"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Table de saisie -->
-    <div class="panel" style="margin-top:16px">
-      <div class="hd"><strong>Saisie hebdomadaire</strong><div class="small">Heures décimales autorisées (7,5). Imputation chantier par jour.</div></div>
-      <div class="bd scroll">
-        <table id="tbl-rows"></table>
-      </div>
-    </div>
-
-    <!-- Synthèse hebdo -->
-    <div class="panel" style="margin-top:16px">
-      <div class="hd"><strong>Synthèse hebdo – Où sont pointés les ouvriers ?</strong><div class="small">Vue par ouvrier (semaine à pointer).</div></div>
-      <div class="bd">
-        <div class="right"><button id="btn-export-overview">Exporter la synthèse</button></div>
-        <div class="spacer"></div>
-        <div class="scroll">
-          <table id="tbl-overview"></table>
-        </div>
-      </div>
-    </div>
-
-    <div class="small" style="text-align:center;margin:24px 0">Données stockées localement (navigateur). Pour un stockage partagé et l'envoi d'emails réels, prévoir un backend.</div>
   </div>
+</section>
+
+<!-- Chantiers -->
+<section id="page-chantiers" class="hidden">
+  <div class="panel"><div class="hd"><strong>Chantiers</strong></div>
+    <div class="bd">
+      <div class="row"><input type="text" id="new-chantier" placeholder="Ex : M96 W01S" style="flex:1"><button id="btn-add-chantier" class="primary">Ajouter</button></div>
+      <div class="sp"></div><div id="list-chantiers" class="badges"></div>
+    </div>
+  </div>
+</section>
+
+<!-- Ouvriers -->
+<section id="page-ouvriers" class="hidden">
+  <div class="panel"><div class="hd"><strong>Ouvriers</strong></div>
+    <div class="bd">
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
+        <div><label>Prénom</label><input type="text" id="ov-prenom"></div>
+        <div><label>Nom</label><input type="text" id="ov-nom"></div>
+        <div><label>Agence</label><select id="ov-agence"></select></div>
+        <div style="align-self:end"><button id="btn-add-ouvrier" class="primary">Ajouter l'ouvrier</button></div>
+      </div>
+      <div class="sp"></div><div class="scroll"><table id="tbl-ouvriers"></table></div>
+    </div>
+  </div>
+</section>
+
+<!-- Agences -->
+<section id="page-agences" class="hidden">
+  <div class="panel"><div class="hd"><strong>Agences</strong></div>
+    <div class="bd">
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
+        <div><label>Agence</label><input type="text" id="ag-nom" placeholder="YES / SAMSIC / …"></div>
+        <div><label>Contact e-mail</label><input type="text" id="ag-mail" placeholder="contact@agence.fr"></div>
+        <div style="align-self:end"><button id="btn-add-agence" class="primary">Ajouter l'agence</button></div>
+      </div>
+      <div class="sp"></div><div class="scroll"><table id="tbl-agences"></table></div>
+    </div>
+  </div>
+</section>
+
+<!-- Pointage hebdo -->
+<section id="page-pointage" class="hidden">
+  <div class="row" style="justify-content:space-between;align-items:flex-end">
+    <div><h1 style="margin:0 0 4px;font-size:28px">Pointage hebdo</h1><div class="small" id="subtitle"></div></div>
+    <div class="row"><button class="primary" id="btn-add-row">Nouvelle ligne</button><label class="badge"><input type="checkbox" id="chk-lock"> Verrouiller</label></div>
+  </div>
+  <div class="panel" style="margin-top:16px">
+    <div class="hd"><strong>Paramètres & filtres</strong></div>
+    <div class="bd grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
+      <div><label>Semaine à pointer</label><div class="row"><input type="date" id="inp-week-pointer"><button id="btn-week-today">Aujourd'hui</button></div></div>
+      <div><label>Recherche</label><input type="text" id="inp-search" placeholder="Nom, mission, agence, chantier…"></div>
+    </div>
+    <div class="bd row"><div><div class="small">Filtre Agence</div><div id="badges-agencies" class="badges"></div></div><div><div class="small">Filtre Chantier</div><div id="badges-chantiers" class="badges"></div></div></div>
+  </div>
+  <div class="panel" style="margin-top:16px">
+    <div class="hd"><strong>Saisie hebdomadaire</strong><div class="small">Heures via liste 0 → 10 par 0,5 + chantier par jour.</div></div>
+    <div class="bd scroll"><table id="tbl-rows"></table></div>
+  </div>
+</section>
+
+<!-- Historique (multi-semaines) -->
+<section id="page-recap" class="hidden">
+  <div class="panel"><div class="hd"><strong>Historique des semaines</strong><div class="small">Toutes les semaines affichées à la suite (même format que la saisie).</div></div>
+    <div class="bd" id="recap-container"></div>
+  </div>
+</section>
+
+<!-- Planning annuel -->
+<section id="page-planning" class="hidden">
+  <div class="panel"><div class="hd"><strong>Planning annuel</strong></div>
+    <div class="bd">
+      <div class="row"><div><label>Année</label><input type="text" id="pl-year" placeholder="2025" style="width:120px"></div><div style="align-self:end"><button id="btn-pl-generate" class="primary">Générer</button></div></div>
+      <div class="sp"></div><div class="scroll"><table id="tbl-planning"></table></div>
+      <div class="small">Chaque case : <em>jour:heures chantier</em> si pointé (ex: 12:7.5h M96).</div>
+    </div>
+  </div>
+</section>
+</div>
 
 <script>
-(function(){
-  // ---------- Utilities ----------
-  const DAY_KEYS = ["mon","tue","wed","thu","fri","sat","sun"]; const DAY_LABELS = {mon:"Lun",tue:"Mar",wed:"Mer",thu:"Jeu",fri:"Ven",sat:"Sam",sun:"Dim"};
-  const LS_ROWS = "ptg_rows_v1"; const LS_META = "ptg_meta_v1";
-  const DEFAULT_AGENCIES = ["SAMSIC","BPS","SOVITRAT","YES"]; const DEFAULT_CHANTIERS = ["M91","M96","M65","M01"];
-  const MAX_DAILY = 10, MAX_WEEKLY = 48;
-  const $ = sel => document.querySelector(sel);
-  const $$ = sel => Array.from(document.querySelectorAll(sel));
-  const fmt = d => new Date(d).toLocaleDateString("fr-FR");
-  const isoWeekStart = (date)=>{ const d = new Date(date); const day=(d.getDay()+6)%7; d.setDate(d.getDate()-day); d.setHours(0,0,0,0); return d; };
-  const addDays = (d,n)=>{ const x = new Date(d); x.setDate(x.getDate()+n); return x; };
-  const toDateInput = d => { const x=new Date(d.getTime()-d.getTimezoneOffset()*60000); return x.toISOString().slice(0,10); };
-  const uid = ()=>Math.random().toString(36).slice(2,9);
-  const parseH = v => { if(v==null||v==="") return ""; const n = Number(String(v).replace(",",".")); return isFinite(n)?n:"" };
+(()=>{"use strict";
+const DAY_KEYS=["mon","tue","wed","thu","fri","sat","sun"],DAY_LABELS={mon:"Lun",tue:"Mar",wed:"Mer",thu:"Jeu",fri:"Ven",sat:"Sam",sun:"Dim"};
+const LS_ROWS="ptg_rows_v3",LS_META="ptg_meta_v3",LS_ENTS="ptg_entities_v3",MAX_DAILY=10,MAX_WEEKLY=48,$=s=>document.querySelector(s);
+const fmt=d=>new Date(d).toLocaleDateString("fr-FR"),isoWeekStart=d=>{let x=new Date(d),g=(x.getDay()+6)%7;x.setDate(x.getDate()-g);x.setHours(0,0,0,0);return x};
+const addDays=(d,n)=>{let x=new Date(d);x.setDate(x.getDate()+n);return x},toDateInput=d=>{let x=new Date(d.getTime()-d.getTimezoneOffset()*6e4);return x.toISOString().slice(0,10)};
+const uid=()=>Math.random().toString(36).slice(2,9),hourOptions=Array.from({length:21},(_,i)=>(i*.5).toFixed(1).replace(/\.0$/,""));
+let weekStart=isoWeekStart(new Date),search="",agencyFilter=[],chantierFilter=[],lock=false;
+let data={rows:[],agencies:[],chantiers:[],ouvriers:[]};
+function load(){try{let e=JSON.parse(localStorage.getItem(LS_ENTS)||"null");if(e){data.agencies=e.agencies||[];data.chantiers=e.chantiers||[];data.ouvriers=e.ouvriers||[]}}catch{}
+try{let r=JSON.parse(localStorage.getItem(LS_ROWS)||"null");if(Array.isArray(r))data.rows=r}catch{}
+try{let m=JSON.parse(localStorage.getItem(LS_META)||"null");if(m){if(m.weekStart)weekStart=new Date(m.weekStart);if(m.lock)lock=!!m.lock}}catch{}
+if(!data.agencies.length)data.agencies=[{name:"SAMSIC",email:""},{name:"BPS",email:""},{name:"SOVITRAT",email:""},{name:"YES",email:""}];
+if(!data.chantiers.length)data.chantiers=["M91","M96","M65","M01"]}
+function save(){localStorage.setItem(LS_ENTS,JSON.stringify({agencies:data.agencies,chantiers:data.chantiers,ouvriers:data.ouvriers}));localStorage.setItem(LS_ROWS,JSON.stringify(data.rows));localStorage.setItem(LS_META,JSON.stringify({weekStart,lock}))}
+load();
+function toWeekKey(d){const s=isoWeekStart(d);let t=new Date(Date.UTC(s.getFullYear(),s.getMonth(),s.getDate())),dn=t.getUTCDay()||7;t.setUTCDate(t.getUTCDate()+4-dn);const yStart=new Date(Date.UTC(t.getUTCFullYear(),0,1));const w=Math.ceil((((t-yStart)/864e5)+1)/7);return `${t.getUTCFullYear()}-W${String(w).padStart(2,"0")}`}
+function showPage(n){["home","chantiers","ouvriers","agences","pointage","recap","planning"].forEach(p=>{const el=$("#page-"+p);if(!el)return;el.classList.toggle("hidden",p!==n)});document.querySelectorAll(".nav a").forEach(a=>a.classList.toggle("active",a.dataset.page===n));
+if(n==="chantiers")renderChantiers();if(n==="ouvriers")renderOuvriers();if(n==="agences")renderAgences();if(n==="pointage")renderPointage();if(n==="recap")renderRecap()}
+document.querySelectorAll(".nav a,.badge[data-page]").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();showPage(a.dataset.page)}));
+function setSubtitle(){$("#subtitle").textContent=`Semaine du ${fmt(isoWeekStart(weekStart))}`}function fillWeekInput(){const el=$("#inp-week-pointer");if(el)el.value=toDateInput(weekStart)}
+function hoursSelect(v){const s=document.createElement("select");s.innerHTML=hourOptions.map(x=>`<option value="${x}" ${String(v)===String(x)?"selected":""}>${x}</option>`).join("");return s}
+function renderBadges(){const bag=$("#badges-agencies");if(!bag)return;bag.innerHTML="";const allA=Array.from(new Set(data.agencies.map(a=>a.name).concat(data.rows.map(r=>r.agency).filter(Boolean)))).sort();
+allA.forEach(a=>{const b=document.createElement("button");b.className="badge";b.textContent=a;if(agencyFilter.includes(a))b.style.background="#e0f2fe";b.onclick=()=>{agencyFilter=agencyFilter.includes(a)?agencyFilter.filter(x=>x!==a):[...agencyFilter,a];renderPointage()};bag.appendChild(b)});
+const rz=document.createElement("button");rz.className="badge";rz.textContent="Réinitialiser";rz.onclick=()=>{agencyFilter=[];renderPointage()};bag.appendChild(rz);
+const bch=$("#badges-chantiers");bch.innerHTML="";const allC=Array.from(new Set(data.chantiers.concat(data.rows.flatMap(r=>Object.values(r.days||{}).map(d=>d.chantier||""))))).filter(Boolean).sort();
+allC.forEach(c=>{const b=document.createElement("button");b.className="badge";b.textContent=c;if(chantierFilter.includes(c))b.style.background="#e0f2fe";b.onclick=()=>{chantierFilter=chantierFilter.includes(c)?chantierFilter.filter(x=>x!==c):[...chantierFilter,c];renderPointage()};bch.appendChild(b)});
+const rz2=document.createElement("button");rz2.className="badge";rz2.textContent="Réinitialiser";rz2.onclick=()=>{chantierFilter=[];renderPointage()};bch.appendChild(rz2)}
+function renderChantiers(){const zone=$("#list-chantiers");zone.innerHTML="";data.chantiers.sort().forEach(c=>{const span=document.createElement("span");span.className="badge";span.textContent=c+" ";const x=document.createElement("button");x.textContent="×";x.onclick=()=>{data.chantiers=data.chantiers.filter(z=>z!==c);save();renderChantiers()};span.appendChild(x);zone.appendChild(span)})}
+$("#btn-add-chantier")?.addEventListener("click",()=>{const v=$("#new-chantier").value.trim();if(v){data.chantiers=Array.from(new Set([...data.chantiers,v]));$("#new-chantier").value="";save();renderChantiers()}})
+function renderOuvriers(){const sel=$("#ov-agence");sel.innerHTML='<option value=""></option>'+data.agencies.map(a=>`<option>${a.name}</option>`).join("");const tbl=$("#tbl-ouvriers");tbl.innerHTML="";
+const th=document.createElement("thead");const trh=document.createElement("tr");["Prénom","Nom","Agence"," "].forEach(h=>{const th1=document.createElement("th");th1.textContent=h;trh.appendChild(th1)});th.appendChild(trh);tbl.appendChild(th);
+const tb=document.createElement("tbody");data.ouvriers.forEach(o=>{const tr=document.createElement("tr");
+let td=document.createElement("td");const inpf=document.createElement("input");inpf.type="text";inpf.value=o.first||"";inpf.oninput=()=>{o.first=inpf.value;save()};td.appendChild(inpf);tr.appendChild(td);
+td=document.createElement("td");const inpl=document.createElement("input");inpl.type="text";inpl.value=o.last||"";inpl.oninput=()=>{o.last=inpl.value;save()};td.appendChild(inpl);tr.appendChild(td);
+td=document.createElement("td");const s=document.createElement("select");s.innerHTML='<option value=""></option>'+data.agencies.map(a=>`<option ${o.agency===a.name?"selected":""}>${a.name}</option>`).join("");s.onchange=()=>{o.agency=s.value;save()};td.appendChild(s);tr.appendChild(td);
+td=document.createElement("td");const del=document.createElement("button");del.textContent="×";del.onclick=()=>{if(confirm("Supprimer ?")){data.ouvriers=data.ouvriers.filter(x=>x.id!==o.id);save();renderOuvriers()}};td.appendChild(del);tr.appendChild(td);
+tb.appendChild(tr)});tbl.appendChild(tb)}
+$("#btn-add-ouvrier")?.addEventListener("click",()=>{const f=$("#ov-prenom").value.trim(),l=$("#ov-nom").value.trim(),ag=$("#ov-agence").value;if(f||l){data.ouvriers.unshift({id:uid(),first:f,last:l,agency:ag||""});$("#ov-prenom").value="";$("#ov-nom").value="";save();renderOuvriers()}})
+function renderAgences(){const tbl=$("#tbl-agences");tbl.innerHTML="";const th=document.createElement("thead");const trh=document.createElement("tr");["Agence","E-mail"," "].forEach(h=>{const th1=document.createElement("th");th1.textContent=h;trh.appendChild(th1)});th.appendChild(trh);tbl.appendChild(th);
+const tb=document.createElement("tbody");data.agencies.forEach(a=>{const tr=document.createElement("tr");
+let td=document.createElement("td");const inpn=document.createElement("input");inpn.type="text";inpn.value=a.name;inpn.oninput=()=>{a.name=inpn.value;save()};td.appendChild(inpn);tr.appendChild(td);
+td=document.createElement("td");const inpe=document.createElement("input");inpe.type="text";inpe.value=a.email||"";inpe.oninput=()=>{a.email=inpe.value;save()};td.appendChild(inpe);tr.appendChild(td);
+td=document.createElement("td");const del=document.createElement("button");del.textContent="×";del.onclick=()=>{if(confirm("Supprimer ?")){data.agencies=data.agencies.filter(x=>x!==a);save();renderAgences()}};td.appendChild(del);tr.appendChild(td);
+tb.appendChild(tr)});tbl.appendChild(tb)}
+$("#btn-add-agence")?.addEventListener("click",()=>{const n=$("#ag-nom").value.trim(),m=$("#ag-mail").value.trim();if(n){data.agencies.unshift({name:n,email:m});$("#ag-nom").value="";$("#ag-mail").value="";save();renderAgences()}})
 
-  // ---------- State ----------
-  let rows = []; // {id,agency,worker,mission,days:{mon:{h,chantier},...},notes}
-  let agencies = [...DEFAULT_AGENCIES];
-  let chantiers = [...DEFAULT_CHANTIERS];
-  let weekStart = isoWeekStart(new Date());
-  let weekSend = isoWeekStart(new Date());
-  let search = "";
-  let agencyFilter = [];
-  let chantierFilter = [];
-  let lock = false;
-  let emailSentCounter = 0;
+function rowsForWeek(ws){const key=toWeekKey(ws);return data.rows.filter(r=>r.week===key)}
+function filtered(list){return list.filter(r=>{const okA=agencyFilter.length?agencyFilter.includes(r.agency):true;const chs=Object.values(r.days||{}).map(d=>d.chantier).filter(Boolean);
+const okC=chantierFilter.length?chs.some(c=>chantierFilter.includes(c)):true;const fn=`${r.workerFirst||""} ${r.workerLast||""}`.toLowerCase();
+const okS=!search||(fn+" "+(r.mission||"")+" "+(r.agency||"")+" "+chs.join(" ")).toLowerCase().includes(search.toLowerCase());return okA&&okC&&okS})}
+function wTotal(r){return DAY_KEYS.reduce((s,k)=>s+(typeof(r.days?.[k]?.h)==="number"?r.days[k].h:0),0)}
+function tPerDay(list){const t={mon:0,tue:0,wed:0,thu:0,fri:0,sat:0,sun:0};filtered(list).forEach(r=>{DAY_KEYS.forEach(k=>{const v=r.days?.[k]?.h;if(typeof v==="number")t[k]+=v})});return t}
+function tWeekAll(list){const t=tPerDay(list);return Object.values(t).reduce((a,b)=>a+b,0)}
+function renderPointage(){setSubtitle();fillWeekInput();renderBadges();const tbl=$("#tbl-rows");tbl.innerHTML="";
+const thead=document.createElement("thead"),trh=document.createElement("tr");["Agence","Prénom","Nom","Mission","Lun","Mar","Mer","Jeu","Ven","Sam","Dim","Total","Notes"," "].forEach((h,i)=>{const th=document.createElement("th");th.textContent=h;if(i>=4&&i<=10){const d=addDays(isoWeekStart(weekStart),i-4);th.innerHTML=`<div>${h}</div><div class='small'>${fmt(d)}</div>`}trh.appendChild(th)});thead.appendChild(trh);tbl.appendChild(thead);
+const tbody=document.createElement("tbody");
+filtered(rowsForWeek(weekStart)).forEach(r=>{const tr=document.createElement("tr");
+let td=document.createElement("td");const selA=document.createElement("select");selA.disabled=lock;selA.innerHTML='<option value=""></option>'+data.agencies.map(a=>`<option ${r.agency===a.name?"selected":""}>${a.name}</option>`).join("");selA.onchange=()=>{r.agency=selA.value;save()};td.appendChild(selA);tr.appendChild(td);
+td=document.createElement("td");const inpf=document.createElement("input");inpf.type="text";inpf.value=r.workerFirst||"";inpf.disabled=lock;inpf.oninput=()=>{r.workerFirst=inpf.value;save()};td.appendChild(inpf);tr.appendChild(td);
+td=document.createElement("td");const inpl=document.createElement("input");inpl.type="text";inpl.value=r.workerLast||"";inpl.disabled=lock;inpl.oninput=()=>{r.workerLast=inpl.value;save()};td.appendChild(inpl);tr.appendChild(td);
+td=document.createElement("td");const inpm=document.createElement("input");inpm.type="text";inpm.value=r.mission||"";inpm.disabled=lock;inpm.oninput=()=>{r.mission=inpm.value;save()};td.appendChild(inpm);tr.appendChild(td);
+DAY_KEYS.forEach(k=>{const cell=document.createElement("td"),wrap=document.createElement("div");
+const selH=hoursSelect(r.days?.[k]?.h===""?"":(typeof r.days?.[k]?.h==="number"?r.days[k].h:""));selH.disabled=lock;selH.onchange=()=>{r.days=r.days||{};r.days[k]=r.days[k]||{h:"",chantier:""};r.days[k].h=Number(selH.value);selH.style.borderColor=r.days[k].h>MAX_DAILY?"var(--danger)":"var(--border)";save();renderPointage()};
+const selC=document.createElement("select");selC.disabled=lock;selC.innerHTML='<option value=""></option>'+data.chantiers.map(c=>`<option ${(r.days?.[k]?.chantier===c)?"selected":""}>${c}</option>`).join("");selC.onchange=()=>{r.days=r.days||{};r.days[k]=r.days[k]||{h:"",chantier:""};r.days[k].chantier=selC.value;save()};
+wrap.appendChild(selH);const s=document.createElement("div");s.className="sp";wrap.appendChild(s);wrap.appendChild(selC);cell.appendChild(wrap);tr.appendChild(cell)});
+td=document.createElement("td");td.style.textAlign="right";td.style.fontWeight="700";const tot=wTotal(r);td.textContent=tot;if(tot>MAX_WEEKLY)td.style.color="var(--danger)";tr.appendChild(td);
+td=document.createElement("td");const ta=document.createElement("textarea");ta.value=r.notes||"";ta.disabled=lock;ta.oninput=()=>{r.notes=ta.value;save()};td.appendChild(ta);tr.appendChild(td);
+td=document.createElement("td");const del=document.createElement("button");del.textContent="×";del.onclick=()=>{if(confirm("Supprimer la ligne ?")){data.rows=data.rows.filter(x=>x.id!==r.id);save();renderPointage()}};td.appendChild(del);tr.appendChild(td);
+tbody.appendChild(tr)});tbl.appendChild(tbody);
+const tfoot=document.createElement("tfoot"),trf=document.createElement("tr"),tdb=document.createElement("td");tdb.colSpan=4;trf.appendChild(tdb);
+DAY_KEYS.forEach(k=>{const td=document.createElement("td");td.style.textAlign="center";td.style.fontWeight="700";td.textContent=String(tPerDay(rowsForWeek(weekStart))[k]);trf.appendChild(td)});
+const tdw=document.createElement("td");tdw.style.textAlign="right";tdw.style.fontWeight="800";tdw.textContent=String(tWeekAll(rowsForWeek(weekStart)));trf.appendChild(tdw);
+trf.appendChild(document.createElement("td"));trf.appendChild(document.createElement("td"));tfoot.appendChild(trf);tbl.appendChild(tfoot)}
+$("#btn-add-row")?.addEventListener("click",()=>{data.rows.unshift({id:uid(),week:toWeekKey(weekStart),agency:"",workerFirst:"",workerLast:"",mission:"",days:{mon:{h:0,chantier:""},tue:{h:0,chantier:""},wed:{h:0,chantier:""},thu:{h:0,chantier:""},fri:{h:0,chantier:""},sat:{h:0,chantier:""},sun:{h:0,chantier:""}},notes:""});save();renderPointage()});
+$("#chk-lock")?.addEventListener("change",()=>{lock=$("#chk-lock").checked;save();renderPointage()});
+$("#btn-week-today")?.addEventListener("click",()=>{weekStart=isoWeekStart(new Date);save();renderPointage()});
+$("#inp-week-pointer")?.addEventListener("change",e=>{weekStart=isoWeekStart(new Date(e.target.value));save();renderPointage()});
+$("#inp-search")?.addEventListener("input",e=>{search=e.target.value;renderPointage()});
 
-  // ---------- Init / Persist ----------
-  function load(){
-    try{ const r = JSON.parse(localStorage.getItem(LS_ROWS)||"null"); if(Array.isArray(r)) rows = r; }catch{}
-    try{ const m = JSON.parse(localStorage.getItem(LS_META)||"null"); if(m){ if(m.weekStart) weekStart = new Date(m.weekStart); if(m.weekSend) weekSend = new Date(m.weekSend); if(m.agencies) agencies=m.agencies; if(m.chantiers) chantiers=m.chantiers; if(m.lock) lock=!!m.lock; if(m.emailSentCounter) emailSentCounter=+m.emailSentCounter||0; } }catch{}
-  }
-  function save(){ localStorage.setItem(LS_ROWS, JSON.stringify(rows)); localStorage.setItem(LS_META, JSON.stringify({weekStart,weekSend,agencies,chantiers,lock,emailSentCounter})); }
+function renderRecap(){const zone=$("#recap-container");zone.innerHTML="";const groups={};data.rows.forEach(r=>{(groups[r.week]=groups[r.week]||[]).push(r)});const weeks=Object.keys(groups).sort();
+if(!weeks.length){zone.innerHTML='<div class="small">Aucune donnée enregistrée.</div>';return}
+weeks.forEach(wk=>{const wrap=document.createElement("div");wrap.className="panel";wrap.style.marginBottom="16px";const hd=document.createElement("div");hd.className="hd";hd.innerHTML="<strong>Semaine "+wk+"</strong>";wrap.appendChild(hd);
+const bd=document.createElement("div");bd.className="bd";const tbl=document.createElement("table");const thead=document.createElement("thead"),trh=document.createElement("tr");
+["Agence","Prénom","Nom","Mission","Lun","Mar","Mer","Jeu","Ven","Sam","Dim","Total","Notes"].forEach(h=>{const th=document.createElement("th");th.textContent=h;trh.appendChild(th)});thead.appendChild(trh);tbl.appendChild(thead);
+const tb=document.createElement("tbody");groups[wk].forEach(r=>{const tr=document.createElement("tr");
+let td=document.createElement("td");td.textContent=r.agency||"";tr.appendChild(td);
+td=document.createElement("td");td.textContent=r.workerFirst||"";tr.appendChild(td);
+td=document.createElement("td");td.textContent=r.workerLast||"";tr.appendChild(td);
+td=document.createElement("td");td.textContent=r.mission||"";tr.appendChild(td);
+DAY_KEYS.forEach(k=>{const tdj=document.createElement("td");const h=r.days?.[k]?.h||0,c=r.days?.[k]?.chantier||"";tdj.textContent=h?`${h} (${c})`:"";tr.appendChild(tdj)});
+td=document.createElement("td");td.style.textAlign="right";td.style.fontWeight="700";td.textContent=String(wTotal(r));tr.appendChild(td);
+td=document.createElement("td");td.textContent=r.notes||"";tr.appendChild(td);
+tb.appendChild(tr)});tbl.appendChild(tb);bd.appendChild(tbl);wrap.appendChild(bd);zone.appendChild(wrap)})}
 
-  load();
+function renderPlanning(){const tbl=$("#tbl-planning");tbl.innerHTML="";const year=parseInt($("#pl-year").value||String(new Date().getFullYear()),10);if(!year){tbl.innerHTML='<tr><td class="small">Saisir une année valide.</td></tr>';return}
+const thead=document.createElement("thead"),trh=document.createElement("tr");["Ouvrier","Jan","Fév","Mar","Avr","Mai","Juin","Juil","Août","Sep","Oct","Nov","Déc"].forEach(h=>{const th=document.createElement("th");th.textContent=h;trh.appendChild(th)});thead.appendChild(trh);tbl.appendChild(thead);
+const tb=document.createElement("tbody");if(!data.ouvriers.length){const tr=document.createElement("tr"),td=document.createElement("td");td.colSpan=13;td.className="small";td.textContent="Ajoutez des ouvriers pour générer le planning.";tr.appendChild(td);tb.appendChild(tr);tbl.appendChild(tb);return}
+data.ouvriers.forEach(o=>{const tr=document.createElement("tr");let td=document.createElement("td");td.textContent=`${o.first||""} ${o.last||""}`.trim();tr.appendChild(td);
+for(let m=0;m<12;m++){const tdM=document.createElement("td"),box=document.createElement("div");box.style.minWidth="200px";box.style.minHeight="120px";box.style.display="grid";box.style.gridTemplateColumns="repeat(7,1fr)";box.style.gap="2px";
+const daysInMonth=new Date(year,m+1,0).getDate();for(let d=1;d<=daysInMonth;d++){const cell=document.createElement("div");cell.style.border="1px solid var(--border)";cell.style.padding="2px";cell.style.fontSize="10px";
+const date=new Date(year,m,d),wkKey=toWeekKey(isoWeekStart(date));const rows=data.rows.filter(r=>r.week===wkKey&&(r.workerFirst||"")===(o.first||"")&&(r.workerLast||"")===(o.last||""));
+let h="",c="";if(rows.length){const idx=date.getDay(),map=["sun","mon","tue","wed","thu","fri","sat"],dk=map[idx],rr=rows[0],de=rr.days?.[dk];if(de&&typeof de.h==="number"&&de.h>0){h=String(de.h);c=de.chantier||""}}
+cell.textContent=h?`${d}:${h}h ${c}`:String(d);cell.title=`${String(d).padStart(2,"0")}/${String(m+1).padStart(2,"0")}/${year}`;box.appendChild(cell)}
+tdM.appendChild(box);tr.appendChild(tdM)}tb.appendChild(tr)});tbl.appendChild(tb)}
+$("#btn-pl-generate")?.addEventListener("click",()=>renderPlanning());
 
-  // ---------- Render helpers ----------
-  function setSubtitle(){ $('#subtitle').textContent = `Pointer : semaine du ${fmt(isoWeekStart(weekStart))} • Envoyer : semaine du ${fmt(isoWeekStart(weekSend))}`; }
-  function fillDateInputs(){ $('#inp-week-pointer').value = toDateInput(weekStart); $('#inp-week-send').value = toDateInput(weekSend); }
-
-  function renderBadges(){
-    const bag = $('#badges-agencies'); bag.innerHTML = '';
-    const allAgencies = Array.from(new Set([...(agencies||[]), ...rows.map(r=>r.agency).filter(Boolean)])).sort();
-    allAgencies.forEach(a=>{
-      const b = document.createElement('button'); b.className='badge'; b.textContent=a; if(agencyFilter.includes(a)) b.style.background='#e0f2fe';
-      b.onclick=()=>{ if(agencyFilter.includes(a)) agencyFilter=agencyFilter.filter(x=>x!==a); else agencyFilter=[...agencyFilter,a]; render(); };
-      bag.appendChild(b);
-    });
-    const bclear = document.createElement('button'); bclear.className='badge'; bclear.textContent='Réinitialiser'; bclear.onclick=()=>{agencyFilter=[]; render();}; bag.appendChild(bclear);
-
-    const bch = $('#badges-chantiers'); bch.innerHTML='';
-    const allChantiers = Array.from(new Set([...(chantiers||[]), ...rows.map(r=>Object.values(r.days||{}).map(d=>d.chantier)).flat()])).filter(Boolean).sort();
-    allChantiers.forEach(c=>{
-      const b = document.createElement('button'); b.className='badge'; b.textContent=c; if(chantierFilter.includes(c)) b.style.background='#e0f2fe';
-      b.onclick=()=>{ if(chantierFilter.includes(c)) chantierFilter=chantierFilter.filter(x=>x!==c); else chantierFilter=[...chantierFilter,c]; render(); };
-      bch.appendChild(b);
-    });
-    const bclear2 = document.createElement('button'); bclear2.className='badge'; bclear2.textContent='Réinitialiser'; bclear2.onclick=()=>{chantierFilter=[]; render();}; bch.appendChild(bclear2);
-
-    // lists for CRUD blocks
-    const listA = $('#list-agencies'); listA.innerHTML='';
-    agencies.forEach(a=>{ const span=document.createElement('span'); span.className='badge'; span.textContent=a+' '; const x=document.createElement('button'); x.textContent='×'; x.onclick=()=>{agencies=agencies.filter(z=>z!==a); save(); render();}; span.appendChild(x); listA.appendChild(span); });
-    const listC = $('#list-chantiers'); listC.innerHTML='';
-    chantiers.forEach(c=>{ const span=document.createElement('span'); span.className='badge'; span.textContent=c+' '; const x=document.createElement('button'); x.textContent='×'; x.onclick=()=>{chantiers=chantiers.filter(z=>z!==c); save(); render();}; span.appendChild(x); listC.appendChild(span); });
-  }
-
-  function filteredRows(){
-    return rows.filter(r=>{
-      const okA = agencyFilter.length? agencyFilter.includes(r.agency): true;
-      const okSearch = !search || (r.worker+" "+(r.mission||"")+" "+(r.agency||"")+" "+DAY_KEYS.map(k=>r.days?.[k]?.chantier||'').join(' ')).toLowerCase().includes(search.toLowerCase());
-      const chs = DAY_KEYS.map(k=>r.days?.[k]?.chantier).filter(Boolean);
-      const okC = chantierFilter.length? chs.some(c=>chantierFilter.includes(c)): true;
-      return okA && okC && okSearch;
-    });
-  }
-
-  function weeklyTotal(r){ return DAY_KEYS.reduce((s,k)=> s + (typeof (r.days?.[k]?.h)==='number' ? r.days[k].h : 0), 0); }
-
-  function renderTable(){
-    const tbl = $('#tbl-rows'); tbl.innerHTML='';
-    const thead = document.createElement('thead'); const hr = document.createElement('tr');
-    const hs = ["Agence","Intérimaire","Mission","Lun","Mar","Mer","Jeu","Ven","Sam","Dim","Total","Notes"," "];
-    hs.forEach((h,i)=>{ const th=document.createElement('th'); th.textContent=h; if(i>=3 && i<=9){ const d=addDays(isoWeekStart(weekStart), i-3); th.innerHTML = `<div>${h}</div><div class='small'>${fmt(d)}</div>`; } thead.appendChild(th);});
-    tbl.appendChild(thead);
-
-    const tbody = document.createElement('tbody');
-    filteredRows().forEach(r=>{
-      const tr = document.createElement('tr');
-
-      // Agence
-      let td = document.createElement('td');
-      const selA = document.createElement('select'); selA.disabled=lock; selA.innerHTML = `<option value=""></option>` + Array.from(new Set([...(agencies||[]), r.agency].filter(Boolean))).sort().map(a=>`<option${r.agency===a?' selected':''}>${a}</option>`).join('');
-      selA.onchange=()=>{ r.agency=selA.value; save(); render(); };
-      td.appendChild(selA); tr.appendChild(td);
-
-      // Intérimaire
-      td = document.createElement('td'); const inpW=document.createElement('input'); inpW.type='text'; inpW.value=r.worker||''; inpW.disabled=lock; inpW.oninput=()=>{ r.worker=inpW.value; save(); }; td.appendChild(inpW); tr.appendChild(td);
-
-      // Mission
-      td = document.createElement('td'); const inpM=document.createElement('input'); inpM.type='text'; inpM.value=r.mission||''; inpM.disabled=lock; inpM.oninput=()=>{ r.mission=inpM.value; save(); }; td.appendChild(inpM); tr.appendChild(td);
-
-      // 7 jours: {h, chantier}
-      DAY_KEYS.forEach(k=>{
-        const cell = document.createElement('td'); const wrap=document.createElement('div');
-        const inpH=document.createElement('input'); inpH.type='text'; inpH.placeholder='h'; inpH.value= (r.days?.[k]?.h===''||r.days?.[k]?.h==null)? '' : String(r.days[k].h);
-        inpH.disabled=lock; inpH.oninput=()=>{ r.days = r.days||{}; r.days[k] = r.days[k]||{h:"",chantier:""}; r.days[k].h = parseH(inpH.value); if(typeof r.days[k].h==='number' && r.days[k].h>MAX_DAILY){ inpH.classList.add('ring-danger'); } else { inpH.classList.remove('ring-danger'); } save(); renderTotals(); };
-        const selC=document.createElement('select'); selC.disabled=lock; selC.innerHTML='<option value=""></option>'+ Array.from(new Set([...(chantiers||[]), r.days?.[k]?.chantier].filter(Boolean))).sort().map(c=>`<option${(r.days?.[k]?.chantier===c)?' selected':''}>${c}</option>`).join('');
-        selC.onchange=()=>{ r.days = r.days||{}; r.days[k] = r.days[k]||{h:"",chantier:""}; r.days[k].chantier = selC.value; save(); };
-        wrap.appendChild(inpH); wrap.appendChild(document.createElement('div')).className='spacer'; wrap.appendChild(selC);
-        cell.appendChild(wrap); tr.appendChild(cell);
-      });
-
-      // Total
-      td = document.createElement('td'); td.style.textAlign='right'; td.style.fontWeight='700'; const tw = weeklyTotal(r); if(tw>MAX_WEEKLY) td.style.color='var(--danger)'; td.textContent = tw; tr.appendChild(td);
-
-      // Notes
-      td = document.createElement('td'); const ta=document.createElement('textarea'); ta.value=r.notes||''; ta.disabled=lock; ta.oninput=()=>{ r.notes=ta.value; save(); }; td.appendChild(ta); tr.appendChild(td);
-
-      // Delete
-      td = document.createElement('td'); const del=document.createElement('button'); del.textContent='×'; del.onclick=()=>{ if(confirm('Supprimer cette ligne ?')){ rows=rows.filter(x=>x.id!==r.id); save(); render(); } }; td.appendChild(del); tr.appendChild(td);
-
-      tbody.appendChild(tr);
-    });
-    tbl.appendChild(tbody);
-
-    // Footer totals
-    const tfoot = document.createElement('tfoot'); const trf=document.createElement('tr');
-    const tdBlank = document.createElement('td'); tdBlank.colSpan=3; trf.appendChild(tdBlank);
-    // Totaux par jour
-    DAY_KEYS.forEach(k=>{ const td=document.createElement('td'); td.style.textAlign='center'; td.style.fontWeight='700'; td.textContent = String(totalPerDay()[k]); trf.appendChild(td); });
-    const tdWeekAll = document.createElement('td'); tdWeekAll.style.textAlign='right'; tdWeekAll.style.fontWeight='800'; tdWeekAll.textContent=String(totalWeekAll()); trf.appendChild(tdWeekAll);
-    trf.appendChild(document.createElement('td')); trf.appendChild(document.createElement('td'));
-    tfoot.appendChild(trf); tbl.appendChild(tfoot);
-  }
-
-  function renderOverview(){
-    const tbl = $('#tbl-overview'); tbl.innerHTML='';
-    const thead=document.createElement('thead'); const trh=document.createElement('tr'); ['Ouvrier','Agence','Total (h)','Répartition par chantier'].forEach(h=>{ const th=document.createElement('th'); th.textContent=h; trh.appendChild(th); }); thead.appendChild(trh); tbl.appendChild(thead);
-    const tbody=document.createElement('tbody');
-    const map={};
-    filteredRows().forEach(r=>{
-      const key=r.worker||'(Sans nom)'; if(!map[key]) map[key]={agency:r.agency||'', total:0, per:{}};
-      DAY_KEYS.forEach(k=>{ const d=r.days?.[k]; if(!d) return; const h= typeof d.h==='number'? d.h:0; const c=d.chantier||'(Sans chantier)'; if(h>0){ map[key].total+=h; map[key].per[c]=(map[key].per[c]||0)+h; } });
-    });
-    const arr = Object.entries(map).map(([worker,v])=>({worker,agency:v.agency,total:v.total,per:v.per})).sort((a,b)=>b.total-a.total);
-    arr.forEach(r=>{
-      const tr=document.createElement('tr');
-      const tdw=document.createElement('td'); tdw.textContent=r.worker; tr.appendChild(tdw);
-      const tda=document.createElement('td'); tda.textContent=r.agency; tr.appendChild(tda);
-      const tdt=document.createElement('td'); tdt.style.textAlign='right'; tdt.style.fontWeight='700'; tdt.textContent=r.total; tr.appendChild(tdt);
-      const tdd=document.createElement('td'); const wrap=document.createElement('div'); wrap.className='badges'; Object.entries(r.per).forEach(([c,h])=>{ const b=document.createElement('span'); b.className='badge'; b.textContent=`${c}: ${h}h`; wrap.appendChild(b); }); tdd.appendChild(wrap); tr.appendChild(tdd);
-      tbody.appendChild(tr);
-    });
-    if(arr.length===0){ const tr=document.createElement('tr'); const td=document.createElement('td'); td.colSpan=4; td.className='small'; td.textContent='Aucune donnée pour la semaine actuelle.'; tr.appendChild(td); tbody.appendChild(tr); }
-    tbl.appendChild(tbody);
-  }
-
-  function render(){ setSubtitle(); fillDateInputs(); renderBadges(); renderTable(); renderOverview(); }
-  function renderTotals(){ // quick-only updates
-    // update table footer totals without rebuilding all rows
-    renderTable(); renderOverview();
-  }
-
-  function addRow(pref={}){
-    rows.unshift({ id:uid(), agency:pref.agency||'', worker:pref.worker||'', mission:pref.mission||'', days:{ mon:{h:"",chantier:""}, tue:{h:"",chantier:""}, wed:{h:"",chantier:""}, thu:{h:"",chantier:""}, fri:{h:"",chantier:""}, sat:{h:"",chantier:""}, sun:{h:"",chantier:""} }, notes:pref.notes||'' });
-    save(); render();
-  }
-
-  // Totaux
-  function totalPerDay(){ const t={mon:0,tue:0,wed:0,thu:0,fri:0,sat:0,sun:0}; filteredRows().forEach(r=>{ DAY_KEYS.forEach(k=>{ const v=r.days?.[k]?.h; if(typeof v==='number') t[k]+=v; }); }); return t; }
-  function totalWeekAll(){ const t=totalPerDay(); return Object.values(t).reduce((a,b)=>a+b,0); }
-
-  // ---------- XLSX Export ----------
-  function exportXlsx(perAgency){
-    const start = isoWeekStart(weekSend);
-    const makeSheet = (subset)=>{
-      const header=[["Semaine envoyée", fmt(start), "au", fmt(addDays(start,6))],[]];
-      const cols=["Agence","Intérimaire","Mission",
-        ...DAY_KEYS.map(k=>DAY_LABELS[k]+" (h)"),
-        ...DAY_KEYS.map(k=>DAY_LABELS[k]+" chantier"),
-        "Total","Notes"
-      ];
-      const body=subset.map(r=>{
-        const hs=DAY_KEYS.map(k=> r.days?.[k]?.h===''? '' : r.days?.[k]?.h||'');
-        const cs=DAY_KEYS.map(k=> r.days?.[k]?.chantier||'');
-        return [r.agency,r.worker,r.mission||'',...hs,...cs,weeklyTotal(r),r.notes||''];
-      });
-      return [...header,cols,...body];
-    };
-    if(perAgency){
-      const groups={}; rows.forEach(r=>{ const k=r.agency||'(Sans agence)'; (groups[k]=groups[k]||[]).push(r); });
-      Object.entries(groups).forEach(([ag,subset])=>{
-        const wb=XLSX.utils.book_new(); const ws=XLSX.utils.aoa_to_sheet(makeSheet(subset)); XLSX.utils.book_append_sheet(wb,ws,'Pointages'); XLSX.writeFile(wb,`Pointages_${ag}_${fmt(start).replaceAll('/','-')}.xlsx`);
-      }); return;
-    }
-    const wb=XLSX.utils.book_new(); const ws=XLSX.utils.aoa_to_sheet(makeSheet(rows)); XLSX.utils.book_append_sheet(wb,ws,'Pointages'); XLSX.writeFile(wb,`Pointages_${fmt(start).replaceAll('/','-')}.xlsx`);
-  }
-
-  // ---------- XLSX Import ----------
-  function importAdd(file){ const reader=new FileReader(); reader.onload=e=>{ const wb=XLSX.read(new Uint8Array(e.target.result), {type:'array'}); const ws=wb.Sheets[wb.SheetNames[0]]; const json=XLSX.utils.sheet_to_json(ws,{defval:''});
-    const mapped=json.map(row=>{
-      const get=(keys)=> keys.map(k=>row[k]).find(v=>v!==undefined&&v!=='');
-      const getH=(keys)=> parseH(get(keys));
-      const r={ id:uid(), agency:String(get(['Agence','agency'])||''), worker:String(get(['Intérimaire','Nom','worker'])||''), mission:String(get(['Mission'])||''), days:{ mon:{h:"",chantier:""}, tue:{h:"",chantier:""}, wed:{h:"",chantier:""}, thu:{h:"",chantier:""}, fri:{h:"",chantier:""}, sat:{h:"",chantier:""}, sun:{h:"",chantier:""} }, notes:String(get(['Notes'])||'') };
-      DAY_KEYS.forEach((k,i)=>{ r.days[k].h = getH([DAY_LABELS[k], ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][i], ["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"][i]] )||''; r.days[k].chantier = String(get([DAY_LABELS[k]+" chantier"]))||''; });
-      if(!r.days.mon.chantier && (row['Chantier']||row['chantier'])){ DAY_KEYS.forEach(k=> r.days[k].chantier = String(row['Chantier']||row['chantier']||'') ); }
-      return r;
-    });
-    rows=[...mapped,...rows]; save(); render(); }; reader.readAsArrayBuffer(file); }
-
-  function importInit(file){ const reader=new FileReader(); reader.onload=e=>{ const wb=XLSX.read(new Uint8Array(e.target.result), {type:'array'});
-    // Ouvriers sheet
-    let newRows=[]; const ouv = wb.Sheets['Ouvriers'] || wb.Sheets[wb.SheetNames.find(n=>n.toLowerCase().includes('ouvrier'))||''];
-    if(ouv){ const j=XLSX.utils.sheet_to_json(ouv,{defval:''}); newRows=j.map(row=>({ id:uid(), agency:String(row['Agence']||''), worker:String(row['Intérimaire']||row['Nom']||''), mission:String(row['Mission']||''), days:{ mon:{h:"",chantier:String(row['Chantier']||'')}, tue:{h:"",chantier:String(row['Chantier']||'')}, wed:{h:"",chantier:String(row['Chantier']||'')}, thu:{h:"",chantier:String(row['Chantier']||'')}, fri:{h:"",chantier:String(row['Chantier']||'')}, sat:{h:"",chantier:String(row['Chantier']||'')}, sun:{h:"",chantier:String(row['Chantier']||'')} }, notes:'' })); }
-    if(!newRows.length){ const ws=wb.Sheets[wb.SheetNames[0]]; const j=XLSX.utils.sheet_to_json(ws,{defval:''}); newRows=j.map(row=>({ id:uid(), agency:String(row['Agence']||row['agency']||''), worker:String(row['Intérimaire']||row['Nom']||row['worker']||''), mission:String(row['Mission']||''), days:{ mon:{h:"",chantier:String(row['Chantier']||row['chantier']||'')}, tue:{h:"",chantier:String(row['Chantier']||row['chantier']||'')}, wed:{h:"",chantier:String(row['Chantier']||row['chantier']||'')}, thu:{h:"",chantier:String(row['Chantier']||row['chantier']||'')}, fri:{h:"",chantier:String(row['Chantier']||row['chantier']||'')}, sat:{h:"",chantier:String(row['Chantier']||row['chantier']||'')}, sun:{h:"",chantier:String(row['Chantier']||row['chantier']||'')} }, notes:'' })); }
-    // Agences
-    const ags = wb.Sheets['Agences'] || wb.Sheets[wb.SheetNames.find(n=>n.toLowerCase().includes('agence'))||'']; if(ags){ const j=XLSX.utils.sheet_to_json(ags,{defval:''}); agencies = Array.from(new Set(j.map(r=> String(r['Agence']||r['agency']||'')).filter(Boolean))); }
-    // Chantiers
-    const chs = wb.Sheets['Chantiers'] || wb.Sheets[wb.SheetNames.find(n=>n.toLowerCase().includes('chantier'))||'']; if(chs){ const j=XLSX.utils.sheet_to_json(chs,{defval:''}); chantiers = Array.from(new Set(j.map(r=> String(r['Chantier']||r['chantier']||'')).filter(Boolean))); }
-
-    rows=newRows; save(); alert(`Base initialisée : ${rows.length} ouvriers${agencies.length?`, ${agencies.length} agences`:''}${chantiers.length?`, ${chantiers.length} chantiers`:''}.`); render(); };
-    reader.readAsArrayBuffer(file); }
-
-  // ---------- Simu envoi ----------
-  function simulateSend(){ const sel=filteredRows(); if(!sel.length){ alert('Aucune ligne à envoyer selon les filtres.'); return; } const per={}; sel.forEach(r=>{ const k=r.agency||'(Sans agence)'; per[k]=(per[k]||0)+1; }); const sent=Object.keys(per).length; emailSentCounter += sent; save(); alert(`Simulation d'envoi : ${sent} emails pour la semaine du ${fmt(isoWeekStart(weekSend))}. Total envoyés: ${emailSentCounter}`); }
-
-  // ---------- Events ----------
-  $('#btn-add-row').onclick = ()=> addRow();
-  $('#btn-lock').onclick = ()=>{ lock=!lock; $('#chk-lock').checked=lock; save(); render(); };
-  $('#chk-lock').onchange = ()=>{ lock=$('#chk-lock').checked; save(); render(); };
-  $('#btn-export-global').onclick = ()=> exportXlsx(false);
-  $('#btn-export-agency').onclick = ()=> exportXlsx(true);
-  $('#btn-send').onclick = simulateSend;
-  $('#btn-week-today').onclick = ()=>{ weekStart=isoWeekStart(new Date()); save(); render(); };
-  $('#inp-week-pointer').onchange = e=>{ weekStart=isoWeekStart(new Date(e.target.value)); save(); render(); };
-  $('#inp-week-send').onchange = e=>{ weekSend=isoWeekStart(new Date(e.target.value)); save(); render(); };
-  $('#inp-search').oninput = e=>{ search=e.target.value; render(); };
-  $('#btn-import-add').onclick = ()=> $('#file-add').click();
-  $('#file-add').onchange = e=>{ if(e.target.files && e.target.files[0]) importAdd(e.target.files[0]); };
-  $('#btn-import-init').onclick = ()=> $('#file-init').click();
-  $('#file-init').onchange = e=>{ if(e.target.files && e.target.files[0]) importInit(e.target.files[0]); };
-  $('#btn-clear').onclick = ()=>{ if(confirm('Vider toutes les lignes ?')){ rows=[]; save(); render(); } };
-  $('#btn-add-agency').onclick = ()=>{ const v=$('#new-agency').value.trim(); if(v){ agencies = Array.from(new Set([...agencies,v])); $('#new-agency').value=''; save(); render(); } };
-  $('#btn-add-chantier').onclick = ()=>{ const v=$('#new-chantier').value.trim(); if(v){ chantiers = Array.from(new Set([...chantiers,v])); $('#new-chantier').value=''; save(); render(); } };
-  $('#btn-export-overview').onclick = ()=>{
-    const start = isoWeekStart(weekStart);
-    const map={};
-    filteredRows().forEach(r=>{ const key=r.worker||'(Sans nom)'; if(!map[key]) map[key]={agency:r.agency||'', total:0, per:{}}; DAY_KEYS.forEach(k=>{ const d=r.days?.[k]; if(!d) return; const h=typeof d.h==='number'? d.h:0; const c=d.chantier||'(Sans chantier)'; if(h>0){ map[key].total+=h; map[key].per[c]=(map[key].per[c]||0)+h; } }); });
-    const data=Object.entries(map).map(([worker,v])=>({worker,agency:v.agency,total:v.total,per:v.per})).sort((a,b)=>b.total-a.total);
-    const header=[["Synthèse hebdo par ouvrier", fmt(start), "-", fmt(addDays(start,6))],[]];
-    const cols=["Ouvrier","Agence","Total (h)","Détail par chantier"];
-    const body=data.map(r=>[r.worker,r.agency,r.total,Object.entries(r.per).map(([c,h])=>`${c}: ${h}`).join(' | ')]);
-    const wb=XLSX.utils.book_new(); const ws=XLSX.utils.aoa_to_sheet([...header,cols,...body]); XLSX.utils.book_append_sheet(wb,ws,'Synthese'); XLSX.writeFile(wb,`Synthese_hebdo_${toDateInput(start)}.xlsx`);
-  };
-
-  // First render
-  setSubtitle(); fillDateInputs(); render();
+function init(){setSubtitle();fillWeekInput();showPage("home")}
+init();
 })();
 </script>
-</body>
-</html>
+</body></html>
