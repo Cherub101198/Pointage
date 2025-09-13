@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Tableur chantier — Planning • Pointage • Diffusion</title>
+<title>Suite chantier — Planning • Pointage • Diffusion • Ouvriers • Agences • Chantiers • Paramètres</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" />
 <style>
   :root{
@@ -15,7 +15,7 @@
   html,body{height:100%}
   body{margin:0; background:linear-gradient(180deg,#0d1016,#121723 40%,#0d1016); color:var(--ink); font-family:var(--font); -webkit-font-smoothing:antialiased;}
   a{color:inherit; text-decoration:none}
-  .wrap{max-width:1240px; margin:24px auto 56px; padding:0 20px;}
+  .wrap{max-width:1260px; margin:24px auto 56px; padding:0 20px;}
   .header{display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:16px;}
   .title{font-size: clamp(20px, 2.6vw, 28px); font-weight:700}
   .badge{display:inline-flex; align-items:center; gap:10px; padding:10px 14px; background:var(--chip); border:1px solid var(--line); border-radius:999px; font-size:14px; color:var(--muted);}
@@ -30,12 +30,15 @@
   .toolbar{display:flex; flex-wrap:wrap; gap:10px}
   .btn{padding:10px 14px; border-radius:10px; border:1px solid var(--line); background:#1d2330; color:var(--ink); font-size:14px; cursor:pointer; transition:.15s transform ease, .2s background ease; user-select:none;}
   .btn:hover{transform: translateY(-1px)} .btn.primary{background:linear-gradient(180deg,#2d6bff,#2254d7); border-color:#1e3ea8}
-  .btn.ghost{background:transparent} .btn.destructive{background:linear-gradient(180deg,#ff5a5f,#d7263d); border-color:#9d1628}
+  .btn.ghost{background:transparent}
+  .btn.destructive{background:linear-gradient(180deg,#ff5a5f,#d7263d); border-color:#9d1628}
   .btn:disabled{opacity:.55; cursor:not-allowed; transform:none}
   .pill{display:inline-block; padding:4px 8px; border-radius:999px; font-size:12px; background:#1a2130; border:1px solid var(--line); color:#cbd5e4;}
   .hint{color:var(--muted); font-size:13px; margin-top:10px}
   .field{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
-  input[type="text"], input[type="email"], input[type="number"], select, textarea{background:#0e1422; color:var(--ink); border:1px solid var(--line); border-radius:10px; padding:10px 12px; font-size:14px;}
+  input[type="text"], input[type="email"], input[type="number"], input[type="date"], select, textarea{
+    background:#0e1422; color:var(--ink); border:1px solid var(--line); border-radius:10px; padding:10px 12px; font-size:14px;
+  }
   textarea{width:100%; min-height:120px}
   .grow{flex:1} .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
   .grid{display:grid; gap:12px}
@@ -52,14 +55,14 @@
   .kpi .card .v{font-size:20px; font-weight:700}
   /* Modal confirm navigation */
   .modal-backdrop{position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; align-items:center; justify-content:center; z-index:50}
-  .modal{background:var(--panel); border:1px solid var(--line); border-radius:12px; width:min(520px, 92vw); box-shadow:0 12px 40px rgba(0,0,0,.45)}
+  .modal{background:var(--panel); border:1px solid var(--line); border-radius:12px; width:min(560px, 92vw); box-shadow:0 12px 40px rgba(0,0,0,.45)}
   .modal .m-h{padding:14px 16px; border-bottom:1px solid var(--line); font-weight:600}
   .modal .m-b{padding:16px}
   .modal .m-f{display:flex; gap:10px; justify-content:flex-end; padding:12px 16px; border-top:1px solid var(--line)}
   .show{display:flex}
 </style>
 
-<!-- libs -->
+<!-- EmailJS -->
 <script defer src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', () => {
@@ -72,14 +75,14 @@
 <body>
   <div class="wrap">
     <div class="header">
-      <div class="title">Tableur chantier — Suivi global</div>
+      <div class="title">Suite chantier — Suivi global</div>
       <nav class="nav" id="nav">
-        <a href="#/planning"  class="tab" data-route="/planning">Planning</a>
-        <a href="#/pointage"  class="tab" data-route="/pointage">Pointage</a>
-        <a href="#/diffusion" class="tab" data-route="/diffusion">Diffusion</a>
-        <a href="#/ouvriers"  class="tab" data-route="/ouvriers">Ouvriers</a>
-        <a href="#/agences"   class="tab" data-route="/agences">Agences</a>
-        <a href="#/chantiers" class="tab" data-route="/chantiers">Chantiers</a>
+        <a href="#/planning"   class="tab" data-route="/planning">Planning</a>
+        <a href="#/pointage"   class="tab" data-route="/pointage">Pointage</a>
+        <a href="#/diffusion"  class="tab" data-route="/diffusion">Diffusion</a>
+        <a href="#/ouvriers"   class="tab" data-route="/ouvriers">Ouvriers</a>
+        <a href="#/agences"    class="tab" data-route="/agences">Agences</a>
+        <a href="#/chantiers"  class="tab" data-route="/chantiers">Chantiers</a>
         <a href="#/parametres" class="tab" data-route="/parametres">Paramètres</a>
       </nav>
       <div class="badge" id="saveBadge">
@@ -109,9 +112,9 @@
    ========================= */
 const pageRoot = document.getElementById('page');
 const routes = {
-  '/planning': renderPlanning,
-  '/pointage': renderPointageClassic,
-  '/diffusion': renderDiffusion,
+  '/planning': renderPlanningGlobal,
+  '/pointage': renderPointage,
+  '/diffusion': renderDiffusionParAgence,
   '/ouvriers': renderOuvriers,
   '/agences': renderAgences,
   '/chantiers': renderChantiers,
@@ -161,22 +164,22 @@ const storage = {
   set(k, v){ localStorage.setItem(k, JSON.stringify(v)); }
 };
 const KEYS = {
-  ouvriers: 'app_ouvriers',
-  agences: 'app_agences',
-  chantiers: 'app_chantiers',
-  pointage: 'app_pointage', // lignes pointage jour/jour
-  planning: 'app_planning',
-  params: 'app_params',
-  diffusion: 'app_diffusion_rows',
+  ouvriers:  'app_ouvriers_v2',
+  agences:   'app_agences_v2',
+  chantiers: 'app_chantiers_v2',
+  pointage:  'app_pointage_v2',   // lignes: {date, ouvrier, agence, chantier, heures}
+  planning:  'app_planning_v2',   // { [year]: { [workerFullName]: { [week]: "texte" } } }
+  params:    'app_params_v2',
+  diffusion: 'app_diffusion_v2',
 };
 
 /* =========
    DONNÉES PAR DÉFAUT
    ========= */
 const DEFAULT_OUVRIERS = [
-  { nom:"Baudouin RIBERON", agence:"SAMSIC", qualification:"Plâquiste N3P1" },
-  { nom:"Laurent JOLY",    agence:"BPS",    qualification:"Plombier N3P2" },
-  { nom:"Jean-Marc GOUZY", agence:"SAMSIC", qualification:"Polyvalent N4P1" },
+  { prenom:"Baudouin", nom:"RIBERON", metier:"Plâquiste", qualification:"N3P1", agence:"SAMSIC" },
+  { prenom:"Laurent",  nom:"JOLY",    metier:"Plombier",  qualification:"N3P2", agence:"BPS" },
+  { prenom:"Jean-Marc",nom:"GOUZY",   metier:"Polyvalent",qualification:"N4P1", agence:"SAMSIC" },
 ];
 const DEFAULT_AGENCES = [
   { nom:"SAMSIC", email:"samsic@exemple.com" },
@@ -184,31 +187,42 @@ const DEFAULT_AGENCES = [
   { nom:"SOVITRAT", email:"sovitrat@exemple.com" },
 ];
 const DEFAULT_CHANTIERS = [
-  { code:"M96 W19S", encadrant:"Alexis" },
-  { code:"M91 N10S", encadrant:"Jérémy" },
-  { code:"M65 W01S", encadrant:"Paul" },
+  { code:"M96 W19S", numDA:"", nomDA:"", encadrant:"Alexis", adresse:"", zone:"" },
+  { code:"M91 N10S", numDA:"", nomDA:"", encadrant:"Jérémy", adresse:"", zone:"" },
+  { code:"M65 W01S", numDA:"", nomDA:"", encadrant:"Paul",   adresse:"", zone:"" },
 ];
 const DEFAULT_PARAMS = {
-  qualifs:["Plâquiste N3P1","Plombier N3P2","Polyvalent N4P1","Électricien N3P1","Peintre N2"],
+  qualifs:["N1","N2","N3P1","N3P2","N4P1","N4P2"],
   signature:"Cordialement,\nL'équipe Bourdarios",
 };
-const DEFAULT_POINTAGE = [
-  // exemple: chaque ligne = 1 personne un jour, avec heures décimales
-  { date:todayISO(), ouvrier:"Baudouin RIBERON", agence:"SAMSIC", chantier:"M96 W19S", heures:7.50 },
-  { date:todayISO(), ouvrier:"Laurent JOLY", agence:"BPS", chantier:"M91 N10S", heures:6.00 },
-  { date:todayISO(), ouvrier:"Jean-Marc GOUZY", agence:"SAMSIC", chantier:"M65 W01S", heures:8.00 },
-];
+const DEFAULT_POINTAGE = []; // vierge, sera généré par la page Pointage
 
 /* =========
    UTILITAIRES
    ========= */
+const today = new Date();
 function escapeHtml(s=""){ return s.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;"); }
 function formatHeuresFR(v){ const n = Number(v??0); return `${n.toFixed(2).replace(".",",")} Heures`; }
 function parseHeures(t){ const n = parseFloat(String(t).replace(/[^\d.,-]/g,"").replace(",", ".")); return isNaN(n)?0:n; }
 function fmtDate(d){ return new Date(d).toLocaleDateString('fr-FR'); }
-function todayISO(){ const d=new Date(); d.setHours(0,0,0,0); return d.toISOString().slice(0,10); }
-function thisMonday(d=new Date()){ const day=(d.getDay()+6)%7; const m=new Date(d); m.setHours(0,0,0,0); m.setDate(d.getDate()-day); return m; }
-function addDays(d, n){ const x=new Date(d); x.setDate(d.getDate()+n); return x; }
+function dateISO(d){ const x=new Date(d); x.setHours(0,0,0,0); return x.toISOString().slice(0,10); }
+function thisMonday(d=new Date()){ const dd=new Date(d); const day=(dd.getDay()+6)%7; dd.setHours(0,0,0,0); dd.setDate(dd.getDate()-day); return dd; }
+function addDays(d, n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
+function getISOWeek(d){
+  // ISO week number
+  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dayNum = date.getUTCDay() || 7;
+  date.setUTCDate(date.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(date.getUTCFullYear(),0,1));
+  const weekNo = Math.ceil((((date - yearStart) / 86400000) + 1)/7);
+  return {year: date.getUTCFullYear(), week: weekNo};
+}
+function weeksOfYear(year){
+  // 52 ou 53
+  const dec28 = new Date(Date.UTC(year,11,28));
+  return getISOWeek(dec28).week;
+}
+function fullName(ouv){ return `${ouv.prenom} ${ouv.nom}`.trim(); }
 
 /* =================
    PAGE: OUVRIERS
@@ -216,58 +230,87 @@ function addDays(d, n){ const x=new Date(d); x.setDate(d.getDate()+n); return x;
 function renderOuvriers(){
   const route='/ouvriers';
   const params = storage.get(KEYS.params, DEFAULT_PARAMS);
-  const rows = storage.get(KEYS.ouvriers, DEFAULT_OUVRIERS);
   const agences = storage.get(KEYS.agences, DEFAULT_AGENCES).map(a=>a.nom);
+  const rows = storage.get(KEYS.ouvriers, DEFAULT_OUVRIERS);
 
   pageRoot.innerHTML = `
     <section class="panel">
       <div class="panel-h">
-        <div class="toolbar"><span class="pill">Ouvriers</span></div>
-        <div class="toolbar">
-          <button class="btn" id="add">Ajouter</button>
-          <button class="btn" id="save">Enregistrer</button>
-        </div>
+        <div class="toolbar"><span class="pill">Ouvriers — Ajouter & Récap</span></div>
+        <div class="toolbar"><button class="btn" id="save">Enregistrer</button></div>
       </div>
       <div class="panel-b">
+        <div class="grid cols-3" style="margin-bottom:12px">
+          <div class="field"><label class="pill">Prénom</label><input id="iPrenom" type="text" /></div>
+          <div class="field"><label class="pill">Nom</label><input id="iNom" type="text" /></div>
+          <div class="field"><label class="pill">Métier</label><input id="iMetier" type="text" /></div>
+          <div class="field"><label class="pill">Qualification</label>
+            <select id="iQualif">${params.qualifs.map(q=>`<option>${q}</option>`).join('')}</select>
+          </div>
+          <div class="field"><label class="pill">Agence</label>
+            <select id="iAgence">${agences.map(a=>`<option>${a}</option>`).join('')}</select>
+          </div>
+          <div class="field"><label class="pill">&nbsp;</label>
+            <button class="btn primary" id="add">Ajouter l'ouvrier</button>
+          </div>
+        </div>
+
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Nom</th><th>Agence</th><th>Qualification</th><th></th></tr></thead>
+            <thead><tr><th>Prénom</th><th>Nom</th><th>Métier</th><th>Qualification</th><th>Agence</th><th></th></tr></thead>
             <tbody id="tb"></tbody>
           </table>
         </div>
-        <p class="hint">Les qualifications proposées sont définies dans <i>Paramètres</i>.</p>
+        <p class="hint">L'ajout n'efface pas les champs (pratique pour dupliquer et changer juste le nom/prénom).</p>
       </div>
     </section>
   `;
   const tb=document.getElementById('tb');
   function rowTpl(r,i){
-    const qualOpts = params.qualifs.map(q=>`<option ${q===r.qualification?'selected':''}>${q}</option>`).join('');
-    const agOpts = agences.map(a=>`<option ${a===r.agence?'selected':''}>${a}</option>`).join('');
     return `<tr data-i="${i}">
+      <td contenteditable data-k="prenom">${escapeHtml(r.prenom)}</td>
       <td contenteditable data-k="nom">${escapeHtml(r.nom)}</td>
-      <td><select class="ag">${agOpts}</select></td>
-      <td><select class="ql">${qualOpts}</select></td>
+      <td contenteditable data-k="metier">${escapeHtml(r.metier||"")}</td>
+      <td contenteditable data-k="qualification">${escapeHtml(r.qualification||"")}</td>
+      <td contenteditable data-k="agence">${escapeHtml(r.agence||"")}</td>
       <td><button class="btn ghost del">Suppr.</button></td>
     </tr>`;
   }
   function render(){ tb.innerHTML = rows.map(rowTpl).join(''); bind(); }
   function bind(){
-    tb.querySelectorAll('[contenteditable],select').forEach(el=>{
-      el.addEventListener('input', ()=>setDirty(route,true));
-      el.addEventListener('change', ()=>setDirty(route,true));
+    tb.querySelectorAll('[contenteditable]').forEach(el=>{
+      el.addEventListener('input', ()=> setDirty(route,true));
     });
     tb.querySelectorAll('.del').forEach(b=>{
-      b.addEventListener('click',e=>{
+      b.addEventListener('click', e=>{
         const tr=e.target.closest('tr'); const i=+tr.dataset.i; rows.splice(i,1); render(); setDirty(route,true);
       });
     });
   }
-  document.getElementById('add').addEventListener('click', ()=>{ rows.push({nom:"",agence:agences[0]||"",qualification:params.qualifs[0]||""}); render(); setDirty(route,true); });
+  document.getElementById('add').addEventListener('click', ()=>{
+    const prenom = document.getElementById('iPrenom').value.trim();
+    const nom    = document.getElementById('iNom').value.trim();
+    if(!prenom || !nom) { alert("Prénom et Nom requis"); return; }
+    rows.push({
+      prenom,
+      nom,
+      metier: document.getElementById('iMetier').value.trim(),
+      qualification: document.getElementById('iQualif').value,
+      agence: document.getElementById('iAgence').value
+    });
+    render(); setDirty(route,true);
+    // NE PAS vider les champs (volontaire)
+  });
   async function save(){
+    // lire depuis DOM
     const out=[]; tb.querySelectorAll('tr').forEach(tr=>{
-      out.push({ nom:(tr.querySelector('[data-k="nom"]')?.textContent||"").trim(),
-                 agence: tr.querySelector('select.ag')?.value||"",
-                 qualification: tr.querySelector('select.ql')?.value||"" });
+      out.push({
+        prenom:(tr.querySelector('[data-k="prenom"]')?.textContent||"").trim(),
+        nom:(tr.querySelector('[data-k="nom"]')?.textContent||"").trim(),
+        metier:(tr.querySelector('[data-k="metier"]')?.textContent||"").trim(),
+        qualification:(tr.querySelector('[data-k="qualification"]')?.textContent||"").trim(),
+        agence:(tr.querySelector('[data-k="agence"]')?.textContent||"").trim(),
+      });
     });
     storage.set(KEYS.ouvriers,out); setDirty(route,false);
   }
@@ -282,16 +325,20 @@ function renderOuvriers(){
 function renderAgences(){
   const route='/agences';
   const rows = storage.get(KEYS.agences, DEFAULT_AGENCES);
+
   pageRoot.innerHTML=`
     <section class="panel">
       <div class="panel-h">
-        <div class="toolbar"><span class="pill">Agences</span></div>
-        <div class="toolbar">
-          <button class="btn" id="add">Ajouter</button>
-          <button class="btn" id="save">Enregistrer</button>
-        </div>
+        <div class="toolbar"><span class="pill">Agences — Ajouter & Récap</span></div>
+        <div class="toolbar"><button class="btn" id="save">Enregistrer</button></div>
       </div>
       <div class="panel-b">
+        <div class="grid cols-3" style="margin-bottom:12px">
+          <div class="field"><label class="pill">Nom</label><input id="aNom" type="text" /></div>
+          <div class="field"><label class="pill">Email</label><input id="aEmail" type="email" /></div>
+          <div class="field"><label class="pill">&nbsp;</label><button class="btn primary" id="add">Ajouter l'agence</button></div>
+        </div>
+
         <div class="table-wrap">
           <table>
             <thead><tr><th>Nom</th><th>Email</th><th></th></tr></thead>
@@ -314,11 +361,19 @@ function renderAgences(){
       const tr=e.target.closest('tr'); const i=+tr.dataset.i; rows.splice(i,1); render(); setDirty(route,true);
     }));
   }
-  document.getElementById('add').addEventListener('click',()=>{ rows.push({nom:"",email:""}); render(); setDirty(route,true); });
+  document.getElementById('add').addEventListener('click',()=>{
+    const nom=document.getElementById('aNom').value.trim();
+    if(!nom){ alert("Nom requis"); return; }
+    rows.push({nom, email: document.getElementById('aEmail').value.trim()});
+    render(); setDirty(route,true);
+    // NE PAS vider les champs (volontaire)
+  });
   async function save(){
     const out=[]; tb.querySelectorAll('tr').forEach(tr=>{
-      out.push({ nom:(tr.querySelector('[data-k="nom"]')?.textContent||"").trim(),
-                 email:(tr.querySelector('[data-k="email"]')?.textContent||"").trim() });
+      out.push({
+        nom:(tr.querySelector('[data-k="nom"]')?.textContent||"").trim(),
+        email:(tr.querySelector('[data-k="email"]')?.textContent||"").trim()
+      });
     });
     storage.set(KEYS.agences,out); setDirty(route,false);
   }
@@ -333,19 +388,27 @@ function renderAgences(){
 function renderChantiers(){
   const route='/chantiers';
   const rows = storage.get(KEYS.chantiers, DEFAULT_CHANTIERS);
+
   pageRoot.innerHTML=`
     <section class="panel">
       <div class="panel-h">
-        <div class="toolbar"><span class="pill">Chantiers</span></div>
-        <div class="toolbar">
-          <button class="btn" id="add">Ajouter</button>
-          <button class="btn" id="save">Enregistrer</button>
-        </div>
+        <div class="toolbar"><span class="pill">Chantiers — Ajouter & Récap</span></div>
+        <div class="toolbar"><button class="btn" id="save">Enregistrer</button></div>
       </div>
       <div class="panel-b">
+        <div class="grid cols-3" style="margin-bottom:12px">
+          <div class="field"><label class="pill">Code</label><input id="cCode" type="text" /></div>
+          <div class="field"><label class="pill">Numéro DA</label><input id="cDA" type="text" /></div>
+          <div class="field"><label class="pill">Nom DA</label><input id="cNomDA" type="text" /></div>
+          <div class="field"><label class="pill">Encadrant</label><input id="cEnc" type="text" /></div>
+          <div class="field"><label class="pill">Adresse</label><input id="cAdr" type="text" /></div>
+          <div class="field"><label class="pill">Zone</label><input id="cZone" type="text" /></div>
+          <div class="field"><label class="pill">&nbsp;</label><button class="btn primary" id="add">Ajouter le chantier</button></div>
+        </div>
+
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Code chantier</th><th>Encadrant</th><th></th></tr></thead>
+            <thead><tr><th>Code</th><th>Numéro DA</th><th>Nom DA</th><th>Encadrant</th><th>Adresse</th><th>Zone</th><th></th></tr></thead>
             <tbody id="tb"></tbody>
           </table>
         </div>
@@ -355,7 +418,11 @@ function renderChantiers(){
   const tb=document.getElementById('tb');
   function rowTpl(r,i){ return `<tr data-i="${i}">
     <td contenteditable data-k="code">${escapeHtml(r.code)}</td>
+    <td contenteditable data-k="numDA">${escapeHtml(r.numDA||"")}</td>
+    <td contenteditable data-k="nomDA">${escapeHtml(r.nomDA||"")}</td>
     <td contenteditable data-k="encadrant">${escapeHtml(r.encadrant||"")}</td>
+    <td contenteditable data-k="adresse">${escapeHtml(r.adresse||"")}</td>
+    <td contenteditable data-k="zone">${escapeHtml(r.zone||"")}</td>
     <td><button class="btn ghost del">Suppr.</button></td>
   </tr>`;}
   function render(){ tb.innerHTML=rows.map(rowTpl).join(''); bind(); }
@@ -365,11 +432,30 @@ function renderChantiers(){
       const tr=e.target.closest('tr'); const i=+tr.dataset.i; rows.splice(i,1); render(); setDirty(route,true);
     }));
   }
-  document.getElementById('add').addEventListener('click',()=>{ rows.push({code:"",encadrant:""}); render(); setDirty(route,true); });
+  document.getElementById('add').addEventListener('click',()=>{
+    const code=document.getElementById('cCode').value.trim();
+    if(!code){ alert("Code requis"); return; }
+    rows.push({
+      code,
+      numDA: document.getElementById('cDA').value.trim(),
+      nomDA: document.getElementById('cNomDA').value.trim(),
+      encadrant: document.getElementById('cEnc').value.trim(),
+      adresse: document.getElementById('cAdr').value.trim(),
+      zone: document.getElementById('cZone').value.trim(),
+    });
+    render(); setDirty(route,true);
+    // NE PAS vider (volontaire)
+  });
   async function save(){
     const out=[]; tb.querySelectorAll('tr').forEach(tr=>{
-      out.push({ code:(tr.querySelector('[data-k="code"]')?.textContent||"").trim(),
-                 encadrant:(tr.querySelector('[data-k="encadrant"]')?.textContent||"").trim() });
+      out.push({
+        code:(tr.querySelector('[data-k="code"]')?.textContent||"").trim(),
+        numDA:(tr.querySelector('[data-k="numDA"]')?.textContent||"").trim(),
+        nomDA:(tr.querySelector('[data-k="nomDA"]')?.textContent||"").trim(),
+        encadrant:(tr.querySelector('[data-k="encadrant"]')?.textContent||"").trim(),
+        adresse:(tr.querySelector('[data-k="adresse"]')?.textContent||"").trim(),
+        zone:(tr.querySelector('[data-k="zone"]')?.textContent||"").trim(),
+      });
     });
     storage.set(KEYS.chantiers,out); setDirty(route,false);
   }
@@ -379,34 +465,37 @@ function renderChantiers(){
 }
 
 /* =================
-   PAGE: POINTAGE (classique)
+   PAGE: POINTAGE
    ================= */
-function renderPointageClassic(){
+function renderPointage(){
   const route='/pointage';
   const ouvriers = storage.get(KEYS.ouvriers, DEFAULT_OUVRIERS);
-  const agences = storage.get(KEYS.agences, DEFAULT_AGENCES);
-  const chantiers = storage.get(KEYS.chantiers, DEFAULT_CHANTIERS);
+  const agences  = storage.get(KEYS.agences, DEFAULT_AGENCES);
+  const chantiers= storage.get(KEYS.chantiers, DEFAULT_CHANTIERS);
   const rows = storage.get(KEYS.pointage, DEFAULT_POINTAGE);
+
+  // dictionnaire dernier chantier par ouvrier
+  const lastChantierByWorker = {};
+  rows.forEach(r=>{ lastChantierByWorker[r.ouvrier] = r.chantier; });
+
+  const todayIso = dateISO(new Date());
 
   pageRoot.innerHTML = `
     <section class="panel">
       <div class="panel-h">
-        <div class="toolbar"><span class="pill">Pointage (classique)</span></div>
+        <div class="toolbar"><span class="pill">Pointage</span></div>
         <div class="toolbar">
-          <button class="btn" id="add">Ajouter</button>
           <button class="btn" id="save">Enregistrer</button>
         </div>
       </div>
       <div class="panel-b">
         <div class="grid cols-3" style="margin-bottom:10px">
-          <div class="field"><label class="pill">Filtre Agence</label>
-            <select id="fAgence"><option value="">Toutes</option>${agences.map(a=>`<option>${a.nom}</option>`).join('')}</select>
-          </div>
-          <div class="field"><label class="pill">Filtre Chantier</label>
-            <select id="fChantier"><option value="">Tous</option>${chantiers.map(c=>`<option>${c.code}</option>`).join('')}</select>
-          </div>
-          <div class="field"><label class="pill">Date</label>
-            <input type="date" id="fDate" value="${todayISO()}"/>
+          <div class="field"><label class="pill">Date</label><input type="date" id="pDate" value="${todayIso}"/></div>
+          <div class="field"><label class="pill">Heures par défaut</label><input type="number" step="0.25" id="pDefaultH" value="7.50"/></div>
+          <div class="field">
+            <label class="pill">&nbsp;</label>
+            <button class="btn" id="btnAutoFill">Remplir automatiquement</button>
+            <button class="btn" id="btnGenWeek">Générer la semaine (lun→ven)</button>
           </div>
         </div>
 
@@ -420,88 +509,117 @@ function renderPointageClassic(){
             <tbody id="tb"></tbody>
           </table>
         </div>
-        <p class="hint">Saisir les heures en <b>décimal</b> (ex: 7.5). Le format <i>XX,XX Heures</i> est appliqué dans Diffusion.</p>
+        <p class="hint">Tous les ouvriers connus sont listés pour la date sélectionnée. <b>Remplir automatiquement</b> met les heures par défaut et réutilise le dernier chantier connu par ouvrier si possible.</p>
       </div>
     </section>
   `;
 
   const tb = document.getElementById('tb');
-  const fAgence = document.getElementById('fAgence');
-  const fChantier = document.getElementById('fChantier');
-  const fDate = document.getElementById('fDate');
+  const pDate = document.getElementById('pDate');
+  const pDefaultH = document.getElementById('pDefaultH');
   const kpi = document.getElementById('kpi');
 
+  function ensureRowsForDate(dateISO){
+    // crée une ligne pour chaque ouvrier s'il n'existe pas ce jour
+    const byKey = new Map(rows.map(r=>[`${r.date}|${r.ouvrier}`, r]));
+    ouvriers.forEach(o=>{
+      const key = `${dateISO}|${fullName(o)}`;
+      if(!byKey.has(key)){
+        rows.push({
+          date: dateISO,
+          ouvrier: fullName(o),
+          agence: o.agence || "",
+          chantier: lastChantierByWorker[fullName(o)] || "",
+          heures: 0
+        });
+      }
+    });
+  }
+
+  function listForDate(dateISO){
+    return rows.filter(r=>r.date===dateISO).sort((a,b)=>a.ouvrier.localeCompare(b.ouvrier));
+  }
+
   function rowTpl(r,i){
-    const ouOpts = ouvriers.map(o=>`<option ${o.nom===r.ouvrier?'selected':''}>${o.nom}</option>`).join('');
-    const agOpts = agences.map(a=>`<option ${a.nom===r.agence?'selected':''}>${a.nom}</option>`).join('');
     const chOpts = chantiers.map(c=>`<option ${c.code===r.chantier?'selected':''}>${c.code}</option>`).join('');
     return `<tr data-i="${i}">
       <td><input type="date" class="d" value="${r.date}"/></td>
-      <td><select class="o">${ouOpts}</select></td>
-      <td><select class="a">${agOpts}</select></td>
-      <td><select class="c">${chOpts}</select></td>
+      <td class="mono">${escapeHtml(r.ouvrier)}</td>
+      <td class="mono">${escapeHtml(r.agence||"")}</td>
+      <td><select class="c"><option value="">—</option>${chOpts}</select></td>
       <td contenteditable class="h mono" title="Ex: 7.5">${escapeHtml(String(r.heures))}</td>
       <td><button class="btn ghost del">Suppr.</button></td>
     </tr>`;
   }
 
-  function applyFilters(list){
-    return list.filter(r=>{
-      if(fAgence.value && r.agence!==fAgence.value) return false;
-      if(fChantier.value && r.chantier!==fChantier.value) return false;
-      if(fDate.value && r.date!==fDate.value) return false;
-      return true;
-    });
-  }
-
   function render(){
-    const filtered = applyFilters(rows);
-    tb.innerHTML = filtered.map((r,i)=>rowTpl(r,i)).join('');
+    ensureRowsForDate(pDate.value);
+    const list = listForDate(pDate.value);
+    tb.innerHTML = list.map((r,i)=>rowTpl(r,i)).join('');
     bind();
-    // KPIs
-    const total = filtered.reduce((s,r)=>s+(+r.heures||0),0);
-    const parAgence = Object.entries(filtered.reduce((acc,r)=>{acc[r.agence]=(acc[r.agence]||0)+(+r.heures||0);return acc;},{}));
-    kpi.innerHTML = `
-      <div class="card"><div>Total heures</div><div class="v">${total.toFixed(2)}</div></div>
-      ${parAgence.map(([a,h])=>`<div class="card"><div>${escapeHtml(a)}</div><div class="v">${(+h).toFixed(2)}</div></div>`).join('')}
-    `;
+    const total = list.reduce((s,r)=>s+(+r.heures||0),0);
+    kpi.innerHTML = `<div class="card"><div>Total ${fmtDate(pDate.value)}</div><div class="v">${total.toFixed(2)}</div></div>`;
   }
 
   function bind(){
     tb.querySelectorAll('input,select,[contenteditable]').forEach(el=>{
-      el.addEventListener('input', ()=>setDirty(route,true));
-      el.addEventListener('change', ()=>setDirty(route,true));
+      el.addEventListener('input', ()=> setDirty(route,true));
+      el.addEventListener('change', ()=> setDirty(route,true));
     });
     tb.querySelectorAll('.del').forEach(b=>b.addEventListener('click', e=>{
       const tr=e.target.closest('tr'); const i=+tr.dataset.i;
-      const rec = applyFilters(rows)[i];
+      const list = listForDate(pDate.value);
+      const rec = list[i];
       const idx = rows.findIndex(x=>x===rec);
       if(idx>-1) rows.splice(idx,1);
       render(); setDirty(route,true);
     }));
   }
 
-  document.getElementById('add').addEventListener('click',()=>{
-    rows.push({date:todayISO(), ouvrier:ouvriers[0]?.nom||"", agence:agences[0]?.nom||"", chantier:chantiers[0]?.code||"", heures:0});
+  // actions
+  document.getElementById('btnAutoFill').addEventListener('click', ()=>{
+    const list = listForDate(pDate.value);
+    const def = parseHeures(pDefaultH.value);
+    list.forEach(r=>{
+      if(!r.heures) r.heures = def;
+      if(!r.chantier) r.chantier = lastChantierByWorker[r.ouvrier] || "";
+    });
     render(); setDirty(route,true);
   });
-  fAgence.addEventListener('change',render);
-  fChantier.addEventListener('change',render);
-  fDate.addEventListener('change',render);
+
+  document.getElementById('btnGenWeek').addEventListener('click', ()=>{
+    // Génère lundi→vendredi pour tous les ouvriers avec heures par défaut
+    const base = thisMonday(new Date(pDate.value));
+    const def = parseHeures(pDefaultH.value);
+    const weekdays = [0,1,2,3,4]; // lun→ven
+    const byKey = new Set(rows.map(r=>`${r.date}|${r.ouvrier}`));
+    ouvriers.forEach(o=>{
+      const name = fullName(o);
+      weekdays.forEach(offset=>{
+        const dIso = dateISO(addDays(base, offset));
+        const k = `${dIso}|${name}`;
+        if(!byKey.has(k)){
+          rows.push({
+            date: dIso, ouvrier: name, agence: o.agence||"", chantier: lastChantierByWorker[name]||"", heures: def
+          });
+          byKey.add(k);
+        }
+      });
+    });
+    render(); setDirty(route,true);
+  });
+
+  pDate.addEventListener('change', render);
 
   async function save(){
-    // lire depuis DOM filtré (pour conserver modifs)
-    const filtered = applyFilters(rows);
-    const updates = [];
-    tb.querySelectorAll('tr').forEach((tr, i)=>{
-      const r = filtered[i]; if(!r) return;
+    // lire depuis DOM (pour la date affichée)
+    const list = listForDate(pDate.value);
+    tb.querySelectorAll('tr').forEach((tr,i)=>{
+      const r=list[i]; if(!r) return;
       r.date = tr.querySelector('.d')?.value || r.date;
-      r.ouvrier = tr.querySelector('.o')?.value || r.ouvrier;
-      r.agence = tr.querySelector('.a')?.value || r.agence;
-      r.chantier = tr.querySelector('.c')?.value || r.chantier;
-      const htxt = (tr.querySelector('.h')?.textContent||"").trim();
-      r.heures = parseHeures(htxt);
-      updates.push(r);
+      r.chantier = tr.querySelector('.c')?.value || "";
+      r.heures = parseHeures((tr.querySelector('.h')?.textContent||"").trim());
+      lastChantierByWorker[r.ouvrier]=r.chantier||lastChantierByWorker[r.ouvrier];
     });
     storage.set(KEYS.pointage, rows);
     setDirty(route,false);
@@ -513,247 +631,287 @@ function renderPointageClassic(){
 }
 
 /* =================
-   PAGE: PLANNING (simple hebdo)
+   PAGE: PLANNING GLOBAL (Année × Semaines × Ouvriers)
    ================= */
-function renderPlanning(){
+function renderPlanningGlobal(){
   const route='/planning';
-  const base = thisMonday();
-  const jours = [...Array(7)].map((_,i)=>addDays(base,i));
-  const planning = storage.get(KEYS.planning, {}); // { 'YYYY-MM-DD': 'texte' }
+  const ouvriers = storage.get(KEYS.ouvriers, DEFAULT_OUVRIERS);
+  const planning = storage.get(KEYS.planning, {});
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({length:5},(_,i)=>currentYear-2+i); // Y-2 → Y+2
+  const ySel = planning.__year || currentYear;
 
   pageRoot.innerHTML = `
     <section class="panel">
       <div class="panel-h">
-        <div class="toolbar"><span class="pill">Planning (semaine du ${fmtDate(base)})</span></div>
+        <div class="toolbar"><span class="pill">Planning global — Année</span></div>
         <div class="toolbar">
-          <button class="btn" id="prev">Semaine -</button>
-          <button class="btn" id="next">Semaine +</button>
+          <select id="yearSel">${years.map(y=>`<option ${y===ySel?'selected':''}>${y}</option>`).join('')}</select>
           <button class="btn" id="save">Enregistrer</button>
         </div>
       </div>
       <div class="panel-b">
-        <div class="table-wrap">
-          <table>
-            <thead><tr>${jours.map(d=>`<th>${d.toLocaleDateString('fr-FR',{weekday:'long'})}<br><span class="mono">${d.toISOString().slice(0,10)}</span></th>`).join('')}</tr></thead>
-            <tbody>
+        <div class="table-wrap" style="overflow:auto">
+          <table style="min-width:1200px">
+            <thead>
               <tr>
-                ${jours.map(d=>`<td contenteditable data-date="${d.toISOString().slice(0,10)}">${escapeHtml(planning[d.toISOString().slice(0,10)]||"")}</td>`).join('')}
+                <th>Ouvrier</th>
+                ${Array.from({length: weeksOfYear(ySel)}, (_,i)=>`<th class="mono">S${i+1}</th>`).join('')}
               </tr>
-            </tbody>
+            </thead>
+            <tbody id="tb"></tbody>
           </table>
         </div>
-        <p class="hint">Saisis libre (notes, jalons, contraintes). Le contenu reste au format texte.</p>
+        <p class="hint">Chaque cellule est éditable (notes, jalons, chantier cible…). Données stockées par <b>Année → Ouvrier → Semaine</b>.</p>
       </div>
     </section>
   `;
 
-  document.getElementById('prev').addEventListener('click', ()=>{ window.location.hash = '#/planning?offset=-7'; });
-  document.getElementById('next').addEventListener('click', ()=>{ window.location.hash = '#/planning?offset=+7'; });
-  document.querySelector('[data-date]')?.addEventListener('input', ()=>setDirty(route,true));
-  document.querySelectorAll('[data-date]').forEach(el=>el.addEventListener('input', ()=>setDirty(route,true)));
+  const tb = document.getElementById('tb');
+  function rowTpl(w){
+    const wName = fullName(w);
+    const weeks = weeksOfYear(ySel);
+    const pYear = (planning[ySel] && planning[ySel][wName]) ? planning[ySel][wName] : {};
+    return `<tr data-worker="${escapeHtml(wName)}">
+      <td class="mono">${escapeHtml(wName)}</td>
+      ${Array.from({length:weeks},(_,i)=>{
+        const v = (pYear && pYear[i+1]) ? pYear[i+1] : "";
+        return `<td contenteditable class="pg" data-week="${i+1}">${escapeHtml(v)}</td>`;
+      }).join('')}
+    </tr>`;
+  }
+  function render(){ tb.innerHTML = ouvriers.map(rowTpl).join(''); bind(); }
+  function bind(){
+    tb.querySelectorAll('.pg').forEach(td=>{
+      td.addEventListener('input', ()=> setDirty(route,true));
+    });
+  }
+
+  document.getElementById('yearSel').addEventListener('change', ()=>{
+    planning.__year = parseInt(document.getElementById('yearSel').value,10);
+    storage.set(KEYS.planning, planning);
+    renderPlanningGlobal(); // rerender
+  });
 
   async function save(){
-    const data = storage.get(KEYS.planning, {});
-    document.querySelectorAll('[data-date]').forEach(el=>{
-      data[el.dataset.date] = el.textContent.trim();
+    const y = parseInt(document.getElementById('yearSel').value,10);
+    planning.__year = y;
+    planning[y] = planning[y] || {};
+    document.querySelectorAll('tbody tr').forEach(tr=>{
+      const worker = tr.dataset.worker;
+      planning[y][worker] = planning[y][worker] || {};
+      tr.querySelectorAll('[data-week]').forEach(td=>{
+        const wk = parseInt(td.dataset.week,10);
+        planning[y][worker][wk] = td.textContent.trim();
+      });
     });
-    storage.set(KEYS.planning, data);
+    storage.set(KEYS.planning, planning);
     setDirty(route,false);
   }
   saveHandlers[route]=save;
   document.getElementById('save').addEventListener('click', save);
 
-  setDirty(route,false);
+  render(); setDirty(route,false);
 }
 
 /* =================
-   PAGE: DIFFUSION
+   PAGE: DIFFUSION (par Agence, par Semaine)
    ================= */
-function renderDiffusion(){
+function renderDiffusionParAgence(){
   const route='/diffusion';
   const pointage = storage.get(KEYS.pointage, DEFAULT_POINTAGE);
+  const agences = storage.get(KEYS.agences, DEFAULT_AGENCES).map(a=>a.nom);
 
-  // Regroupement par ouvrier/chantier pour la semaine courante
-  const base = thisMonday();
-  const weekISO = [...Array(7)].map((_,i)=>addDays(base,i).toISOString().slice(0,10));
-  const rows = Object.values(pointage)
-    .filter(r=>weekISO.includes(r.date))
-    .reduce((acc,r)=>{
-      const key = `${r.ouvrier}|${r.agence}|${r.chantier}`;
-      if(!acc[key]) acc[key]={ nom:r.ouvrier, entreprise:r.agence, qualification: findQualif(r.ouvrier), heures:0, chantier:r.chantier, encadrant: findEncadrant(r.chantier) };
-      acc[key].heures += (+r.heures||0);
-      return acc;
-    }, {});
-  const baseRows = Object.values(rows);
+  // Semaine sélection
+  const {year:curY, week:curW} = getISOWeek(new Date());
 
   pageRoot.innerHTML = `
     <section class="panel">
       <div class="panel-h">
-        <div class="toolbar"><span class="pill">Diffusion — format XX,XX Heures</span></div>
+        <div class="toolbar"><span class="pill">Diffusion — par Agence</span></div>
         <div class="toolbar">
+          <div class="field">
+            <label class="pill">Année</label>
+            <input type="number" id="dYear" value="${curY}" style="width:110px"/>
+            <label class="pill">Semaine (ISO)</label>
+            <input type="number" id="dWeek" value="${curW}" min="1" max="53" style="width:110px"/>
+          </div>
           <button class="btn" id="save">Enregistrer</button>
           <button class="btn primary" id="send">Envoyer les emails</button>
           <button class="btn ghost" id="preview">Aperçu email</button>
         </div>
       </div>
       <div class="panel-b">
-        <div class="grid cols-2" style="margin-bottom:12px">
-          <div class="field">
-            <label class="pill">Destinataires</label>
-            <input class="grow" id="dest" type="email" placeholder="paul@example.com, jeremy@example.com" />
-          </div>
-          <div class="field">
-            <label class="pill">Objet</label>
-            <input class="grow" id="subject" type="text" value="Synthèse des heures — Semaine en cours" />
-          </div>
-        </div>
-
-        <div class="table-wrap" id="diffWrap">
-          <table aria-label="Tableau diffusion">
-            <thead><tr>
-              <th>Ouvrier</th><th>Entreprise</th><th>Qualification</th><th class="mono">Heures</th><th>Chantier</th><th>Encadrant</th>
-            </tr></thead>
-            <tbody id="tbodyDiff"></tbody>
-          </table>
-        </div>
-        <p class="hint">Les heures sont affichées et envoyées au format <span class="mono">XX,XX&nbsp;Heures</span>. Aucun popup : la pastille passe au vert.</p>
+        <div id="tables"></div>
+        <p class="hint">Un tableau est généré par <b>Agence</b> pour la semaine sélectionnée. Les heures sont au format <span class="mono">XX,XX Heures</span>.</p>
         <div id="previewOut" class="hint"></div>
       </div>
     </section>
   `;
 
-  const tbody = document.getElementById('tbodyDiff');
-  function render(){
-    tbody.innerHTML = "";
-    baseRows.forEach((r)=>{
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td contenteditable data-k="nom">${escapeHtml(r.nom)}</td>
-        <td contenteditable data-k="entreprise">${escapeHtml(r.entreprise)}</td>
-        <td contenteditable data-k="qualification">${escapeHtml(r.qualification||"")}</td>
-        <td contenteditable data-k="heures" class="mono" title="Ex: 41.25">${escapeHtml(formatHeuresFR(r.heures))}</td>
-        <td contenteditable data-k="chantier">${escapeHtml(r.chantier)}</td>
-        <td contenteditable data-k="encadrant">${escapeHtml(r.encadrant||"")}</td>
+  const dYear = document.getElementById('dYear');
+  const dWeek = document.getElementById('dWeek');
+  const tablesDiv = document.getElementById('tables');
+
+  function weekDates(year, week){
+    // lundi de la semaine ISO
+    const simple = new Date(Date.UTC(year,0,4));
+    const dayOfWeek = simple.getUTCDay() || 7;
+    const monday = new Date(simple); monday.setUTCDate(simple.getUTCDate() - dayOfWeek + 1 + (week-1)*7);
+    const days = [...Array(7)].map((_,i)=>new Date(monday.getTime()+i*86400000));
+    return days.map(d=>dateISO(d));
+  }
+
+  function groupData(){
+    const year = parseInt(dYear.value,10);
+    const week = parseInt(dWeek.value,10);
+    const weekIsoDates = weekDates(year, week);
+    const rows = pointage.filter(r=>weekIsoDates.includes(r.date));
+
+    // groupe par agence, puis par (ouvrier|chantier)
+    const byAgency = {};
+    rows.forEach(r=>{
+      const ag = r.agence || '—';
+      byAgency[ag]= byAgency[ag]|| {};
+      const key = `${r.ouvrier}|${r.chantier}|${r.agence}`;
+      if(!byAgency[ag][key]) byAgency[ag][key] = {
+        nom: r.ouvrier, entreprise: r.agence||'',
+        qualification: '', // non indispensable ici ; on peut enrichir via ouvriers si besoin
+        chantier: r.chantier||'', heures:0, encadrant:''
+      };
+      byAgency[ag][key].heures += (+r.heures||0);
+    });
+
+    // enrichir qualification & encadrant
+    const ouvriers = storage.get(KEYS.ouvriers, DEFAULT_OUVRIERS);
+    const chantiers= storage.get(KEYS.chantiers, DEFAULT_CHANTIERS);
+    function qOf(name){
+      const [prenom, ...rest] = name.split(' ');
+      const nom = rest.join(' ');
+      const o = ouvriers.find(x=>fullName(x)===name);
+      return o ? `${o.metier} ${o.qualification}`.trim() : '';
+    }
+    function encOf(code){ return chantiers.find(c=>c.code===code)?.encadrant||''; }
+
+    Object.values(byAgency).forEach(map=>{
+      Object.values(map).forEach(r=>{
+        r.qualification = qOf(r.nom);
+        r.encadrant = encOf(r.chantier);
+      });
+    });
+
+    return byAgency;
+  }
+
+  function renderTables(){
+    const grouped = groupData();
+    const agencies = Object.keys(grouped).sort();
+    if(agencies.length===0){
+      tablesDiv.innerHTML = `<p class="hint">Aucune donnée pour cette semaine.</p>`;
+      return;
+    }
+    tablesDiv.innerHTML = agencies.map(ag=>{
+      const rows = Object.values(grouped[ag]);
+      const body = rows.map(r=>`
+        <tr>
+          <td>${escapeHtml(r.nom)}</td>
+          <td>${escapeHtml(r.entreprise)}</td>
+          <td>${escapeHtml(r.qualification)}</td>
+          <td class="mono">${escapeHtml(formatHeuresFR(r.heures))}</td>
+          <td>${escapeHtml(r.chantier)}</td>
+          <td>${escapeHtml(r.encadrant)}</td>
+        </tr>
+      `).join('');
+      return `
+        <div style="margin-bottom:18px">
+          <div class="pill" style="margin-bottom:8px">Agence: ${escapeHtml(ag)}</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Ouvrier</th><th>Agence</th><th>Qualification</th><th>Heures</th><th>Chantier</th><th>Encadrant</th></tr></thead>
+              <tbody>${body}</tbody>
+            </table>
+          </div>
+        </div>
       `;
-      tr.querySelectorAll('[contenteditable]').forEach(cell=>{
-        cell.addEventListener('input', ()=>{
-          setDirty(route, true);
-          if(cell.dataset.k === 'heures'){
-            const txt = cell.textContent.replace(/[^\d.,]/g,"").replace(",",".");
-            const num = parseFloat(txt);
-            if(!isNaN(num)){ cell.dataset.raw = String(num); }
-          }
-        });
-        cell.addEventListener('blur', ()=>{
-          if(cell.dataset.k === 'heures'){
-            const raw = parseFloat((cell.dataset.raw ?? "").toString());
-            if(!isNaN(raw)){
-              cell.textContent = formatHeuresFR(raw);
-            }else{
-              const txt = cell.textContent.replace(/[^\d.,]/g,"").replace(",",".");
-              const num = parseFloat(txt);
-              cell.textContent = formatHeuresFR(isNaN(num)?0:num);
-            }
-          }
-        });
-      });
-      tbody.appendChild(tr);
-    });
+    }).join('');
   }
-  function readRows(){
-    const out = [];
-    tbody.querySelectorAll('tr').forEach(tr=>{
-      const grab = k => (tr.querySelector(`[data-k="${k}"]`)?.textContent || "").trim();
-      const hCell = tr.querySelector('[data-k="heures"]');
-      let heures = 0;
-      if(hCell){
-        const parsed = hCell.textContent.replace(/[^\d.,]/g,"").replace(",",".");
-        const num = parseFloat(parsed);
-        heures = isNaN(num) ? 0 : num;
-      }
-      out.push({
-        nom: grab('nom'),
-        entreprise: grab('entreprise'),
-        qualification: grab('qualification'),
-        heures,
-        chantier: grab('chantier'),
-        encadrant: grab('encadrant'),
-      });
-    });
-    return out;
-  }
-  function buildEmailHtml(rows){
+
+  function buildEmailHtml(){
+    const grouped = groupData();
+    const agencies = Object.keys(grouped).sort();
     const styles = `
       table{border-collapse:collapse;width:100%;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
       th,td{border:1px solid #d5d8df;padding:8px 10px;font-size:14px}
       th{background:#f2f4f8;text-align:left}
       .mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+      h3{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
     `;
-    const head = `
-      <tr><th>Ouvrier</th><th>Entreprise</th><th>Qualification</th><th>Heures</th><th>Chantier</th><th>Encadrant</th></tr>
-    `;
-    const body = rows.map(r=>`
-      <tr>
-        <td>${escapeHtml(r.nom)}</td>
-        <td>${escapeHtml(r.entreprise)}</td>
-        <td>${escapeHtml(r.qualification||"")}</td>
-        <td class="mono">${escapeHtml(formatHeuresFR(r.heures))}</td>
-        <td>${escapeHtml(r.chantier)}</td>
-        <td>${escapeHtml(r.encadrant||"")}</td>
-      </tr>
-    `).join("");
+    const sections = agencies.map(ag=>{
+      const rows = Object.values(grouped[ag]);
+      const body = rows.map(r=>`
+        <tr>
+          <td>${escapeHtml(r.nom)}</td>
+          <td>${escapeHtml(r.entreprise)}</td>
+          <td>${escapeHtml(r.qualification)}</td>
+          <td class="mono">${escapeHtml(formatHeuresFR(r.heures))}</td>
+          <td>${escapeHtml(r.chantier)}</td>
+          <td>${escapeHtml(r.encadrant)}</td>
+        </tr>
+      `).join('');
+      return `
+        <h3>Agence: ${escapeHtml(ag)}</h3>
+        <table role="table"><thead>
+          <tr><th>Ouvrier</th><th>Agence</th><th>Qualification</th><th>Heures</th><th>Chantier</th><th>Encadrant</th></tr>
+        </thead><tbody>${body}</tbody></table>
+      `;
+    }).join('<br/>');
+
     return `
       <div style="font:14px system-ui,-apple-system,Segoe UI,Roboto,Arial;color:#0b1220">
+        <style>${styles}</style>
         <p>Bonjour,</p>
-        <p>Veuillez trouver ci-dessous la synthèse des heures :</p>
-        <table role="table" aria-label="Synthèse des heures">
-          <style>${styles}</style>
-          <thead>${head}</thead>
-          <tbody>${body}</tbody>
-        </table>
+        <p>Veuillez trouver ci-dessous la synthèse des heures par agence pour la semaine ${escapeHtml(String(dWeek.value))}/${escapeHtml(String(dYear.value))} :</p>
+        ${sections}
         <p style="color:#5f6b7c">— Envoi automatique</p>
       </div>
     `;
   }
+
+  function markDirty(){ setDirty(route,true); }
+  dYear.addEventListener('input', ()=>{ renderTables(); markDirty(); });
+  dWeek.addEventListener('input', ()=>{ renderTables(); markDirty(); });
+
   async function save(){
-    const rows = readRows();
-    storage.set(KEYS.diffusion, rows);
+    // rien de particulier à persister ici, mais on garde l’API homogène
     setDirty(route,false);
   }
+  saveHandlers[route]=save;
+
   async function preview(){
-    const html = buildEmailHtml(readRows());
+    const html = buildEmailHtml();
     document.getElementById('previewOut').innerHTML = `<div class="hint">Aperçu HTML :</div><div style="margin-top:10px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#101525">${html}</div>`;
   }
+
   async function sendEmails(){
-    const dest = (document.getElementById('dest').value || "")
-      .split(",").map(s=>s.trim()).filter(Boolean);
-    if(dest.length===0){ alert("Ajoute au moins un destinataire."); return; }
-    const subject = (document.getElementById('subject').value || "Synthèse des heures").trim();
-    const html = buildEmailHtml(readRows());
+    const subject = `Synthèse des heures — Semaine ${dWeek.value}/${dYear.value}`;
+    const html = buildEmailHtml();
+    // Définis ton ou tes destinataires (tu peux ajouter une zone de saisie si tu veux par agence)
+    const to = prompt("Destinataires (séparés par des virgules) :", "") || "";
+    if(!to.trim()){ alert("Aucun destinataire"); return; }
+
     const SERVICE_ID = "REMPLACE_AVEC_TON_SERVICE_ID";
     const TEMPLATE_ID = "REMPLACE_AVEC_TON_TEMPLATE_ID";
     // eslint-disable-next-line no-undef
-    await emailjs.send(SERVICE_ID, TEMPLATE_ID, { to_emails: dest.join(","), subject, message_html: html });
+    await emailjs.send(SERVICE_ID, TEMPLATE_ID, { to_emails: to.trim(), subject, message_html: html });
+
     setDirty(route,false);
   }
 
   document.getElementById('save').addEventListener('click', save);
   document.getElementById('preview').addEventListener('click', preview);
   document.getElementById('send').addEventListener('click', sendEmails);
-  document.getElementById('diffWrap').addEventListener('input', ()=> setDirty(route, true));
-  document.getElementById('subject').addEventListener('input', ()=> setDirty(route, true));
-  document.getElementById('dest').addEventListener('input', ()=> setDirty(route, true));
 
-  render(); setDirty(route,false);
-
-  function findQualif(nom){
-    const o = storage.get(KEYS.ouvriers, DEFAULT_OUVRIERS).find(x=>x.nom===nom);
-    return o?.qualification || "";
-    }
-  function findEncadrant(code){
-    const c = storage.get(KEYS.chantiers, DEFAULT_CHANTIERS).find(x=>x.code===code);
-    return c?.encadrant || "";
-  }
+  renderTables(); setDirty(route,false);
 }
 
 /* =================
