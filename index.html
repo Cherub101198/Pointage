@@ -3,14 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Tableur — Diffusion</title>
+  <title>Tableur — Saisie • Diffusion • Paramètres</title>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" />
   <style>
     :root{
       --bg:#0f1115; --panel:#171a21; --ink:#e8ebf1; --muted:#9aa4b2;
       --accent:#4da3ff; --ok:#35c759; --warn:#ff9f0a; --err:#ff453a; --line:#262b36;
-      --chip:#202532;
-      --radius:12px;
+      --chip:#202532; --radius:12px;
       --font: ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
     }
     html,body{height:100%}
@@ -18,60 +17,56 @@
       margin:0; background:linear-gradient(180deg,#0d1016,#121723 40%,#0d1016);
       color:var(--ink); font-family:var(--font); -webkit-font-smoothing:antialiased;
     }
-    .wrap{max-width:1120px; margin:32px auto; padding:0 20px;}
-    .header{
-      display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:20px;
-    }
+    a{color:inherit; text-decoration:none}
+    .wrap{max-width:1200px; margin:24px auto 56px; padding:0 20px;}
+    .header{display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:18px;}
     .title{font-size: clamp(20px, 2.6vw, 28px); font-weight:700; letter-spacing:.2px;}
-    .badge{
-      display:inline-flex; align-items:center; gap:10px; padding:10px 14px; background:var(--chip);
-      border:1px solid var(--line); border-radius:999px; font-size:14px; color:var(--muted);
-    }
+    .badge{display:inline-flex; align-items:center; gap:10px; padding:10px 14px; background:var(--chip);
+      border:1px solid var(--line); border-radius:999px; font-size:14px; color:var(--muted);}
     .dot{width:10px; height:10px; border-radius:50%; box-shadow:0 0 0 2px rgba(0,0,0,.25) inset;}
     .dot.orange{background:var(--warn)}
     .dot.green{background:var(--ok)}
-    .panel{
-      background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden;
-      box-shadow: 0 10px 30px rgba(0,0,0,.25);
-    }
-    .panel-h{
-      display:flex; align-items:center; justify-content:space-between; padding:16px 18px; border-bottom:1px solid var(--line);
-    }
-    .panel-b{padding:16px 18px;}
+    .nav{display:flex; gap:8px; background:var(--panel); border:1px solid var(--line); border-radius:999px; padding:6px; flex-wrap:wrap}
+    .tab{padding:8px 14px; border-radius:999px; color:#c9d1e1; border:1px solid transparent}
+    .tab.active{background:#263049; border-color:#35405e}
+    .panel{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; box-shadow: 0 10px 30px rgba(0,0,0,.25); margin-top:14px}
+    .panel-h{display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:1px solid var(--line);}
+    .panel-b{padding:16px;}
     .toolbar{display:flex; flex-wrap:wrap; gap:10px}
-    .btn{
-      padding:10px 14px; border-radius:10px; border:1px solid var(--line); background:#1d2330; color:var(--ink);
-      font-size:14px; cursor:pointer; transition:.15s transform ease, .2s background ease; user-select:none;
-    }
+    .btn{padding:10px 14px; border-radius:10px; border:1px solid var(--line); background:#1d2330; color:var(--ink);
+      font-size:14px; cursor:pointer; transition:.15s transform ease, .2s background ease; user-select:none;}
     .btn:hover{transform: translateY(-1px)}
     .btn.primary{background:linear-gradient(180deg,#2d6bff,#2254d7); border-color:#1e3ea8}
     .btn.ghost{background:transparent}
     .btn:disabled{opacity:.55; cursor:not-allowed; transform:none}
-    .table-wrap{
-      width:100%; overflow:auto; border-radius:10px; border:1px solid var(--line);
-    }
-    table{width:100%; border-collapse:collapse; min-width:720px; background:#0f131c}
-    thead th{
-      position:sticky; top:0; backdrop-filter: blur(6px);
-      background:#0f131cee; color:#c9d1e1; font-weight:600; text-align:left; font-size:13px; letter-spacing:.2px;
-      border-bottom:1px solid var(--line); padding:12px 12px;
-    }
-    tbody td{border-bottom:1px solid var(--line); padding:10px 12px; font-size:14px; color:#e5e9f3}
+    .table-wrap{width:100%; overflow:auto; border-radius:10px; border:1px solid var(--line);}
+    table{width:100%; border-collapse:collapse; min-width:860px; background:#0f131c}
+    thead th{position:sticky; top:0; backdrop-filter: blur(6px); background:#0f131cee; color:#c9d1e1; font-weight:600; text-align:left; font-size:13px; letter-spacing:.2px; border-bottom:1px solid var(--line); padding:10px 12px;}
+    tbody td{border-bottom:1px solid var(--line); padding:9px 12px; font-size:14px; color:#e5e9f3}
     tbody tr:hover{background:#121829}
-    .pill{
-      display:inline-block; padding:4px 8px; border-radius:999px; font-size:12px; background:#1a2130; border:1px solid var(--line); color:#cbd5e4;
-    }
+    .pill{display:inline-block; padding:4px 8px; border-radius:999px; font-size:12px; background:#1a2130; border:1px solid var(--line); color:#cbd5e4;}
     .hint{color:var(--muted); font-size:13px; margin-top:10px}
     .field{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
-    input[type="text"], input[type="email"]{
-      background:#0e1422; color:var(--ink); border:1px solid var(--line); border-radius:10px; padding:10px 12px; font-size:14px;
-    }
+    input[type="text"], input[type="email"], select, textarea{background:#0e1422; color:var(--ink); border:1px solid var(--line); border-radius:10px; padding:10px 12px; font-size:14px;}
+    textarea{width:100%; min-height:120px}
     .grow{flex:1}
     .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
     .success{color:var(--ok)}
     .warn{color:var(--warn)}
+    .grid{display:grid; gap:12px}
+    .grid.cols-2{grid-template-columns: repeat(2, minmax(0, 1fr))}
+    @media (max-width: 860px){ .grid.cols-2{grid-template-columns: 1fr} }
+
+    /* Modal confirm navigation */
+    .modal-backdrop{position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; align-items:center; justify-content:center; z-index:50}
+    .modal{background:var(--panel); border:1px solid var(--line); border-radius:12px; width:min(520px, 92vw); box-shadow:0 12px 40px rgba(0,0,0,.45)}
+    .modal .m-h{padding:14px 16px; border-bottom:1px solid var(--line); font-weight:600}
+    .modal .m-b{padding:16px}
+    .modal .m-f{display:flex; gap:10px; justify-content:flex-end; padding:12px 16px; border-top:1px solid var(--line)}
+    .show{display:flex}
   </style>
-  <!-- EmailJS SDK -->
+
+  <!-- EmailJS (pour Diffusion auto sans copier-coller) -->
   <script defer src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -84,215 +79,191 @@
 <body>
   <div class="wrap">
     <div class="header">
-      <div class="title">Diffusion des heures</div>
+      <div class="title">Tableur — Suivi des heures</div>
+      <nav class="nav" id="nav">
+        <a href="#/saisie" class="tab" data-route="/saisie">Saisie</a>
+        <a href="#/diffusion" class="tab" data-route="/diffusion">Diffusion</a>
+        <a href="#/parametres" class="tab" data-route="/parametres">Paramètres</a>
+      </nav>
       <div class="badge" id="saveBadge">
         <span class="dot orange" id="saveDot"></span>
         <span id="saveText">Modifications non enregistrées</span>
       </div>
     </div>
 
-    <div class="panel">
-      <div class="panel-h">
-        <div class="toolbar">
-          <button class="btn" id="btnEnregistrer">Enregistrer</button>
-          <button class="btn primary" id="btnEnvoyerMails">Envoyer les emails</button>
-          <button class="btn ghost" id="btnApercu">Aperçu email</button>
-        </div>
+    <!-- PAGES -->
+    <main id="page"></main>
+  </div>
+
+  <!-- Modal de confirmation navigation si non enregistré -->
+  <div class="modal-backdrop" id="confirmModal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+      <div class="m-h" id="confirmTitle">Enregistrer les modifications ?</div>
+      <div class="m-b">
+        <p class="hint">Cette page contient des modifications non enregistrées.</p>
       </div>
-      <div class="panel-b">
-        <div class="field" style="margin-bottom:12px;">
-          <label class="pill">Destinataires (séparés par des virgules)</label>
-          <input class="grow" id="destinataires" type="email" placeholder="paul@example.com, jeremy@example.com" />
-        </div>
-        <div class="field" style="margin-bottom:12px;">
-          <label class="pill">Objet</label>
-          <input class="grow" id="objet" type="text" value="Synthèse des heures — Semaine en cours" />
-        </div>
-
-        <div class="table-wrap" id="tableWrap">
-          <table id="tabDiffusion" aria-label="Tableau de diffusion des heures">
-            <thead>
-              <tr>
-                <th>Ouvrier</th>
-                <th>Entreprise</th>
-                <th>Qualification</th>
-                <th class="mono">Heures</th>
-                <th>Chantier</th>
-                <th>Encadrant</th>
-              </tr>
-            </thead>
-            <tbody id="tbodyDiffusion"></tbody>
-          </table>
-        </div>
-
-        <p class="hint">
-          Les heures sont affichées et envoyées au format <span class="mono">XX,XX&nbsp;Heures</span>.  
-          L’envoi des mails est automatique (sans copier-coller) via EmailJS.
-        </p>
-
-        <div id="apercuOut" class="hint"></div>
+      <div class="m-f">
+        <button class="btn" id="btnKeep">Continuer sans enregistrer</button>
+        <button class="btn primary" id="btnSaveAndGo">Enregistrer et continuer</button>
+        <button class="btn ghost" id="btnCancelNav">Annuler</button>
       </div>
     </div>
   </div>
 
   <script type="module">
-    /*********************
-     * Données d'exemple *
-     *********************/
-    const donnees = [
-      { nom: "Baudouin RIBERON", entreprise: "SAMSIC", qualification: "Plâquiste N3P1", heures: 35.5, chantier:"M96 W19S", encadrant:"Alexis" },
-      { nom: "Laurent JOLY", entreprise: "BPS", qualification: "Plombier N3P2", heures: 28, chantier:"M91 N10S", encadrant:"Jérémy" },
-      { nom: "Jean-Marc GOUZY", entreprise: "SAMSIC", qualification: "Polyvalent N4P1", heures: 41.25, chantier:"M65 W01S", encadrant:"Paul" },
-    ];
+    /******************************
+     * ROUTEUR + état "dirty/saved"
+     ******************************/
+    const pageRoot = document.getElementById('page');
+    const nav = document.getElementById('nav');
+
+    const routes = {
+      '/saisie': renderSaisie,
+      '/diffusion': renderDiffusion,
+      '/parametres': renderParametres,
+    };
+
+    // état d'édition par page
+    const dirtyState = {
+      '/saisie': false,
+      '/diffusion': false,
+      '/parametres': false,
+    };
+    let currentRoute = '/saisie';
+    let pendingRoute = null;
+
+    function setDirty(route, isDirty){
+      dirtyState[route] = !!isDirty;
+      updateBadge();
+    }
+    function updateBadge(){
+      const dot = document.getElementById('saveDot');
+      const text = document.getElementById('saveText');
+      const isAnyDirty = dirtyState[currentRoute];
+      if(isAnyDirty){
+        dot.classList.remove('green'); dot.classList.add('orange');
+        text.textContent = "Modifications non enregistrées";
+      }else{
+        dot.classList.remove('orange'); dot.classList.add('green');
+        text.textContent = "Enregistré";
+      }
+    }
+
+    function activateTab(route){
+      document.querySelectorAll('.tab').forEach(a=>{
+        a.classList.toggle('active', a.dataset.route === route);
+      });
+    }
+
+    // Confirmation navigation si dirty
+    const modal = document.getElementById('confirmModal');
+    const btnKeep = document.getElementById('btnKeep');
+    const btnSaveAndGo = document.getElementById('btnSaveAndGo');
+    const btnCancelNav = document.getElementById('btnCancelNav');
+    function showConfirm(){
+      modal.classList.add('show');
+    }
+    function hideConfirm(){
+      modal.classList.remove('show');
+    }
+    btnCancelNav.addEventListener('click', ()=>{ pendingRoute=null; hideConfirm(); });
+    btnKeep.addEventListener('click', ()=>{
+      hideConfirm();
+      // annule les modifs en mémoire (pas d'undo ici ; on bascule juste de page)
+      navigate(pendingRoute, {force:true});
+      pendingRoute = null;
+    });
+    btnSaveAndGo.addEventListener('click', async ()=>{
+      hideConfirm();
+      // déclenche le save de la page courante avant de continuer
+      await saveHandlers[currentRoute]?.();
+      navigate(pendingRoute, {force:true});
+      pendingRoute = null;
+    });
+
+    // empêcher perte si fermeture onglet
+    window.addEventListener('beforeunload', (e)=>{
+      if(dirtyState[currentRoute]){
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    });
+
+    // Navigation avec garde
+    function navigate(route, opts={}){
+      if(!routes[route]) route='/saisie';
+      if(!opts.force && dirtyState[currentRoute]){
+        pendingRoute = route;
+        showConfirm();
+        return;
+      }
+      currentRoute = route;
+      window.location.hash = '#'+route;
+      activateTab(route);
+      routes[route]();
+      updateBadge();
+    }
+
+    function handleHash(){
+      const hash = window.location.hash.replace(/^#/, '') || '/saisie';
+      if(hash !== currentRoute){
+        navigate(hash);
+      }else{
+        navigate(currentRoute, {force:true});
+      }
+    }
+    window.addEventListener('hashchange', handleHash);
+    document.addEventListener('DOMContentLoaded', handleHash);
 
     /***********************
-     * Utilitaires format  *
+     * Données / Paramètres
      ***********************/
+    // Base ouvriers demandée + options de qualification
+    const QUALIFS = [
+      "Plâquiste N3P1",
+      "Plombier N3P2",
+      "Polyvalent N4P1", // ajouté
+      "Électricien N3P1",
+      "Peintre N2"
+    ];
+
+    const storage = {
+      get(key, fallback){
+        try{ const v = JSON.parse(localStorage.getItem(key)); return (v ?? fallback); }catch{ return fallback; }
+      },
+      set(key, value){ localStorage.setItem(key, JSON.stringify(value)); }
+    };
+
+    const storeKeys = {
+      saisie: 'tableur_saisie_rows',
+      diffusion: 'tableur_diffusion_rows',
+      params: 'tableur_params',
+    };
+
+    // Données par défaut (préremplies)
+    function defaultRows(){
+      return [
+        { nom: "Baudouin RIBERON", entreprise: "SAMSIC", qualification: "Plâquiste N3P1", heures: 35.5, chantier:"M96 W19S", encadrant:"Alexis" },
+        { nom: "Laurent JOLY", entreprise: "BPS",    qualification: "Plombier N3P2",  heures: 28,   chantier:"M91 N10S", encadrant:"Jérémy" },
+        { nom: "Jean-Marc GOUZY", entreprise: "SAMSIC", qualification: "Polyvalent N4P1", heures: 41.25, chantier:"M65 W01S", encadrant:"Paul" },
+      ];
+    }
+
+    const saveHandlers = {}; // callbacks par page pour "Enregistrer"
+
+    /*****************
+     * Utilitaires UI
+     *****************/
     function formatHeuresFR(value){
       const num = Number(value ?? 0);
-      const fixed = num.toFixed(2);            // "41.25"
-      const fr = fixed.replace(".", ",");      // "41,25"
+      const fixed = num.toFixed(2);
+      const fr = fixed.replace(".", ",");
       return `${fr} Heures`;
     }
-
-    function markDirty(){
-      const dot = document.getElementById('saveDot');
-      const text = document.getElementById('saveText');
-      dot.classList.remove('green');
-      dot.classList.add('orange');
-      text.textContent = "Modifications non enregistrées";
-    }
-    function markSaved(){
-      const dot = document.getElementById('saveDot');
-      const text = document.getElementById('saveText');
-      dot.classList.remove('orange');
-      dot.classList.add('green');
-      text.textContent = "Enregistré";
-    }
-
-    /************************
-     * Rendu du tableau UI  *
-     ************************/
-    const tbody = document.getElementById('tbodyDiffusion');
-    function renderTbody(rows){
-      tbody.innerHTML = "";
-      rows.forEach((r) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td contenteditable data-k="nom">${r.nom}</td>
-          <td contenteditable data-k="entreprise">${r.entreprise}</td>
-          <td contenteditable data-k="qualification">${r.qualification}</td>
-          <td contenteditable data-k="heures" class="mono" title="Saisir un nombre (ex: 35.5)">${formatHeuresFR(r.heures)}</td>
-          <td contenteditable data-k="chantier">${r.chantier}</td>
-          <td contenteditable data-k="encadrant">${r.encadrant}</td>
-        `;
-        tr.querySelectorAll('[contenteditable]').forEach(cell => {
-          cell.addEventListener('input', () => {
-            markDirty();
-            if(cell.dataset.k === 'heures'){
-              const txt = cell.textContent.replace(/[^\d.,]/g,"").replace(",",".");
-              const num = parseFloat(txt);
-              if(!isNaN(num)){
-                cell.dataset.raw = String(num);
-              }
-            }
-          });
-          cell.addEventListener('blur', () => {
-            if(cell.dataset.k === 'heures'){
-              const raw = parseFloat((cell.dataset.raw ?? "").toString());
-              if(!isNaN(raw)){
-                cell.textContent = formatHeuresFR(raw);
-              }else{
-                const txt = cell.textContent.replace(/[^\d.,]/g,"").replace(",",".");
-                const num = parseFloat(txt);
-                cell.textContent = formatHeuresFR(isNaN(num)?0:num);
-              }
-            }
-          });
-        });
-        tbody.appendChild(tr);
-      });
-    }
-    renderTbody(donnees);
-
-    /*********************************
-     * Extraction données depuis DOM *
-     *********************************/
-    function readRows(){
-      const out = [];
-      tbody.querySelectorAll('tr').forEach(tr=>{
-        const grab = k => (tr.querySelector(`[data-k="${k}"]`)?.textContent || "").trim();
-        const hCell = tr.querySelector('[data-k="heures"]');
-        let heures = 0;
-        if(hCell){
-          const parsed = hCell.textContent.replace(/[^\d.,]/g,"").replace(",",".");
-          const num = parseFloat(parsed);
-          heures = isNaN(num) ? 0 : num;
-        }
-        out.push({
-          nom: grab('nom'),
-          entreprise: grab('entreprise'),
-          qualification: grab('qualification'),
-          heures,
-          chantier: grab('chantier'),
-          encadrant: grab('encadrant'),
-        });
-      });
-      return out;
-    }
-
-    /*******************************
-     * Enregistrement (mock local) *
-     *******************************/
-    function enregistrer(){
-      const data = readRows();
-      localStorage.setItem('diffusion_heures', JSON.stringify(data));
-      markSaved();
-    }
-    document.getElementById('btnEnregistrer').addEventListener('click', enregistrer);
-
-    /****************************************
-     * Génération du tableau HTML pour mail *
-     ****************************************/
-    function buildEmailHtml(rows){
-      const styles = `
-        table{border-collapse:collapse;width:100%;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
-        th,td{border:1px solid #d5d8df;padding:8px 10px;font-size:14px}
-        th{background:#f2f4f8;text-align:left}
-        .mono{font-family:ui-monospace,Menlo,Consolas,monospace}
-      `;
-      const head = `
-        <tr>
-          <th>Ouvrier</th>
-          <th>Entreprise</th>
-          <th>Qualification</th>
-          <th>Heures</th>
-          <th>Chantier</th>
-          <th>Encadrant</th>
-        </tr>
-      `;
-      const body = rows.map(r=>`
-        <tr>
-          <td>${escapeHtml(r.nom)}</td>
-          <td>${escapeHtml(r.entreprise)}</td>
-          <td>${escapeHtml(r.qualification)}</td>
-          <td class="mono">${escapeHtml(formatHeuresFR(r.heures))}</td>
-          <td>${escapeHtml(r.chantier)}</td>
-          <td>${escapeHtml(r.encadrant)}</td>
-        </tr>
-      `).join("");
-      return `
-        <div style="font:14px system-ui,-apple-system,Segoe UI,Roboto,Arial;color:#0b1220">
-          <p>Bonjour,</p>
-          <p>Veuillez trouver ci-dessous la synthèse des heures :</p>
-          <table role="table" aria-label="Synthèse des heures">
-            <style>${styles}</style>
-            <thead>${head}</thead>
-            <tbody>${body}</tbody>
-          </table>
-          <p style="color:#5f6b7c">— Envoi automatique</p>
-        </div>
-      `;
+    function parseHeures(text){
+      const parsed = (text ?? '').toString().replace(/[^\d.,-]/g,'').replace(",",".");
+      const num = parseFloat(parsed);
+      return isNaN(num) ? 0 : num;
     }
     function escapeHtml(s=""){
       return s
@@ -303,75 +274,379 @@
         .replaceAll("'","&#39;");
     }
 
-    /***********************
-     * Aperçu dans la page *
-     ***********************/
-    document.getElementById('btnApercu').addEventListener('click', () => {
-      const html = buildEmailHtml(readRows());
-      const out = document.getElementById('apercuOut');
-      out.innerHTML = `<div class="success">Aperçu du contenu HTML qui sera envoyé :</div><div style="margin-top:10px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#101525">${html}</div>`;
-    });
+    /****************
+     * PAGE: SAISIE *
+     ****************/
+    function renderSaisie(){
+      const route = '/saisie';
+      const rows = storage.get(storeKeys.saisie, storage.get(storeKeys.diffusion, defaultRows()));
+      pageRoot.innerHTML = `
+        <section class="panel">
+          <div class="panel-h">
+            <div class="toolbar">
+              <span class="pill">Saisie des heures (édition rapide)</span>
+            </div>
+            <div class="toolbar">
+              <button class="btn" id="btnAddRow">Ajouter une ligne</button>
+              <button class="btn" id="btnSaveSaisie">Enregistrer</button>
+            </div>
+          </div>
+          <div class="panel-b">
+            <div class="table-wrap" id="saisieWrap">
+              <table aria-label="Saisie des heures">
+                <thead>
+                  <tr>
+                    <th>Ouvrier</th>
+                    <th>Entreprise</th>
+                    <th>Qualification</th>
+                    <th class="mono">Heures (nombre)</th>
+                    <th>Chantier</th>
+                    <th>Encadrant</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="tbodySaisie"></tbody>
+              </table>
+            </div>
+            <p class="hint">Saisis un <b>nombre</b> en heures (ex: 41.25). Le format <span class="mono">XX,XX Heures</span> sera appliqué automatiquement dans <i>Diffusion</i>.</p>
+          </div>
+        </section>
+      `;
 
-    /*****************
-     * Envoi EmailJS *
-     *****************
-     * Prérequis :
-     * 1) Crée un compte https://www.emailjs.com/
-     * 2) Ajoute un service (SMTP relay / Gmail / autre)
-     * 3) Crée un template avec les variables: to_emails, subject, message_html
-     * 4) Remplace ci-dessous: SERVICE_ID, TEMPLATE_ID et la publicKey plus haut
-     */
-    const SERVICE_ID = "REMPLACE_AVEC_TON_SERVICE_ID";
-    const TEMPLATE_ID = "REMPLACE_AVEC_TON_TEMPLATE_ID";
+      const tbody = document.getElementById('tbodySaisie');
 
-    async function envoyerEmails(){
-      const dest = (document.getElementById('destinataires').value || "")
-        .split(",")
-        .map(s=>s.trim())
-        .filter(Boolean);
-
-      if(dest.length === 0){
-        alert("Ajoute au moins un destinataire (séparés par des virgules).");
-        return;
+      function rowTpl(r, idx){
+        const options = QUALIFS.map(q=>`<option ${q===r.qualification?'selected':''}>${q}</option>`).join('');
+        return `
+          <tr data-idx="${idx}">
+            <td contenteditable data-k="nom">${escapeHtml(r.nom)}</td>
+            <td contenteditable data-k="entreprise">${escapeHtml(r.entreprise)}</td>
+            <td data-k="qualification">
+              <select class="qualSel">
+                ${options}
+              </select>
+            </td>
+            <td contenteditable data-k="heures" class="mono" title="Ex: 35.5">${escapeHtml(String(r.heures))}</td>
+            <td contenteditable data-k="chantier">${escapeHtml(r.chantier)}</td>
+            <td contenteditable data-k="encadrant">${escapeHtml(r.encadrant)}</td>
+            <td><button class="btn ghost btnDel">Suppr.</button></td>
+          </tr>
+        `;
       }
 
-      const subject = (document.getElementById('objet').value || "Synthèse des heures").trim();
-      const html = buildEmailHtml(readRows());
+      function render(){
+        tbody.innerHTML = rows.map((r, i)=>rowTpl(r,i)).join('');
+        bindRowEvents();
+      }
 
-      // eslint-disable-next-line no-undef
-      const res = await emailjs.send(SERVICE_ID, TEMPLATE_ID, {
-        to_emails: dest.join(","),
-        subject,
-        message_html: html
+      function bindRowEvents(){
+        tbody.querySelectorAll('[contenteditable], select').forEach(el=>{
+          el.addEventListener('input', ()=> setDirty(route, true));
+          el.addEventListener('change', ()=> setDirty(route, true));
+        });
+        tbody.querySelectorAll('.btnDel').forEach(btn=>{
+          btn.addEventListener('click', (e)=>{
+            const tr = e.target.closest('tr');
+            const idx = Number(tr.dataset.idx);
+            rows.splice(idx,1);
+            render();
+            setDirty(route, true);
+          });
+        });
+      }
+
+      document.getElementById('btnAddRow').addEventListener('click', ()=>{
+        rows.push({ nom:"", entreprise:"", qualification: QUALIFS[0], heures:0, chantier:"", encadrant:"" });
+        render();
+        setDirty(route, true);
       });
 
-      // Pastille → verte, pas de popup
-      markSaved();
-      // console.log("Emails envoyés:", res.status, res.text);
+      async function saveSaisie(){
+        const out = [];
+        tbody.querySelectorAll('tr').forEach(tr=>{
+          const grab = k => (k==='qualification')
+            ? (tr.querySelector('select.qualSel')?.value || "")
+            : (tr.querySelector(`[data-k="${k}"]`)?.textContent || "");
+          out.push({
+            nom: grab('nom').trim(),
+            entreprise: grab('entreprise').trim(),
+            qualification: grab('qualification').trim(),
+            heures: parseHeures(grab('heures')),
+            chantier: grab('chantier').trim(),
+            encadrant: grab('encadrant').trim(),
+          });
+        });
+        storage.set(storeKeys.saisie, out);
+        // pas de message → juste pastille verte
+        setDirty(route, false);
+      }
+      saveHandlers[route] = saveSaisie;
+      document.getElementById('btnSaveSaisie').addEventListener('click', saveSaisie);
+
+      render();
+      // page fraîche : état selon stockage
+      setDirty(route, false);
     }
-    document.getElementById('btnEnvoyerMails').addEventListener('click', envoyerEmails);
 
-    /*****************************************
-     * Détection de modifs → pastille orange *
-     *****************************************/
-    document.getElementById('tableWrap').addEventListener('input', markDirty);
-    document.getElementById('destinataires').addEventListener('input', markDirty);
-    document.getElementById('objet').addEventListener('input', markDirty);
+    /*******************
+     * PAGE: DIFFUSION *
+     *******************/
+    function renderDiffusion(){
+      const route = '/diffusion';
+      const baseRows = storage.get(storeKeys.saisie, storage.get(storeKeys.diffusion, defaultRows()));
 
-    /********************************************
-     * Récup auto depuis localStorage à l’ouverture
-     ********************************************/
-    (function restore(){
-      const raw = localStorage.getItem('diffusion_heures');
-      if(!raw) return;
-      try{
-        const rows = JSON.parse(raw);
-        if(Array.isArray(rows) && rows.length){
-          renderTbody(rows);
-          markSaved();
-        }
-      }catch(e){/* ignore */}
-    })();
+      pageRoot.innerHTML = `
+        <section class="panel">
+          <div class="panel-h">
+            <div class="toolbar">
+              <span class="pill">Diffusion des heures (format XX,XX Heures)</span>
+            </div>
+            <div class="toolbar">
+              <button class="btn" id="btnSaveDiff">Enregistrer</button>
+              <button class="btn primary" id="btnSend">Envoyer les emails</button>
+              <button class="btn ghost" id="btnPreview">Aperçu email</button>
+            </div>
+          </div>
+          <div class="panel-b">
+            <div class="grid cols-2" style="margin-bottom:12px">
+              <div class="field">
+                <label class="pill">Destinataires</label>
+                <input class="grow" id="dest" type="email" placeholder="paul@example.com, jeremy@example.com" />
+              </div>
+              <div class="field">
+                <label class="pill">Objet</label>
+                <input class="grow" id="subject" type="text" value="Synthèse des heures — Semaine en cours" />
+              </div>
+            </div>
+
+            <div class="table-wrap" id="diffWrap">
+              <table aria-label="Tableau diffusion">
+                <thead>
+                  <tr>
+                    <th>Ouvrier</th>
+                    <th>Entreprise</th>
+                    <th>Qualification</th>
+                    <th class="mono">Heures</th>
+                    <th>Chantier</th>
+                    <th>Encadrant</th>
+                  </tr>
+                </thead>
+                <tbody id="tbodyDiff"></tbody>
+              </table>
+            </div>
+
+            <p class="hint">Les heures affichées et envoyées utilisent le format <span class="mono">XX,XX&nbsp;Heures</span>.</p>
+            <div id="previewOut" class="hint"></div>
+          </div>
+        </section>
+      `;
+
+      const tbody = document.getElementById('tbodyDiff');
+
+      function render(){
+        tbody.innerHTML = "";
+        baseRows.forEach((r)=>{
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td contenteditable data-k="nom">${escapeHtml(r.nom)}</td>
+            <td contenteditable data-k="entreprise">${escapeHtml(r.entreprise)}</td>
+            <td contenteditable data-k="qualification">${escapeHtml(r.qualification)}</td>
+            <td contenteditable data-k="heures" class="mono" title="Ex: 41.25">${escapeHtml(formatHeuresFR(r.heures))}</td>
+            <td contenteditable data-k="chantier">${escapeHtml(r.chantier)}</td>
+            <td contenteditable data-k="encadrant">${escapeHtml(r.encadrant)}</td>
+          `;
+          tr.querySelectorAll('[contenteditable]').forEach(cell=>{
+            cell.addEventListener('input', ()=>{
+              setDirty(route, true);
+              if(cell.dataset.k === 'heures'){
+                const txt = cell.textContent.replace(/[^\d.,]/g,"").replace(",",".");
+                const num = parseFloat(txt);
+                if(!isNaN(num)){ cell.dataset.raw = String(num); }
+              }
+            });
+            cell.addEventListener('blur', ()=>{
+              if(cell.dataset.k === 'heures'){
+                const raw = parseFloat((cell.dataset.raw ?? "").toString());
+                if(!isNaN(raw)){
+                  cell.textContent = formatHeuresFR(raw);
+                }else{
+                  const txt = cell.textContent.replace(/[^\d.,]/g,"").replace(",",".");
+                  const num = parseFloat(txt);
+                  cell.textContent = formatHeuresFR(isNaN(num)?0:num);
+                }
+              }
+            });
+          });
+          tbody.appendChild(tr);
+        });
+      }
+
+      function readRows(){
+        const out = [];
+        tbody.querySelectorAll('tr').forEach(tr=>{
+          const grab = k => (tr.querySelector(`[data-k="${k}"]`)?.textContent || "").trim();
+          const hCell = tr.querySelector('[data-k="heures"]');
+          let heures = 0;
+          if(hCell){
+            const parsed = hCell.textContent.replace(/[^\d.,]/g,"").replace(",",".");
+            const num = parseFloat(parsed);
+            heures = isNaN(num) ? 0 : num;
+          }
+          out.push({
+            nom: grab('nom'),
+            entreprise: grab('entreprise'),
+            qualification: grab('qualification'),
+            heures,
+            chantier: grab('chantier'),
+            encadrant: grab('encadrant'),
+          });
+        });
+        return out;
+      }
+
+      function buildEmailHtml(rows){
+        const styles = `
+          table{border-collapse:collapse;width:100%;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
+          th,td{border:1px solid #d5d8df;padding:8px 10px;font-size:14px}
+          th{background:#f2f4f8;text-align:left}
+          .mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+        `;
+        const head = `
+          <tr>
+            <th>Ouvrier</th>
+            <th>Entreprise</th>
+            <th>Qualification</th>
+            <th>Heures</th>
+            <th>Chantier</th>
+            <th>Encadrant</th>
+          </tr>
+        `;
+        const body = rows.map(r=>`
+          <tr>
+            <td>${escapeHtml(r.nom)}</td>
+            <td>${escapeHtml(r.entreprise)}</td>
+            <td>${escapeHtml(r.qualification)}</td>
+            <td class="mono">${escapeHtml(formatHeuresFR(r.heures))}</td>
+            <td>${escapeHtml(r.chantier)}</td>
+            <td>${escapeHtml(r.encadrant)}</td>
+          </tr>
+        `).join("");
+        return `
+          <div style="font:14px system-ui,-apple-system,Segoe UI,Roboto,Arial;color:#0b1220">
+            <p>Bonjour,</p>
+            <p>Veuillez trouver ci-dessous la synthèse des heures :</p>
+            <table role="table" aria-label="Synthèse des heures">
+              <style>${styles}</style>
+              <thead>${head}</thead>
+              <tbody>${body}</tbody>
+            </table>
+            <p style="color:#5f6b7c">— Envoi automatique</p>
+          </div>
+        `;
+      }
+
+      async function saveDiff(){
+        const rows = readRows();
+        storage.set(storeKeys.diffusion, rows);
+        // pas d'alerte → pastille verte
+        setDirty(route, false);
+      }
+      saveHandlers[route] = saveDiff;
+
+      async function preview(){
+        const html = buildEmailHtml(readRows());
+        const out = document.getElementById('previewOut');
+        out.innerHTML = `<div class="success">Aperçu du contenu HTML qui sera envoyé :</div><div style="margin-top:10px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#101525">${html}</div>`;
+      }
+
+      async function sendEmails(){
+        const dest = (document.getElementById('dest').value || "")
+          .split(",").map(s=>s.trim()).filter(Boolean);
+        if(dest.length===0){ alert("Ajoute au moins un destinataire."); return; }
+        const subject = (document.getElementById('subject').value || "Synthèse des heures").trim();
+        const html = buildEmailHtml(readRows());
+
+        // ⚠️ Configure EmailJS: SERVICE_ID + TEMPLATE_ID + publicKey (plus haut)
+        const SERVICE_ID = "REMPLACE_AVEC_TON_SERVICE_ID";
+        const TEMPLATE_ID = "REMPLACE_AVEC_TON_TEMPLATE_ID";
+
+        // eslint-disable-next-line no-undef
+        await emailjs.send(SERVICE_ID, TEMPLATE_ID, {
+          to_emails: dest.join(","),
+          subject,
+          message_html: html
+        });
+
+        // après envoi: on considère "enregistré"
+        setDirty(route, false);
+      }
+
+      document.getElementById('btnSaveDiff').addEventListener('click', saveDiff);
+      document.getElementById('btnPreview').addEventListener('click', preview);
+      document.getElementById('btnSend').addEventListener('click', sendEmails);
+
+      // marquer dirty si modifs
+      document.getElementById('diffWrap').addEventListener('input', ()=> setDirty(route, true));
+      document.getElementById('subject').addEventListener('input', ()=> setDirty(route, true));
+      document.getElementById('dest').addEventListener('input', ()=> setDirty(route, true));
+
+      render();
+      setDirty(route, false);
+    }
+
+    /**********************
+     * PAGE: PARAMÈTRES  *
+     **********************/
+    function renderParametres(){
+      const route = '/parametres';
+      const params = storage.get(storeKeys.params, {
+        signature: "Cordialement,\nL'équipe Bourdarios",
+        qualifs: QUALIFS,
+      });
+
+      pageRoot.innerHTML = `
+        <section class="panel">
+          <div class="panel-h">
+            <div class="toolbar">
+              <span class="pill">Paramètres généraux</span>
+            </div>
+            <div class="toolbar">
+              <button class="btn" id="btnSaveParams">Enregistrer</button>
+            </div>
+          </div>
+          <div class="panel-b">
+            <div class="grid cols-2">
+              <div>
+                <label class="pill">Signature email</label>
+                <textarea id="signature" placeholder="Signature ajoutée aux emails (optionnel)">${escapeHtml(params.signature)}</textarea>
+                <p class="hint">Cette signature peut être insérée dans vos modèles d'email (si configuré côté EmailJS).</p>
+              </div>
+              <div>
+                <label class="pill">Qualifications (une par ligne)</label>
+                <textarea id="qualifs">${escapeHtml(params.qualifs.join('\n'))}</textarea>
+                <p class="hint">La liste sera proposée dans la page <i>Saisie</i>.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      `;
+
+      function bind(){
+        document.getElementById('signature').addEventListener('input', ()=> setDirty(route, true));
+        document.getElementById('qualifs').addEventListener('input', ()=> setDirty(route, true));
+        document.getElementById('btnSaveParams').addEventListener('click', async ()=>{
+          const newParams = {
+            signature: document.getElementById('signature').value,
+            qualifs: document.getElementById('qualifs').value.split('\n').map(s=>s.trim()).filter(Boolean),
+          };
+          storage.set(storeKeys.params, newParams);
+          // pas de popup — pastille verte
+          setDirty(route, false);
+        });
+      }
+      bind();
+      setDirty(route, false);
+    }
   </script>
 </body>
 </html>
