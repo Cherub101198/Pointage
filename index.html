@@ -63,19 +63,12 @@
   /* cellules pointage double-ligne (heures + chantier) */
   .pcell{display:flex; flex-direction:column; gap:6px; min-width:140px}
   .pcell select{width:100%}
-  /* planning daily: fine header */
+  /* planning daily headers */
   .dayhead{writing-mode:vertical-rl; transform:rotate(180deg); font-size:11px; white-space:nowrap}
+  .cell-tag{display:inline-block; padding:4px 6px; border-radius:6px; background:#101a2a; border:1px solid var(--line); font-size:12px}
 </style>
 
-<!-- EmailJS -->
-<script defer src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    // ⚠️ Remplacer par ta clé publique EmailJS
-    // eslint-disable-next-line no-undef
-    emailjs.init({ publicKey: "REMPLACE_AVEC_TA_PUBLIC_KEY" });
-  });
-</script>
+<!-- (Plus d'EmailJS : on utilise Outlook/MAILTO) -->
 </head>
 <body>
   <div class="wrap">
@@ -117,9 +110,9 @@
    ========================= */
 const pageRoot = document.getElementById('page');
 const routes = {
-  '/planning': renderPlanningDaily,          // ← planning sur tous les jours de l'année
-  '/pointage': renderPointageWeekly,         // ← hebdo: heures + chantier / jour
-  '/diffusion': renderDiffusionParAgence,    // ← détail jour par jour + sélection agences
+  '/planning': renderPlanningDailyReadOnly,  // Planning auto, non éditable
+  '/pointage': renderPointageWeekly,         // Heures + chantier / jour
+  '/diffusion': renderDiffusionParAgence,    // Détail jour/jour + Outlook
   '/ouvriers': renderOuvriers,
   '/agences': renderAgences,
   '/chantiers': renderChantiers,
@@ -169,21 +162,21 @@ const storage = {
   set(k, v){ localStorage.setItem(k, JSON.stringify(v)); }
 };
 const KEYS = {
-  ouvriers:  'app_ouvriers_v3',
-  agences:   'app_agences_v3',
-  chantiers: 'app_chantiers_v3',
-  pointage:  'app_pointage_v3',   // {date, ouvrier, agence, chantier, heures}
-  planning:  'app_planning_daily_v1', // { [year]: { [fullName]: { [YYYY-MM-DD]: "txt" } } }
-  params:    'app_params_v3',
+  ouvriers:  'app_ouvriers_v4',
+  agences:   'app_agences_v4',
+  chantiers: 'app_chantiers_v4',
+  pointage:  'app_pointage_v4',   // {date, ouvrier, agence, chantier, heures}
+  // plus de storage planning : planning = dérivé du pointage
+  params:    'app_params_v4',     // (plus de signature)
 };
 
 /* =========
    DONNÉES PAR DÉFAUT
    ========= */
 const DEFAULT_OUVRIERS = [
-  { prenom:"Baudouin", nom:"RIBERON", metier:"Plâquiste", qualification:"N3P1", agence:"SAMSIC" },
-  { prenom:"Laurent",  nom:"JOLY",    metier:"Plombier",  qualification:"N3P2", agence:"BPS" },
-  { prenom:"Jean-Marc",nom:"GOUZY",   metier:"Polyvalent",qualification:"N4P1", agence:"SAMSIC" },
+  { prenom:"Baudouin", nom:"RIBERON", metier:"Plâquiste",  qualification:"N3P1", agence:"SAMSIC" },
+  { prenom:"Laurent",  nom:"JOLY",    metier:"Plombier",   qualification:"N3P2", agence:"BPS" },
+  { prenom:"Jean-Marc",nom:"GOUZY",   metier:"Polyvalent", qualification:"N4P1", agence:"SAMSIC" },
 ];
 const DEFAULT_AGENCES = [
   { nom:"SAMSIC", email:"samsic@exemple.com" },
@@ -197,7 +190,6 @@ const DEFAULT_CHANTIERS = [
 ];
 const DEFAULT_PARAMS = {
   qualifs:["N1","N2","N3P1","N3P2","N4P1","N4P2"],
-  signature:"Cordialement,\nL'équipe Bourdarios",
 };
 
 /* =========
@@ -205,6 +197,7 @@ const DEFAULT_PARAMS = {
    ========= */
 function escapeHtml(s=""){ return s.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;"); }
 function formatHeuresFR(v){ const n = Number(v??0); return `${n.toFixed(2).replace(".",",")} Heures`; }
+function formatHeuresShort(v){ const n = Number(v??0); return n.toFixed(2).replace(".",","); }
 function fullName(o){ return `${o.prenom} ${o.nom}`.trim(); }
 function getISOWeek(d){
   const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
@@ -214,7 +207,6 @@ function getISOWeek(d){
   const weekNo = Math.ceil((((date - yearStart) / 86400000) + 1)/7);
   return {year: date.getUTCFullYear(), week: weekNo};
 }
-function weeksOfYear(year){ const dec28 = new Date(Date.UTC(year,11,28)); return getISOWeek(dec28).week; }
 function daysOfYear(year){
   const start = new Date(Date.UTC(year,0,1));
   const end = new Date(Date.UTC(year+1,0,1));
@@ -229,9 +221,10 @@ function weekDatesISO(year, week){
   const monday = new Date(simple); monday.setUTCDate(simple.getUTCDate() - dayOfWeek + 1 + (week-1)*7);
   return [...Array(7)].map((_,i)=>new Date(monday.getTime()+i*86400000).toISOString().slice(0,10));
 }
+function niceDayLabel(iso){ const d = new Date(iso); return d.toLocaleDateString('fr-FR',{weekday:'short', day:'2-digit', month:'2-digit'}); }
 
 /* =================
-   PAGE: OUVRIERS
+   OUVRIERS
    ================= */
 function renderOuvriers(){
   const route='/ouvriers';
@@ -316,7 +309,7 @@ function renderOuvriers(){
 }
 
 /* =================
-   PAGE: AGENCES
+   AGENCES
    ================= */
 function renderAgences(){
   const route='/agences';
@@ -374,7 +367,7 @@ function renderAgences(){
 }
 
 /* =================
-   PAGE: CHANTIERS
+   CHANTIERS
    ================= */
 function renderChantiers(){
   const route='/chantiers';
@@ -453,24 +446,23 @@ function renderChantiers(){
 }
 
 /* =================
-   PAGE: PLANNING — TOUS LES JOURS DE L'ANNÉE
+   PLANNING — TOUS LES JOURS (lecture seule, auto depuis Pointage)
    ================= */
-function renderPlanningDaily(){
+function renderPlanningDailyReadOnly(){
   const route='/planning';
   const ouvriers = storage.get(KEYS.ouvriers, DEFAULT_OUVRIERS);
-  const planning = storage.get(KEYS.planning, {}); // { [year]: { [fullName]: { [dateISO]: "txt" } } }
+  const pointage = storage.get(KEYS.pointage, []); // source de vérité
   const currentYear = new Date().getFullYear();
   const years = Array.from({length:5},(_,i)=>currentYear-2+i);
-  const ySel = planning.__year || currentYear;
+  const ySel = parseInt(new URLSearchParams(location.hash.split('?')[1]).get('year') || currentYear, 10);
   const days = daysOfYear(ySel); // Date[]
 
   pageRoot.innerHTML = `
     <section class="panel">
       <div class="panel-h">
-        <div class="toolbar"><span class="pill">Planning — ${ySel} (tous les jours)</span></div>
+        <div class="toolbar"><span class="pill">Planning — ${ySel} (auto, lecture seule)</span></div>
         <div class="toolbar">
           <select id="yearSel">${years.map(y=>`<option ${y===ySel?'selected':''}>${y}</option>`).join('')}</select>
-          <button class="btn" id="save">Enregistrer</button>
         </div>
       </div>
       <div class="panel-b">
@@ -489,58 +481,56 @@ function renderPlanningDaily(){
             <tbody id="tb"></tbody>
           </table>
         </div>
-        <p class="hint">Chaque cellule est éditable (texte libre : chantier prévu, note, etc.).</p>
+        <p class="hint">Cellules non modifiables : le contenu provient du <b>Pointage</b> (chantier du jour, et heures visibles au survol).</p>
       </div>
     </section>
   `;
 
   const tb = document.getElementById('tb');
+
+  // indexer le pointage pour l'année sélectionnée: map[ouvrier][dateISO] = {h, chantier}
+  const map = {};
+  const yearStart = new Date(Date.UTC(ySel,0,1));
+  const yearEnd = new Date(Date.UTC(ySel+1,0,1));
+  pointage.forEach(r=>{
+    const d = new Date(r.date+'T00:00:00Z');
+    if(d >= yearStart && d < yearEnd){
+      map[r.ouvrier] = map[r.ouvrier] || {};
+      map[r.ouvrier][r.date] = { h: +(r.heures||0), c: r.chantier||"" };
+    }
+  });
+
   function rowTpl(w){
     const name = fullName(w);
-    const pYear = (planning[ySel] && planning[ySel][name]) ? planning[ySel][name] : {};
-    return `<tr data-worker="${escapeHtml(name)}">
+    return `<tr>
       <td class="mono">${escapeHtml(name)}</td>
       ${days.map(d=>{
         const iso = dateISO(d);
-        const v = pYear?.[iso] || "";
-        return `<td contenteditable class="pg" data-date="${iso}">${escapeHtml(v)}</td>`;
+        const rec = map[name]?.[iso];
+        const txt = rec?.c ? `<span class="cell-tag" title="${formatHeuresFR(rec.h)}">${escapeHtml(rec.c)}</span>` : '';
+        return `<td>${txt}</td>`;
       }).join('')}
     </tr>`;
   }
-  function render(){ tb.innerHTML = ouvriers.map(rowTpl).join(''); bind(); }
-  function bind(){ tb.querySelectorAll('.pg').forEach(td=>td.addEventListener('input', ()=> setDirty(route,true))); }
+
+  tb.innerHTML = ouvriers.map(rowTpl).join('');
 
   document.getElementById('yearSel').addEventListener('change', ()=>{
-    planning.__year = parseInt(document.getElementById('yearSel').value,10);
-    storage.set(KEYS.planning, planning);
-    renderPlanningDaily();
+    const y = document.getElementById('yearSel').value;
+    location.hash = `#/planning?year=${encodeURIComponent(y)}`;
   });
 
-  async function save(){
-    const y = parseInt(document.getElementById('yearSel').value,10);
-    planning.__year = y; planning[y] = planning[y] || {};
-    document.querySelectorAll('tbody tr').forEach(tr=>{
-      const worker = tr.dataset.worker;
-      planning[y][worker] = planning[y][worker] || {};
-      tr.querySelectorAll('[data-date]').forEach(td=>{
-        const iso = td.dataset.date;
-        planning[y][worker][iso] = td.textContent.trim();
-      });
-    });
-    storage.set(KEYS.planning, planning); setDirty(route,false);
-  }
-  saveHandlers[route]=save; document.getElementById('save').addEventListener('click', save);
-  render(); setDirty(route,false);
+  setDirty(route,false); // lecture seule
 }
 
 /* =================
-   PAGE: POINTAGE — HEBDO (heures + chantier / jour)
+   POINTAGE — HEBDO (heures + chantier / jour) — reste comme avant
    ================= */
 function renderPointageWeekly(){
   const route='/pointage';
   const ouvriers = storage.get(KEYS.ouvriers, DEFAULT_OUVRIERS).map(o=>({ ...o, nomComplet: fullName(o) }));
   const chantiers= storage.get(KEYS.chantiers, DEFAULT_CHANTIERS).map(c=>c.code);
-  const pointage = storage.get(KEYS.pointage, []); // rows: {date, ouvrier, agence, chantier, heures}
+  const pointage = storage.get(KEYS.pointage, []); // {date, ouvrier, agence, chantier, heures}
 
   const {year:curY, week:curW} = getISOWeek(new Date());
 
@@ -581,7 +571,7 @@ function renderPointageWeekly(){
             </tfoot>
           </table>
         </div>
-        <p class="hint">Chaque cellule comporte <b>Heures</b> (liste 0→10, pas 0,5) et <b>Chantier</b> (liste des chantiers existants). Le bouton <b>Auto</b> ne remplit que les heures (7,5 lun→jeu ; 7 ven).</p>
+        <p class="hint">Chaque case : <b>Heures</b> (0→10 pas 0,5) + <b>Chantier</b> (liste). Le bouton <b>Auto</b> remplit 7,5h lun→jeu & 7h ven (par ouvrier).</p>
       </div>
     </section>
   `;
@@ -591,16 +581,10 @@ function renderPointageWeekly(){
   const tb    = document.getElementById('tb');
 
   function hoursOptions(selVal){
-    const opts = [];
-    for(let v=0; v<=10; v+=0.5){
-      const sel = (+v === +selVal) ? 'selected' : '';
-      opts.push(`<option value="${v.toFixed(1)}" ${sel}>${v.toFixed(1)}</option>`);
-    }
+    const opts=[]; for(let v=0; v<=10; v+=0.5){ const sel=(+v===+selVal)?'selected':''; opts.push(`<option value="${v.toFixed(1)}" ${sel}>${v.toFixed(1)}</option>`); }
     return opts.join('');
   }
-  function chantierOptions(selVal){
-    return `<option value=""></option>` + chantiers.map(c=>`<option ${c===selVal?'selected':''}>${c}</option>`).join('');
-  }
+  function chantierOptions(selVal){ return `<option value=""></option>` + storage.get(KEYS.chantiers, DEFAULT_CHANTIERS).map(c=>c.code).map(c=>`<option ${c===selVal?'selected':''}>${c}</option>`).join(''); }
 
   function daysForWeek(year, week){ return weekDatesISO(year, week).slice(0,5); } // lun→ven
 
@@ -642,7 +626,6 @@ function renderPointageWeekly(){
   }
 
   function bindRowEvents(dates){
-    // heures
     tb.querySelectorAll('select.hsel').forEach(sel=>{
       sel.addEventListener('change', ()=>{
         setDirty('/pointage', true);
@@ -652,11 +635,9 @@ function renderPointageWeekly(){
         recomputeTotals();
       });
     });
-    // chantier
     tb.querySelectorAll('select.csel').forEach(sel=>{
       sel.addEventListener('change', ()=> setDirty('/pointage', true));
     });
-    // auto par ouvrier (heures seulement)
     tb.querySelectorAll('.autoOne').forEach(btn=>{
       btn.addEventListener('click', ()=>{
         const tr = btn.closest('tr');
@@ -669,11 +650,9 @@ function renderPointageWeekly(){
   }
 
   function recomputeTotals(){
-    const idxs = [0,1,2,3,4];
+    const idxs=[0,1,2,3,4];
     const colTotals = idxs.map(i=>{
-      let sum=0;
-      tb.querySelectorAll(`select.hsel[data-day="${i}"]`).forEach(s=> sum += (+s.value||0));
-      return sum;
+      let sum=0; tb.querySelectorAll(`select.hsel[data-day="${i}"]`).forEach(s=> sum += (+s.value||0)); return sum;
     });
     document.getElementById('totLun').textContent = colTotals[0].toFixed(2);
     document.getElementById('totMar').textContent = colTotals[1].toFixed(2);
@@ -684,8 +663,8 @@ function renderPointageWeekly(){
     document.getElementById('totSem').textContent = totSem.toFixed(2);
   }
 
-  pYear.addEventListener('input', ()=>{ renderTable(); setDirty(route,true); });
-  pWeek.addEventListener('input', ()=>{ renderTable(); setDirty(route,true); });
+  pYear.addEventListener('input', ()=>{ renderTable(); /* on garde les mêmes ouvriers */ setDirty(route,true); });
+  pWeek.addEventListener('input', ()=>{ renderTable(); /* idem */ setDirty(route,true); });
 
   async function save(){
     const year = parseInt(pYear.value,10);
@@ -695,7 +674,7 @@ function renderPointageWeekly(){
     // Filtrer l'ancienne semaine
     const keep = storage.get(KEYS.pointage, []).filter(r=> !dates.includes(r.date));
 
-    // Pour chaque ouvrier/jour, on enregistre une ligne si heures > 0 ou chantier non vide
+    // Pour chaque ouvrier/jour, enregistrer si heures > 0 ou chantier renseigné
     tb.querySelectorAll('tr[data-worker]').forEach(tr=>{
       const ouvrier = tr.dataset.worker;
       const agence = (storage.get(KEYS.ouvriers, DEFAULT_OUVRIERS).find(o=>fullName(o)===ouvrier)?.agence)||"";
@@ -719,7 +698,7 @@ function renderPointageWeekly(){
 }
 
 /* =================
-   PAGE: DIFFUSION — par Agence avec détail jour par jour
+   DIFFUSION — par Agence (détail jour/jour) + Outlook
    ================= */
 function renderDiffusionParAgence(){
   const route='/diffusion';
@@ -740,8 +719,8 @@ function renderDiffusionParAgence(){
             <input type="number" id="dWeek" value="${curW}" min="1" max="53" style="width:110px"/>
           </div>
           <button class="btn" id="save">Enregistrer</button>
-          <button class="btn primary" id="send">Envoyer les emails</button>
-          <button class="btn ghost" id="preview">Aperçu emails</button>
+          <button class="btn primary" id="send">Envoyer les emails (Outlook)</button>
+          <button class="btn ghost" id="preview">Aperçu texte</button>
         </div>
       </div>
       <div class="panel-b">
@@ -750,7 +729,7 @@ function renderDiffusionParAgence(){
           <div id="agList" class="field" style="gap:14px; flex-wrap:wrap"></div>
         </div>
         <div id="tables"></div>
-        <p class="hint">Chaque agence voit <b>uniquement</b> ses pointages. Format heures : <span class="mono">XX,XX Heures</span>.</p>
+        <p class="hint">Chaque agence voit uniquement ses données. Ouverture dans Outlook (via <code>mailto:</code>) — ta <b>signature Outlook</b> sera appliquée par Outlook.</p>
         <div id="previewOut" class="hint"></div>
       </div>
     </section>
@@ -776,9 +755,6 @@ function renderDiffusionParAgence(){
     const dayOfWeek = simple.getUTCDay() || 7;
     const monday = new Date(simple); monday.setUTCDate(simple.getUTCDate() - dayOfWeek + 1 + (week-1)*7);
     return [...Array(7)].map((_,i)=>new Date(monday.getTime()+i*86400000).toISOString().slice(0,10));
-  }
-  function niceDayLabel(iso){
-    const d = new Date(iso); return d.toLocaleDateString('fr-FR',{weekday:'short', day:'2-digit', month:'2-digit'});
   }
 
   function groupData(){
@@ -835,36 +811,32 @@ function renderDiffusionParAgence(){
     }).join('');
   }
 
-  function buildEmailHtmlForAgency(agencyName){
+  function buildPlainTextForAgency(agencyName){
     const { byAgency, weekIsoDates } = groupData();
     const recs = byAgency[agencyName] || {};
     const workers = Object.keys(recs).sort();
-    const styles = `
-      table{border-collapse:collapse;width:100%;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
-      th,td{border:1px solid #d5d8df;padding:8px 10px;font-size:14px}
-      th{background:#f2f4f8;text-align:left}
-      .mono{font-family:ui-monospace,Menlo,Consolas,monospace}
-      h3{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
-    `;
-    const headDays = weekIsoDates.map(iso=>`<th class="mono">${escapeHtml(niceDayLabel(iso))}</th>`).join('');
-    const body = workers.map(w=>{
+    const head = ['Ouvrier', ...weekIsoDates.map(niceDayLabel), 'Total'];
+    const rows = [head.join(' | ')];
+    rows.push('-'.repeat(rows[0].length));
+    workers.forEach(w=>{
       const rec = recs[w];
-      const tds = weekIsoDates.map(iso=>{
+      const cols = [w];
+      let tot = 0;
+      weekIsoDates.forEach(iso=>{
         const d = rec.d[iso];
-        if(!d) return `<td class="mono">—</td>`;
-        return `<td class="mono">${formatHeuresFR(d.h)}${d.c ? ` — ${escapeHtml(d.c)}`:''}</td>`;
-      }).join('');
-      return `<tr><td>${escapeHtml(w)}</td>${tds}<td class="mono">${formatHeuresFR(rec.total)}</td></tr>`;
-    }).join('');
-    return `
-      <div style="font:14px system-ui,-apple-system,Segoe UI,Roboto,Arial;color:#0b1220">
-        <style>${styles}</style>
-        <p>Bonjour,</p>
-        <p>Veuillez trouver ci-dessous le détail jour par jour des heures pour la semaine ${escapeHtml(String(dWeek.value))}/${escapeHtml(String(dYear.value))} — <b>${escapeHtml(agencyName)}</b> :</p>
-        <table role="table"><thead><tr><th>Ouvrier</th>${headDays}<th>Total</th></tr></thead><tbody>${body}</tbody></table>
-        <p style="color:#5f6b7c">— Envoi automatique</p>
-      </div>
-    `;
+        if(!d) cols.push('—');
+        else { cols.push(`${formatHeuresShort(d.h)}h${d.c?` ${d.c}`:''}`); tot += d.h||0; }
+      });
+      cols.push(`${formatHeuresShort(tot)}h`);
+      rows.push(cols.join(' | '));
+    });
+    return rows.join('\n');
+  }
+
+  function openOutlookMail(to, subject, body){
+    // mailto: (Outlook injectera la signature de l’utilisateur)
+    const url = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = url; // ouvre le client mail par défaut (souvent Outlook sur poste)
   }
 
   dYear.addEventListener('input', ()=>{ renderTables(); setDirty(route,true); });
@@ -877,24 +849,22 @@ function renderDiffusionParAgence(){
   async function preview(){
     const selected = [...document.querySelectorAll('.agChk:checked')].map(c=>c.value);
     if(selected.length===0){ alert("Sélectionne au moins une agence."); return; }
-    const sections = selected.map(ag=>`<h3>${escapeHtml(ag)}</h3>${buildEmailHtmlForAgency(ag)}`).join('<hr/>');
-    document.getElementById('previewOut').innerHTML = `<div class="hint">Aperçu des emails (un par agence sélectionnée) :</div><div style="margin-top:10px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#101525">${sections}</div>`;
+    const sections = selected.map(ag=>{
+      return `<pre style="white-space:pre-wrap;border:1px solid var(--line);border-radius:8px;padding:8px;background:#0e1422">${escapeHtml(buildPlainTextForAgency(ag))}</pre>`;
+    }).join('<hr/>');
+    document.getElementById('previewOut').innerHTML = `<div class="hint">Aperçu texte (ce qui partira dans l'email Outlook) :</div>${sections}`;
   }
 
   async function sendEmails(){
     const selected = [...document.querySelectorAll('.agChk:checked')].map(c=>c.value);
     if(selected.length===0){ alert("Sélectionne au moins une agence."); return; }
     const mapEmail = Object.fromEntries(agencesObj.map(a=>[a.nom, a.email||""]));
-    const SERVICE_ID = "REMPLACE_AVEC_TON_SERVICE_ID";
-    const TEMPLATE_ID = "REMPLACE_AVEC_TON_TEMPLATE_ID";
-
     for(const ag of selected){
       const to = (mapEmail[ag]||"").trim();
       if(!to){ console.warn("Aucun email pour", ag); continue; }
       const subject = `Synthèse hebdo — ${ag} — Semaine ${dWeek.value}/${dYear.value}`;
-      const html = buildEmailHtmlForAgency(ag);
-      // eslint-disable-next-line no-undef
-      await emailjs.send(SERVICE_ID, TEMPLATE_ID, { to_emails: to, subject, message_html: html });
+      const body = buildPlainTextForAgency(ag) + `\n\n`; // Outlook appliquera la signature utilisateur
+      openOutlookMail(to, subject, body);
     }
     setDirty(route,false);
   }
@@ -907,7 +877,7 @@ function renderDiffusionParAgence(){
 }
 
 /* =================
-   PAGE: PARAMÈTRES
+   PARAMÈTRES (sans signature)
    ================= */
 function renderParametres(){
   const route='/parametres';
@@ -922,23 +892,18 @@ function renderParametres(){
       <div class="panel-b">
         <div class="grid cols-2">
           <div>
-            <label class="pill">Signature email</label>
-            <textarea id="signature" placeholder="Signature ajoutée aux emails (optionnel)">${escapeHtml(params.signature)}</textarea>
-          </div>
-          <div>
             <label class="pill">Qualifications (une par ligne)</label>
             <textarea id="qualifs">${escapeHtml(params.qualifs.join('\n'))}</textarea>
           </div>
+          <div class="hint">La signature d’email est désormais gérée par <b>Outlook</b> directement.</div>
         </div>
       </div>
     </section>
   `;
 
-  document.getElementById('signature').addEventListener('input', ()=>setDirty(route,true));
   document.getElementById('qualifs').addEventListener('input', ()=>setDirty(route,true));
   async function save(){
     const newParams = {
-      signature: document.getElementById('signature').value,
       qualifs: document.getElementById('qualifs').value.split('\n').map(s=>s.trim()).filter(Boolean),
     };
     storage.set(KEYS.params, newParams);
