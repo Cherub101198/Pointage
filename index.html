@@ -50,6 +50,7 @@
   thead th{position:sticky; top:0; backdrop-filter: blur(6px); background:#0f131cee; color:#c9d1e1; font-weight:600; text-align:left; font-size:13px; letter-spacing:.2px; border-bottom:1px solid var(--line); padding:10px 12px;}
   tbody td{border-bottom:1px solid var(--line); padding:9px 12px; font-size:14px; color:#e5e9f3}
   tbody tr:hover{background:#121829}
+  tfoot td{background:#0f131c; font-weight:600}
   .kpi{display:flex; gap:10px; flex-wrap:wrap}
   .kpi .card{background:#101526; border:1px solid var(--line); border-radius:12px; padding:12px 14px; min-width:160px}
   .kpi .card .v{font-size:20px; font-weight:700}
@@ -59,7 +60,11 @@
   .modal .m-b{padding:16px}
   .modal .m-f{display:flex; gap:10px; justify-content:flex-end; padding:12px 16px; border-top:1px solid var(--line)}
   .show{display:flex}
-  .center{display:flex; align-items:center; justify-content:center}
+  /* cellules pointage double-ligne (heures + chantier) */
+  .pcell{display:flex; flex-direction:column; gap:6px; min-width:140px}
+  .pcell select{width:100%}
+  /* planning daily: fine header */
+  .dayhead{writing-mode:vertical-rl; transform:rotate(180deg); font-size:11px; white-space:nowrap}
 </style>
 
 <!-- EmailJS -->
@@ -112,9 +117,9 @@
    ========================= */
 const pageRoot = document.getElementById('page');
 const routes = {
-  '/planning': renderPlanningGlobal,
-  '/pointage': renderPointageWeekly,         // ← NOUVELLE VERSION HEBDO
-  '/diffusion': renderDiffusionParAgence,
+  '/planning': renderPlanningDaily,          // ← planning sur tous les jours de l'année
+  '/pointage': renderPointageWeekly,         // ← hebdo: heures + chantier / jour
+  '/diffusion': renderDiffusionParAgence,    // ← détail jour par jour + sélection agences
   '/ouvriers': renderOuvriers,
   '/agences': renderAgences,
   '/chantiers': renderChantiers,
@@ -164,13 +169,12 @@ const storage = {
   set(k, v){ localStorage.setItem(k, JSON.stringify(v)); }
 };
 const KEYS = {
-  ouvriers:  'app_ouvriers_v2',
-  agences:   'app_agences_v2',
-  chantiers: 'app_chantiers_v2',
-  pointage:  'app_pointage_v2',   // {date, ouvrier, agence, chantier?, heures}
-  planning:  'app_planning_v2',   // { [year]: { [fullName]: { [week]: "txt" } } }
-  params:    'app_params_v2',
-  diffusion: 'app_diffusion_v2',
+  ouvriers:  'app_ouvriers_v3',
+  agences:   'app_agences_v3',
+  chantiers: 'app_chantiers_v3',
+  pointage:  'app_pointage_v3',   // {date, ouvrier, agence, chantier, heures}
+  planning:  'app_planning_daily_v1', // { [year]: { [fullName]: { [YYYY-MM-DD]: "txt" } } }
+  params:    'app_params_v3',
 };
 
 /* =========
@@ -201,7 +205,6 @@ const DEFAULT_PARAMS = {
    ========= */
 function escapeHtml(s=""){ return s.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;"); }
 function formatHeuresFR(v){ const n = Number(v??0); return `${n.toFixed(2).replace(".",",")} Heures`; }
-function parseHeures(t){ const n = parseFloat(String(t).replace(/[^\d.,-]/g,"").replace(",", ".")); return isNaN(n)?0:n; }
 function fullName(o){ return `${o.prenom} ${o.nom}`.trim(); }
 function getISOWeek(d){
   const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
@@ -211,10 +214,15 @@ function getISOWeek(d){
   const weekNo = Math.ceil((((date - yearStart) / 86400000) + 1)/7);
   return {year: date.getUTCFullYear(), week: weekNo};
 }
-function weeksOfYear(year){
-  const dec28 = new Date(Date.UTC(year,11,28));
-  return getISOWeek(dec28).week;
+function weeksOfYear(year){ const dec28 = new Date(Date.UTC(year,11,28)); return getISOWeek(dec28).week; }
+function daysOfYear(year){
+  const start = new Date(Date.UTC(year,0,1));
+  const end = new Date(Date.UTC(year+1,0,1));
+  const out=[]; for(let d=new Date(start); d<end; d.setUTCDate(d.getUTCDate()+1)){
+    out.push(new Date(d));
+  } return out;
 }
+function dateISO(d){ const x=new Date(d); x.setHours(0,0,0,0); return x.toISOString().slice(0,10); }
 function weekDatesISO(year, week){
   const simple = new Date(Date.UTC(year,0,4));
   const dayOfWeek = simple.getUTCDay() || 7;
@@ -223,7 +231,7 @@ function weekDatesISO(year, week){
 }
 
 /* =================
-   PAGE: OUVRIERS (identique à version validée)
+   PAGE: OUVRIERS
    ================= */
 function renderOuvriers(){
   const route='/ouvriers';
@@ -308,7 +316,7 @@ function renderOuvriers(){
 }
 
 /* =================
-   PAGE: AGENCES (identique)
+   PAGE: AGENCES
    ================= */
 function renderAgences(){
   const route='/agences';
@@ -322,13 +330,13 @@ function renderAgences(){
       <div class="panel-b">
         <div class="grid cols-3" style="margin-bottom:12px">
           <div class="field"><label class="pill">Nom</label><input id="aNom" type="text" /></div>
-          <div class="field"><label class="pill">Email</label><input id="aEmail" type="email" /></div>
+          <div class="field"><label class="pill">Email(s)</label><input id="aEmail" type="email" placeholder="plusieurs séparés par des virgules"/></div>
           <div class="field"><label class="pill">&nbsp;</label><button class="btn primary" id="add">Ajouter l'agence</button></div>
         </div>
 
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Nom</th><th>Email</th><th></th></tr></thead>
+            <thead><tr><th>Nom</th><th>Email(s)</th><th></th></tr></thead>
             <tbody id="tb"></tbody>
           </table>
         </div>
@@ -366,7 +374,7 @@ function renderAgences(){
 }
 
 /* =================
-   PAGE: CHANTIERS (identique)
+   PAGE: CHANTIERS
    ================= */
 function renderChantiers(){
   const route='/chantiers';
@@ -445,20 +453,21 @@ function renderChantiers(){
 }
 
 /* =================
-   PAGE: PLANNING GLOBAL (inchangé)
+   PAGE: PLANNING — TOUS LES JOURS DE L'ANNÉE
    ================= */
-function renderPlanningGlobal(){
+function renderPlanningDaily(){
   const route='/planning';
   const ouvriers = storage.get(KEYS.ouvriers, DEFAULT_OUVRIERS);
-  const planning = storage.get(KEYS.planning, {});
+  const planning = storage.get(KEYS.planning, {}); // { [year]: { [fullName]: { [dateISO]: "txt" } } }
   const currentYear = new Date().getFullYear();
   const years = Array.from({length:5},(_,i)=>currentYear-2+i);
   const ySel = planning.__year || currentYear;
+  const days = daysOfYear(ySel); // Date[]
 
   pageRoot.innerHTML = `
     <section class="panel">
       <div class="panel-h">
-        <div class="toolbar"><span class="pill">Planning global — Année</span></div>
+        <div class="toolbar"><span class="pill">Planning — ${ySel} (tous les jours)</span></div>
         <div class="toolbar">
           <select id="yearSel">${years.map(y=>`<option ${y===ySel?'selected':''}>${y}</option>`).join('')}</select>
           <button class="btn" id="save">Enregistrer</button>
@@ -466,17 +475,21 @@ function renderPlanningGlobal(){
       </div>
       <div class="panel-b">
         <div class="table-wrap">
-          <table style="min-width:1200px">
+          <table style="min-width:1400px">
             <thead>
               <tr>
                 <th>Ouvrier</th>
-                ${Array.from({length: weeksOfYear(ySel)}, (_,i)=>`<th class="mono">S${i+1}</th>`).join('')}
+                ${days.map(d=>{
+                  const m = d.toLocaleDateString('fr-FR',{month:'short'});
+                  const day = d.getUTCDate();
+                  return `<th><div class="dayhead">${m} ${String(day).padStart(2,'0')}</div></th>`;
+                }).join('')}
               </tr>
             </thead>
             <tbody id="tb"></tbody>
           </table>
         </div>
-        <p class="hint">Chaque cellule est éditable (notes, jalons…). Stockage : <b>Année → Ouvrier → Semaine</b>.</p>
+        <p class="hint">Chaque cellule est éditable (texte libre : chantier prévu, note, etc.).</p>
       </div>
     </section>
   `;
@@ -484,13 +497,13 @@ function renderPlanningGlobal(){
   const tb = document.getElementById('tb');
   function rowTpl(w){
     const name = fullName(w);
-    const weeks = weeksOfYear(ySel);
     const pYear = (planning[ySel] && planning[ySel][name]) ? planning[ySel][name] : {};
     return `<tr data-worker="${escapeHtml(name)}">
       <td class="mono">${escapeHtml(name)}</td>
-      ${Array.from({length:weeks},(_,i)=>{
-        const v = (pYear && pYear[i+1]) ? pYear[i+1] : "";
-        return `<td contenteditable class="pg" data-week="${i+1}">${escapeHtml(v)}</td>`;
+      ${days.map(d=>{
+        const iso = dateISO(d);
+        const v = pYear?.[iso] || "";
+        return `<td contenteditable class="pg" data-date="${iso}">${escapeHtml(v)}</td>`;
       }).join('')}
     </tr>`;
   }
@@ -500,7 +513,7 @@ function renderPlanningGlobal(){
   document.getElementById('yearSel').addEventListener('change', ()=>{
     planning.__year = parseInt(document.getElementById('yearSel').value,10);
     storage.set(KEYS.planning, planning);
-    renderPlanningGlobal();
+    renderPlanningDaily();
   });
 
   async function save(){
@@ -509,9 +522,9 @@ function renderPlanningGlobal(){
     document.querySelectorAll('tbody tr').forEach(tr=>{
       const worker = tr.dataset.worker;
       planning[y][worker] = planning[y][worker] || {};
-      tr.querySelectorAll('[data-week]').forEach(td=>{
-        const wk = parseInt(td.dataset.week,10);
-        planning[y][worker][wk] = td.textContent.trim();
+      tr.querySelectorAll('[data-date]').forEach(td=>{
+        const iso = td.dataset.date;
+        planning[y][worker][iso] = td.textContent.trim();
       });
     });
     storage.set(KEYS.planning, planning); setDirty(route,false);
@@ -521,12 +534,13 @@ function renderPlanningGlobal(){
 }
 
 /* =================
-   PAGE: POINTAGE — HEBDO (nouvelle UX)
+   PAGE: POINTAGE — HEBDO (heures + chantier / jour)
    ================= */
 function renderPointageWeekly(){
   const route='/pointage';
   const ouvriers = storage.get(KEYS.ouvriers, DEFAULT_OUVRIERS).map(o=>({ ...o, nomComplet: fullName(o) }));
-  const pointage = storage.get(KEYS.pointage, []); // rows: {date, ouvrier, agence, heures}
+  const chantiers= storage.get(KEYS.chantiers, DEFAULT_CHANTIERS).map(c=>c.code);
+  const pointage = storage.get(KEYS.pointage, []); // rows: {date, ouvrier, agence, chantier, heures}
 
   const {year:curY, week:curW} = getISOWeek(new Date());
 
@@ -548,19 +562,15 @@ function renderPointageWeekly(){
             <thead>
               <tr>
                 <th>Ouvrier</th>
-                <th class="mono">Lun</th>
-                <th class="mono">Mar</th>
-                <th class="mono">Mer</th>
-                <th class="mono">Jeu</th>
-                <th class="mono">Ven</th>
+                <th>Lun</th><th>Mar</th><th>Mer</th><th>Jeu</th><th>Ven</th>
                 <th>Total</th>
-                <th>Auto</th>
+                <th>Auto (heures)</th>
               </tr>
             </thead>
             <tbody id="tb"></tbody>
             <tfoot>
               <tr>
-                <td style="font-weight:600">Total jour</td>
+                <td style="font-weight:600">Total jour (heures)</td>
                 <td class="mono" id="totLun">0.00</td>
                 <td class="mono" id="totMar">0.00</td>
                 <td class="mono" id="totMer">0.00</td>
@@ -571,7 +581,7 @@ function renderPointageWeekly(){
             </tfoot>
           </table>
         </div>
-        <p class="hint">Chaque cellule est une liste 0 → 10 h (pas 0,5). Le bouton <b>Auto</b> remplit <b>7,5 h</b> du <b>lundi au jeudi</b> et <b>7 h</b> le <b>vendredi</b> pour l’ouvrier de la ligne.</p>
+        <p class="hint">Chaque cellule comporte <b>Heures</b> (liste 0→10, pas 0,5) et <b>Chantier</b> (liste des chantiers existants). Le bouton <b>Auto</b> ne remplit que les heures (7,5 lun→jeu ; 7 ven).</p>
       </div>
     </section>
   `;
@@ -583,46 +593,43 @@ function renderPointageWeekly(){
   function hoursOptions(selVal){
     const opts = [];
     for(let v=0; v<=10; v+=0.5){
-      const val = v.toFixed(1).replace(/\.0$/, '.0'); // garder .0/.5
       const sel = (+v === +selVal) ? 'selected' : '';
       opts.push(`<option value="${v.toFixed(1)}" ${sel}>${v.toFixed(1)}</option>`);
     }
     return opts.join('');
   }
+  function chantierOptions(selVal){
+    return `<option value=""></option>` + chantiers.map(c=>`<option ${c===selVal?'selected':''}>${c}</option>`).join('');
+  }
 
-  function getRowMapForWeek(year, week){
-    const days = weekDatesISO(year, week); // 7 jours ISO
-    // on ne garde que Lun→Ven (index 0..4)
-    const dMonToFri = days.slice(0,5);
-    const map = new Map(); // key=ouvrier -> {Lun..Ven}
-    ouvriers.forEach(o=>{
-      map.set(o.nomComplet, { worker:o, jours:[0,0,0,0,0] });
+  function daysForWeek(year, week){ return weekDatesISO(year, week).slice(0,5); } // lun→ven
+
+  function getMapForWeek(year, week){
+    const dates = daysForWeek(year, week);
+    const map = new Map(); // name -> {jours:[{h,c},...]}
+    ouvriers.forEach(o=> map.set(o.nomComplet, { worker:o, jours:dates.map(()=>({h:0,c:""})) }));
+    pointage.filter(r=> dates.includes(r.date)).forEach(r=>{
+      const idx = dates.indexOf(r.date); const ref = map.get(r.ouvrier);
+      if(ref){ ref.jours[idx] = { h:(+r.heures||0), c:(r.chantier||"") }; }
     });
-    // injecter les heures existantes de la semaine
-    pointage.filter(r=> dMonToFri.includes(r.date)).forEach(r=>{
-      const idx = dMonToFri.indexOf(r.date);
-      if(idx>=0){
-        const ref = map.get(r.ouvrier);
-        if(ref){ ref.jours[idx] = +r.heures || 0; }
-      }
-    });
-    return { map, dMonToFri };
+    return {map, dates};
   }
 
   function renderTable(){
     const year = parseInt(pYear.value,10);
     const week = parseInt(pWeek.value,10);
-    const { map, dMonToFri } = getRowMapForWeek(year, week);
+    const { map, dates } = getMapForWeek(year, week);
 
     tb.innerHTML = [...map.values()].map(({worker, jours})=>{
-      const total = jours.reduce((s,h)=>s+ (+h||0),0);
+      const total = jours.reduce((s,j)=>s+(+j.h||0),0);
       return `<tr data-worker="${escapeHtml(worker.nomComplet)}">
         <td class="mono">${escapeHtml(worker.nomComplet)}</td>
-        ${jours.map((h,idx)=>`
+        ${jours.map((j,idx)=>`
           <td>
-            <select class="hsel" data-day="${idx}">
-              ${hoursOptions(h)}
-            </select>
+            <div class="pcell">
+              <select class="hsel" data-day="${idx}">${hoursOptions(j.h)}</select>
+              <select class="csel" data-day="${idx}">${chantierOptions(j.c)}</select>
+            </div>
           </td>
         `).join('')}
         <td class="mono rowTotal">${total.toFixed(2)}</td>
@@ -630,40 +637,40 @@ function renderPointageWeekly(){
       </tr>`;
     }).join('');
 
-    bindRowEvents(dMonToFri);
+    bindRowEvents(dates);
     recomputeTotals();
   }
 
   function bindRowEvents(dates){
+    // heures
     tb.querySelectorAll('select.hsel').forEach(sel=>{
       sel.addEventListener('change', ()=>{
         setDirty('/pointage', true);
-        // maj total de la ligne
         const tr = sel.closest('tr');
         const vals = [...tr.querySelectorAll('select.hsel')].map(s=>+s.value||0);
         tr.querySelector('.rowTotal').textContent = vals.reduce((s,h)=>s+h,0).toFixed(2);
         recomputeTotals();
       });
     });
-
-    // auto par ouvrier
+    // chantier
+    tb.querySelectorAll('select.csel').forEach(sel=>{
+      sel.addEventListener('change', ()=> setDirty('/pointage', true));
+    });
+    // auto par ouvrier (heures seulement)
     tb.querySelectorAll('.autoOne').forEach(btn=>{
       btn.addEventListener('click', ()=>{
         const tr = btn.closest('tr');
         const selects = [...tr.querySelectorAll('select.hsel')];
-        selects.forEach((s,idx)=>{
-          s.value = (idx<4 ? 7.5 : 7.0).toFixed(1);
-        });
+        selects.forEach((s,idx)=>{ s.value = (idx<4 ? 7.5 : 7.0).toFixed(1); });
         setDirty('/pointage', true);
-        // trigger change pour recalcul
         selects.forEach(s=>s.dispatchEvent(new Event('change')));
       });
     });
   }
 
   function recomputeTotals(){
-    const cols = [0,1,2,3,4];
-    const colTotals = cols.map(i=>{
+    const idxs = [0,1,2,3,4];
+    const colTotals = idxs.map(i=>{
       let sum=0;
       tb.querySelectorAll(`select.hsel[data-day="${i}"]`).forEach(s=> sum += (+s.value||0));
       return sum;
@@ -683,22 +690,24 @@ function renderPointageWeekly(){
   async function save(){
     const year = parseInt(pYear.value,10);
     const week = parseInt(pWeek.value,10);
-    const dates = weekDatesISO(year, week).slice(0,5); // lun..ven
+    const dates = daysForWeek(year, week); // lun..ven
 
-    // Construire nouvelle liste pour cette semaine (on filtre l'ancienne semaine, puis on pousse les nouvelles valeurs > 0)
+    // Filtrer l'ancienne semaine
     const keep = storage.get(KEYS.pointage, []).filter(r=> !dates.includes(r.date));
-    // pour chaque ligne ouv., créer 5 entrées si > 0
+
+    // Pour chaque ouvrier/jour, on enregistre une ligne si heures > 0 ou chantier non vide
     tb.querySelectorAll('tr[data-worker]').forEach(tr=>{
       const ouvrier = tr.dataset.worker;
-      const agence = ouvriers.find(o=>o.nomComplet===ouvrier)?.agence || "";
-      tr.querySelectorAll('select.hsel').forEach(sel=>{
-        const dayIdx = parseInt(sel.dataset.day,10);
-        const h = +sel.value || 0;
-        if(h>0){
-          keep.push({ date: dates[dayIdx], ouvrier, agence, heures: h });
+      const agence = (storage.get(KEYS.ouvriers, DEFAULT_OUVRIERS).find(o=>fullName(o)===ouvrier)?.agence)||"";
+      tr.querySelectorAll('.pcell').forEach((cell,dayIdx)=>{
+        const h = +cell.querySelector('.hsel').value || 0;
+        const c = (cell.querySelector('.csel').value || "").trim();
+        if(h>0 || c){
+          keep.push({ date: dates[dayIdx], ouvrier, agence, chantier: c, heures: h });
         }
       });
     });
+
     storage.set(KEYS.pointage, keep);
     setDirty(route,false);
   }
@@ -710,17 +719,19 @@ function renderPointageWeekly(){
 }
 
 /* =================
-   PAGE: DIFFUSION (inchangé depuis version validée)
+   PAGE: DIFFUSION — par Agence avec détail jour par jour
    ================= */
 function renderDiffusionParAgence(){
   const route='/diffusion';
   const pointage = storage.get(KEYS.pointage, []);
+  const agencesObj = storage.get(KEYS.agences, DEFAULT_AGENCES);
+
   const {year:curY, week:curW} = getISOWeek(new Date());
 
   pageRoot.innerHTML = `
     <section class="panel">
       <div class="panel-h">
-        <div class="toolbar"><span class="pill">Diffusion — par Agence</span></div>
+        <div class="toolbar"><span class="pill">Diffusion — par Agence (détail jour par jour)</span></div>
         <div class="toolbar">
           <div class="field">
             <label class="pill">Année</label>
@@ -730,12 +741,16 @@ function renderDiffusionParAgence(){
           </div>
           <button class="btn" id="save">Enregistrer</button>
           <button class="btn primary" id="send">Envoyer les emails</button>
-          <button class="btn ghost" id="preview">Aperçu email</button>
+          <button class="btn ghost" id="preview">Aperçu emails</button>
         </div>
       </div>
       <div class="panel-b">
+        <div class="field" style="margin-bottom:10px">
+          <label class="pill">Agences à contacter</label>
+          <div id="agList" class="field" style="gap:14px; flex-wrap:wrap"></div>
+        </div>
         <div id="tables"></div>
-        <p class="hint">Un tableau est généré par <b>Agence</b> pour la semaine sélectionnée. Les heures sont au format <span class="mono">XX,XX Heures</span>.</p>
+        <p class="hint">Chaque agence voit <b>uniquement</b> ses pointages. Format heures : <span class="mono">XX,XX Heures</span>.</p>
         <div id="previewOut" class="hint"></div>
       </div>
     </section>
@@ -744,6 +759,17 @@ function renderDiffusionParAgence(){
   const dYear = document.getElementById('dYear');
   const dWeek = document.getElementById('dWeek');
   const tablesDiv = document.getElementById('tables');
+  const agListDiv = document.getElementById('agList');
+
+  // cases à cocher des agences
+  agListDiv.innerHTML = agencesObj.map(a=>{
+    const safe = escapeHtml(a.nom);
+    return `<label style="display:flex;align-items:center;gap:6px;border:1px solid var(--line);padding:6px 10px;border-radius:10px;background:#101526">
+      <input type="checkbox" class="agChk" value="${safe}" checked />
+      <span>${safe}</span>
+      <span class="hint" style="margin:0">(${escapeHtml(a.email||'—')})</span>
+    </label>`;
+  }).join('');
 
   function weekDates(year, week){
     const simple = new Date(Date.UTC(year,0,4));
@@ -751,75 +777,68 @@ function renderDiffusionParAgence(){
     const monday = new Date(simple); monday.setUTCDate(simple.getUTCDate() - dayOfWeek + 1 + (week-1)*7);
     return [...Array(7)].map((_,i)=>new Date(monday.getTime()+i*86400000).toISOString().slice(0,10));
   }
+  function niceDayLabel(iso){
+    const d = new Date(iso); return d.toLocaleDateString('fr-FR',{weekday:'short', day:'2-digit', month:'2-digit'});
+  }
 
   function groupData(){
     const year = parseInt(dYear.value,10);
     const week = parseInt(dWeek.value,10);
-    const weekIsoDates = weekDates(year, week);
+    const weekIsoDates = weekDates(year, week).slice(0,5); // lun→ven
     const rows = pointage.filter(r=>weekIsoDates.includes(r.date));
 
+    // group: agence -> ouvrier -> { [iso]: {h, c}, total }
     const byAgency = {};
     rows.forEach(r=>{
       const ag = r.agence || '—';
-      byAgency[ag]= byAgency[ag]|| {};
-      const key = `${r.ouvrier}|${r.chantier||''}|${r.agence}`;
-      if(!byAgency[ag][key]) byAgency[ag][key] = {
-        nom: r.ouvrier, entreprise: r.agence||'',
-        qualification: '', chantier: r.chantier||'', heures:0, encadrant:''
-      };
-      byAgency[ag][key].heures += (+r.heures||0);
+      byAgency[ag] = byAgency[ag] || {};
+      const worker = r.ouvrier;
+      byAgency[ag][worker] = byAgency[ag][worker] || { d:{}, total:0 };
+      byAgency[ag][worker].d[r.date] = { h:+(r.heures||0), c:r.chantier||"" };
+      byAgency[ag][worker].total += (+r.heures||0);
     });
-
-    // enrichir qualification & encadrant
-    const ouvriers = storage.get(KEYS.ouvriers, DEFAULT_OUVRIERS);
-    const chantiers= storage.get(KEYS.chantiers, DEFAULT_CHANTIERS);
-    function qOf(name){ const o = ouvriers.find(x=>(`${x.prenom} ${x.nom}`.trim())===name); return o ? `${o.metier} ${o.qualification}`.trim() : ''; }
-    function encOf(code){ return chantiers.find(c=>c.code===code)?.encadrant||''; }
-
-    Object.values(byAgency).forEach(map=>{
-      Object.values(map).forEach(r=>{
-        r.qualification = qOf(r.nom);
-        r.encadrant = encOf(r.chantier);
-      });
-    });
-
-    return byAgency;
+    return { byAgency, weekIsoDates };
   }
 
-  function formatHeuresFR(v){ const n = Number(v??0); return `${n.toFixed(2).replace(".",",")} Heures`; }
-
   function renderTables(){
-    const grouped = groupData();
-    const agencies = Object.keys(grouped).sort();
+    const { byAgency, weekIsoDates } = groupData();
+    const agencies = Object.keys(byAgency).sort();
     if(agencies.length===0){ tablesDiv.innerHTML = `<p class="hint">Aucune donnée pour cette semaine.</p>`; return; }
+
     tablesDiv.innerHTML = agencies.map(ag=>{
-      const rows = Object.values(grouped[ag]);
-      const body = rows.map(r=>`
-        <tr>
-          <td>${escapeHtml(r.nom)}</td>
-          <td>${escapeHtml(r.entreprise)}</td>
-          <td>${escapeHtml(r.qualification)}</td>
-          <td class="mono">${escapeHtml(formatHeuresFR(r.heures))}</td>
-          <td>${escapeHtml(r.chantier)}</td>
-          <td>${escapeHtml(r.encadrant)}</td>
-        </tr>
-      `).join('');
+      const workers = Object.keys(byAgency[ag]).sort();
+      const headDays = weekIsoDates.map(iso=>`<th class="mono">${escapeHtml(niceDayLabel(iso))}</th>`).join('');
+      const body = workers.map(w=>{
+        const rec = byAgency[ag][w];
+        const tds = weekIsoDates.map(iso=>{
+          const d = rec.d[iso];
+          if(!d) return `<td class="mono">—</td>`;
+          return `<td class="mono">${formatHeuresFR(d.h)}${d.c ? ` — ${escapeHtml(d.c)}`:''}</td>`;
+        }).join('');
+        return `<tr>
+          <td>${escapeHtml(w)}</td>
+          ${tds}
+          <td class="mono">${formatHeuresFR(rec.total)}</td>
+        </tr>`;
+      }).join('');
       return `
         <div style="margin-bottom:18px">
           <div class="pill" style="margin-bottom:8px">Agence: ${escapeHtml(ag)}</div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>Ouvrier</th><th>Agence</th><th>Qualification</th><th>Heures</th><th>Chantier</th><th>Encadrant</th></tr></thead>
+              <thead><tr><th>Ouvrier</th>${headDays}<th>Total</th></tr></thead>
               <tbody>${body}</tbody>
             </table>
           </div>
-        </div>`;
+        </div>
+      `;
     }).join('');
   }
 
-  function buildEmailHtml(){
-    const grouped = groupData();
-    const agencies = Object.keys(grouped).sort();
+  function buildEmailHtmlForAgency(agencyName){
+    const { byAgency, weekIsoDates } = groupData();
+    const recs = byAgency[agencyName] || {};
+    const workers = Object.keys(recs).sort();
     const styles = `
       table{border-collapse:collapse;width:100%;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
       th,td{border:1px solid #d5d8df;padding:8px 10px;font-size:14px}
@@ -827,32 +846,22 @@ function renderDiffusionParAgence(){
       .mono{font-family:ui-monospace,Menlo,Consolas,monospace}
       h3{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
     `;
-    const sections = agencies.map(ag=>{
-      const rows = Object.values(grouped[ag]);
-      const body = rows.map(r=>`
-        <tr>
-          <td>${escapeHtml(r.nom)}</td>
-          <td>${escapeHtml(r.entreprise)}</td>
-          <td>${escapeHtml(r.qualification)}</td>
-          <td class="mono">${escapeHtml(formatHeuresFR(r.heures))}</td>
-          <td>${escapeHtml(r.chantier)}</td>
-          <td>${escapeHtml(r.encadrant)}</td>
-        </tr>
-      `).join('');
-      return `
-        <h3>Agence: ${escapeHtml(ag)}</h3>
-        <table role="table"><thead>
-          <tr><th>Ouvrier</th><th>Agence</th><th>Qualification</th><th>Heures</th><th>Chantier</th><th>Encadrant</th></tr>
-        </thead><tbody>${body}</tbody></table>
-      `;
-    }).join('<br/>');
-
+    const headDays = weekIsoDates.map(iso=>`<th class="mono">${escapeHtml(niceDayLabel(iso))}</th>`).join('');
+    const body = workers.map(w=>{
+      const rec = recs[w];
+      const tds = weekIsoDates.map(iso=>{
+        const d = rec.d[iso];
+        if(!d) return `<td class="mono">—</td>`;
+        return `<td class="mono">${formatHeuresFR(d.h)}${d.c ? ` — ${escapeHtml(d.c)}`:''}</td>`;
+      }).join('');
+      return `<tr><td>${escapeHtml(w)}</td>${tds}<td class="mono">${formatHeuresFR(rec.total)}</td></tr>`;
+    }).join('');
     return `
       <div style="font:14px system-ui,-apple-system,Segoe UI,Roboto,Arial;color:#0b1220">
         <style>${styles}</style>
         <p>Bonjour,</p>
-        <p>Veuillez trouver ci-dessous la synthèse des heures par agence pour la semaine ${escapeHtml(String(dWeek.value))}/${escapeHtml(String(dYear.value))} :</p>
-        ${sections}
+        <p>Veuillez trouver ci-dessous le détail jour par jour des heures pour la semaine ${escapeHtml(String(dWeek.value))}/${escapeHtml(String(dYear.value))} — <b>${escapeHtml(agencyName)}</b> :</p>
+        <table role="table"><thead><tr><th>Ouvrier</th>${headDays}<th>Total</th></tr></thead><tbody>${body}</tbody></table>
         <p style="color:#5f6b7c">— Envoi automatique</p>
       </div>
     `;
@@ -860,24 +869,33 @@ function renderDiffusionParAgence(){
 
   dYear.addEventListener('input', ()=>{ renderTables(); setDirty(route,true); });
   dWeek.addEventListener('input', ()=>{ renderTables(); setDirty(route,true); });
+  document.querySelectorAll('.agChk').forEach(c=> c.addEventListener('change', ()=> setDirty(route,true)));
 
   async function save(){ setDirty(route,false); }
   saveHandlers[route]=save;
 
   async function preview(){
-    const html = buildEmailHtml();
-    document.getElementById('previewOut').innerHTML = `<div class="hint">Aperçu HTML :</div><div style="margin-top:10px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#101525">${html}</div>`;
+    const selected = [...document.querySelectorAll('.agChk:checked')].map(c=>c.value);
+    if(selected.length===0){ alert("Sélectionne au moins une agence."); return; }
+    const sections = selected.map(ag=>`<h3>${escapeHtml(ag)}</h3>${buildEmailHtmlForAgency(ag)}`).join('<hr/>');
+    document.getElementById('previewOut').innerHTML = `<div class="hint">Aperçu des emails (un par agence sélectionnée) :</div><div style="margin-top:10px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#101525">${sections}</div>`;
   }
 
   async function sendEmails(){
-    const subject = `Synthèse des heures — Semaine ${dWeek.value}/${dYear.value}`;
-    const html = buildEmailHtml();
-    const to = prompt("Destinataires (séparés par des virgules) :", "") || "";
-    if(!to.trim()){ alert("Aucun destinataire"); return; }
+    const selected = [...document.querySelectorAll('.agChk:checked')].map(c=>c.value);
+    if(selected.length===0){ alert("Sélectionne au moins une agence."); return; }
+    const mapEmail = Object.fromEntries(agencesObj.map(a=>[a.nom, a.email||""]));
     const SERVICE_ID = "REMPLACE_AVEC_TON_SERVICE_ID";
     const TEMPLATE_ID = "REMPLACE_AVEC_TON_TEMPLATE_ID";
-    // eslint-disable-next-line no-undef
-    await emailjs.send(SERVICE_ID, TEMPLATE_ID, { to_emails: to.trim(), subject, message_html: html });
+
+    for(const ag of selected){
+      const to = (mapEmail[ag]||"").trim();
+      if(!to){ console.warn("Aucun email pour", ag); continue; }
+      const subject = `Synthèse hebdo — ${ag} — Semaine ${dWeek.value}/${dYear.value}`;
+      const html = buildEmailHtmlForAgency(ag);
+      // eslint-disable-next-line no-undef
+      await emailjs.send(SERVICE_ID, TEMPLATE_ID, { to_emails: to, subject, message_html: html });
+    }
     setDirty(route,false);
   }
 
@@ -889,11 +907,11 @@ function renderDiffusionParAgence(){
 }
 
 /* =================
-   PAGE: PARAMÈTRES (identique)
+   PAGE: PARAMÈTRES
    ================= */
 function renderParametres(){
   const route='/parametres';
-  const params = storage.get(KEYS.params, { qualifs:["N1","N2","N3P1","N3P2","N4P1"], signature:"Cordialement,\nL'équipe Bourdarios" });
+  const params = storage.get(KEYS.params, DEFAULT_PARAMS);
 
   pageRoot.innerHTML = `
     <section class="panel">
