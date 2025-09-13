@@ -7,68 +7,76 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net" />
 <style>
   :root{
-    --bg:#0f1115; --panel:#171a21; --ink:#e8ebf1; --muted:#9aa4b2;
-    --accent:#4da3ff; --ok:#35c759; --warn:#ff9f0a; --err:#ff453a; --line:#262b36;
-    --chip:#202532; --radius:12px;
+    --bg:#0d1017; --panel:#141a24; --ink:#e9eef6; --muted:#a3afc2;
+    --accent:#61a6ff; --ok:#34c759; --warn:#ff9f0a; --err:#ff453a; --line:#283040; --chip:#1a2130;
+    --radius:14px; --radius-sm:10px; --shadow: 0 12px 30px rgba(0,0,0,.28);
     --font: ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
   }
   html,body{height:100%}
-  body{margin:0; background:linear-gradient(180deg,#0d1016,#121723 40%,#0d1016); color:var(--ink); font-family:var(--font); -webkit-font-smoothing:antialiased;}
+  body{
+    margin:0; color:var(--ink); font-family:var(--font);
+    background: radial-gradient(1200px 700px at 10% 10%, #0f1624 0%, #0d1119 40%, #0b0f16 100%);
+    -webkit-font-smoothing:antialiased;
+  }
   a{color:inherit; text-decoration:none}
-  .wrap{max-width:1260px; margin:24px auto 56px; padding:0 20px;}
+  .wrap{max-width:1380px; margin:24px auto 64px; padding:0 20px;}
   .header{display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:16px;}
-  .title{font-size: clamp(20px, 2.6vw, 28px); font-weight:700}
-  .badge{display:inline-flex; align-items:center; gap:10px; padding:10px 14px; background:var(--chip); border:1px solid var(--line); border-radius:999px; font-size:14px; color:var(--muted);}
+  .title{font-size: clamp(20px, 2.6vw, 30px); font-weight:800; letter-spacing:.2px}
+  .badge{display:inline-flex; align-items:center; gap:10px; padding:10px 14px; background:linear-gradient(180deg,#111827,#0f1522); border:1px solid var(--line); border-radius:999px; font-size:14px; color:#cfd7e6;}
   .dot{width:10px; height:10px; border-radius:50%; box-shadow:0 0 0 2px rgba(0,0,0,.25) inset;}
   .dot.orange{background:var(--warn)} .dot.green{background:var(--ok)}
-  .nav{display:flex; gap:8px; background:var(--panel); border:1px solid var(--line); border-radius:999px; padding:6px; flex-wrap:wrap}
-  .tab{padding:8px 14px; border-radius:999px; color:#c9d1e1; border:1px solid transparent}
-  .tab.active{background:#263049; border-color:#35405e}
-  .panel{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; box-shadow: 0 10px 30px rgba(0,0,0,.25); margin-top:14px}
+  .nav{display:flex; gap:8px; background:linear-gradient(180deg,#131a28,#111827); border:1px solid var(--line); border-radius:999px; padding:6px; flex-wrap:wrap}
+  .tab{padding:8px 14px; border-radius:999px; color:#cfe0ff; border:1px solid transparent}
+  .tab.active{background:#24314e; border-color:#344468}
+  .panel{background:linear-gradient(180deg,#121a2a,#101623); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; box-shadow: var(--shadow); margin-top:14px}
   .panel-h{display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:1px solid var(--line);}
   .panel-b{padding:16px;}
   .toolbar{display:flex; flex-wrap:wrap; gap:10px}
-  .btn{padding:10px 14px; border-radius:10px; border:1px solid var(--line); background:#1d2330; color:#e8ebf1; font-size:14px; cursor:pointer; transition:.15s transform ease, .2s background ease; user-select:none;}
-  .btn:hover{transform: translateY(-1px)} .btn.primary{background:linear-gradient(180deg,#2d6bff,#2254d7); border-color:#1e3ea8}
+  .btn{padding:10px 14px; border-radius:12px; border:1px solid var(--line); background:#1b2435; color:#e8effb; font-size:14px; cursor:pointer; transition:.15s transform ease, .2s background ease; user-select:none;}
+  .btn:hover{transform: translateY(-1px)} .btn.primary{background:linear-gradient(180deg,#2e6cff,#214fd3); border-color:#1e3ea8}
   .btn.ghost{background:transparent}
   .btn.destructive{background:linear-gradient(180deg,#ff5a5f,#d7263d); border-color:#9d1628}
   .btn:disabled{opacity:.55; cursor:not-allowed; transform:none}
-  .pill{display:inline-block; padding:4px 8px; border-radius:999px; font-size:12px; background:#1a2130; border:1px solid var(--line); color:#cbd5e4;}
-  .hint{color:var(--muted); font-size:13px; margin-top:10px}
+  .pill{display:inline-block; padding:5px 10px; border-radius:999px; font-size:12px; background:#161f31; border:1px solid var(--line); color:#cbd5e7;}
   .field{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
-  input[type="text"], input[type="email"], input[type="number"], input[type="date"], select, textarea{
+  input[type="text"], input[type="email"], input[type="number"], select, textarea{
     background:#0e1422; color:var(--ink); border:1px solid var(--line); border-radius:10px; padding:10px 12px; font-size:14px;
   }
   textarea{width:100%; min-height:120px}
-  .grow{flex:1} .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
-  .grid{display:grid; gap:12px}
-  .grid.cols-2{grid-template-columns: repeat(2, minmax(0, 1fr))}
-  .grid.cols-3{grid-template-columns: repeat(3, minmax(0, 1fr))}
-  @media (max-width: 980px){ .grid.cols-2,.grid.cols-3{grid-template-columns: 1fr} }
-  .table-wrap{width:100%; overflow:auto; border-radius:10px; border:1px solid var(--line);}
-  table{width:100%; border-collapse:collapse; min-width:900px; background:#0f131c}
-  thead th{position:sticky; top:0; backdrop-filter: blur(6px); background:#0f131cee; color:#c9d1e1; font-weight:600; text-align:left; font-size:13px; letter-spacing:.2px; border-bottom:1px solid var(--line); padding:10px 12px;}
-  tbody td{border-bottom:1px solid var(--line); padding:9px 12px; font-size:14px; color:#e5e9f3}
-  tbody tr:hover{background:#121829}
-  tfoot td{background:#0f131c; font-weight:600}
-  .kpi{display:flex; gap:10px; flex-wrap:wrap}
-  .kpi .card{background:#101526; border:1px solid var(--line); border-radius:12px; padding:12px 14px; min-width:160px}
-  .kpi .card .v{font-size:20px; font-weight:700}
-  .modal-backdrop{position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; align-items:center; justify-content:center; z-index:50}
-  .modal{background:var(--panel); border:1px solid var(--line); border-radius:12px; width:min(560px, 92vw); box-shadow:0 12px 40px rgba(0,0,0,.45)}
-  .modal .m-h{padding:14px 16px; border-bottom:1px solid var(--line); font-weight:600}
-  .modal .m-b{padding:16px}
-  .modal .m-f{display:flex; gap:10px; justify-content:flex-end; padding:12px 16px; border-top:1px solid var(--line)}
-  .show{display:flex}
-  /* cellules pointage double-ligne (heures + chantier) */
+  .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
+
+  /* Tables */
+  .table-wrap{width:100%; overflow:auto; border-radius:12px; border:1px solid var(--line);}
+  table{width:100%; border-collapse:separate; border-spacing:0; min-width:980px; background:#0f141f}
+  thead th{
+    position:sticky; top:0; z-index:3;
+    backdrop-filter: blur(6px); background:#0f141fe6; color:#d6def0;
+    font-weight:700; text-align:left; font-size:12.5px; letter-spacing:.3px;
+    border-bottom:1px solid var(--line); padding:10px 12px;
+  }
+  thead .th-group{font-size:12px; text-align:center; border-bottom:0}
+  tbody td{border-bottom:1px solid var(--line); padding:9px 12px; font-size:14px; color:#e5e9f3; white-space:nowrap}
+  tbody tr:nth-child(4n+1), tbody tr:nth-child(4n+2){ background:#0f1725; } /* regroupe les doubles lignes par ouvrier */
+  tbody tr:hover{background:#121a2c}
+  tfoot td{background:#0f141f; font-weight:600}
+
+  /* Sticky first column for all table types */
+  table .sticky-col{
+    position: sticky; left:0; z-index:2; background:linear-gradient(180deg,#0f1523,#0d121d);
+    border-right:1px solid var(--line);
+  }
+  /* Planning day headers */
+  .dayhead{writing-mode:vertical-rl; transform:rotate(180deg); font-size:11px; white-space:nowrap; color:#b9c7e1}
+  .weekhead{font-weight:700; text-align:center}
+  .cell-tag{display:inline-block; padding:4px 6px; border-radius:6px; background:#0f1a2b; border:1px solid var(--line); font-size:12px}
   .pcell{display:flex; flex-direction:column; gap:6px; min-width:140px}
   .pcell select{width:100%}
-  /* planning daily headers */
-  .dayhead{writing-mode:vertical-rl; transform:rotate(180deg); font-size:11px; white-space:nowrap}
-  .cell-tag{display:inline-block; padding:4px 6px; border-radius:6px; background:#101a2a; border:1px solid var(--line); font-size:12px}
+  .imgbox{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:8px}
+  .imgbox .thumb{max-width:100%; border:1px solid var(--line); border-radius:10px}
 </style>
 
-<!-- (Plus d'EmailJS : on utilise Outlook/MAILTO) -->
+<!-- html2canvas pour captures PNG des tableaux Diffusion -->
+<script defer src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </head>
 <body>
   <div class="wrap">
@@ -92,10 +100,10 @@
   </div>
 
   <!-- Modal de confirmation -->
-  <div class="modal-backdrop" id="confirmModal">
+  <div class="modal-backdrop" id="confirmModal" style="display:none">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
       <div class="m-h" id="confirmTitle">Enregistrer les modifications ?</div>
-      <div class="m-b"><p class="hint">Des modifications non enregistrées sont présentes sur cette page.</p></div>
+      <div class="m-b"></div>
       <div class="m-f">
         <button class="btn" id="btnKeep">Continuer sans enregistrer</button>
         <button class="btn primary" id="btnSaveAndGo">Enregistrer et continuer</button>
@@ -112,7 +120,7 @@ const pageRoot = document.getElementById('page');
 const routes = {
   '/planning': renderPlanningDailyReadOnly,  // Planning auto, non éditable
   '/pointage': renderPointageWeekly,         // Heures + chantier / jour
-  '/diffusion': renderDiffusionParAgence,    // Détail jour/jour + Outlook
+  '/diffusion': renderDiffusionParAgence,    // Détail jour/jour + Outlook + PNG
   '/ouvriers': renderOuvriers,
   '/agences': renderAgences,
   '/chantiers': renderChantiers,
@@ -134,8 +142,8 @@ function updateBadge(){
   else { dot.classList.remove('orange'); dot.classList.add('green'); text.textContent = "Enregistré"; }
 }
 function activateTab(route){ document.querySelectorAll('.tab').forEach(a=>a.classList.toggle('active', a.dataset.route === route)); }
-function showConfirm(){ modal.classList.add('show'); }
-function hideConfirm(){ modal.classList.remove('show'); }
+function showConfirm(){ modal.style.display='flex'; }
+function hideConfirm(){ modal.style.display='none'; }
 btnCancelNav.addEventListener('click', ()=>{ pendingRoute=null; hideConfirm(); });
 btnKeep.addEventListener('click', ()=>{ hideConfirm(); navigate(pendingRoute, {force:true}); pendingRoute=null; });
 btnSaveAndGo.addEventListener('click', async ()=>{ hideConfirm(); await saveHandlers[currentRoute]?.(); navigate(pendingRoute, {force:true}); pendingRoute=null; });
@@ -162,12 +170,11 @@ const storage = {
   set(k, v){ localStorage.setItem(k, JSON.stringify(v)); }
 };
 const KEYS = {
-  ouvriers:  'app_ouvriers_v4',
-  agences:   'app_agences_v4',
-  chantiers: 'app_chantiers_v4',
-  pointage:  'app_pointage_v4',   // {date, ouvrier, agence, chantier, heures}
-  // plus de storage planning : planning = dérivé du pointage
-  params:    'app_params_v4',     // (plus de signature)
+  ouvriers:  'app_ouvriers_v5',
+  agences:   'app_agences_v5',
+  chantiers: 'app_chantiers_v5',
+  pointage:  'app_pointage_v5',   // {date, ouvrier, agence, chantier, heures}
+  params:    'app_params_v5',     // sans signature
 };
 
 /* =========
@@ -207,20 +214,23 @@ function getISOWeek(d){
   const weekNo = Math.ceil((((date - yearStart) / 86400000) + 1)/7);
   return {year: date.getUTCFullYear(), week: weekNo};
 }
-function daysOfYear(year){
-  const start = new Date(Date.UTC(year,0,1));
-  const end = new Date(Date.UTC(year+1,0,1));
-  const out=[]; for(let d=new Date(start); d<end; d.setUTCDate(d.getUTCDate()+1)){
-    out.push(new Date(d));
-  } return out;
-}
-function dateISO(d){ const x=new Date(d); x.setHours(0,0,0,0); return x.toISOString().slice(0,10); }
 function weekDatesISO(year, week){
   const simple = new Date(Date.UTC(year,0,4));
   const dayOfWeek = simple.getUTCDay() || 7;
   const monday = new Date(simple); monday.setUTCDate(simple.getUTCDate() - dayOfWeek + 1 + (week-1)*7);
   return [...Array(7)].map((_,i)=>new Date(monday.getTime()+i*86400000).toISOString().slice(0,10));
 }
+function daysOfYearWeekdays(year){ // ISO weekdays only (Mon-Fri)
+  const start = new Date(Date.UTC(year,0,1));
+  const end = new Date(Date.UTC(year+1,0,1));
+  const out=[];
+  for(let d = new Date(start); d < end; d.setUTCDate(d.getUTCDate()+1)){
+    const wd = d.getUTCDay(); // 0..6
+    if(wd>=1 && wd<=5){ out.push(new Date(d)); }
+  }
+  return out;
+}
+function dateISO(d){ const x=new Date(d); x.setHours(0,0,0,0); return x.toISOString().slice(0,10); }
 function niceDayLabel(iso){ const d = new Date(iso); return d.toLocaleDateString('fr-FR',{weekday:'short', day:'2-digit', month:'2-digit'}); }
 
 /* =================
@@ -239,35 +249,30 @@ function renderOuvriers(){
         <div class="toolbar"><button class="btn" id="save">Enregistrer</button></div>
       </div>
       <div class="panel-b">
-        <div class="grid cols-3" style="margin-bottom:12px">
-          <div class="field"><label class="pill">Prénom</label><input id="iPrenom" type="text" /></div>
-          <div class="field"><label class="pill">Nom</label><input id="iNom" type="text" /></div>
-          <div class="field"><label class="pill">Métier</label><input id="iMetier" type="text" /></div>
-          <div class="field"><label class="pill">Qualification</label>
-            <select id="iQualif">${params.qualifs.map(q=>`<option>${q}</option>`).join('')}</select>
-          </div>
-          <div class="field"><label class="pill">Agence</label>
-            <select id="iAgence">${agences.map(a=>`<option>${a}</option>`).join('')}</select>
-          </div>
-          <div class="field"><label class="pill">&nbsp;</label>
-            <button class="btn primary" id="add">Ajouter l'ouvrier</button>
-          </div>
+        <div class="field" style="gap:12px; margin-bottom:12px; flex-wrap:wrap">
+          <label class="pill">Prénom</label><input id="iPrenom" type="text" />
+          <label class="pill">Nom</label><input id="iNom" type="text" />
+          <label class="pill">Métier</label><input id="iMetier" type="text" />
+          <label class="pill">Qualification</label>
+          <select id="iQualif">${params.qualifs.map(q=>`<option>${q}</option>`).join('')}</select>
+          <label class="pill">Agence</label>
+          <select id="iAgence">${agences.map(a=>`<option>${a}</option>`).join('')}</select>
+          <button class="btn primary" id="add">Ajouter l'ouvrier</button>
         </div>
 
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Prénom</th><th>Nom</th><th>Métier</th><th>Qualification</th><th>Agence</th><th></th></tr></thead>
+            <thead><tr><th class="sticky-col">Prénom</th><th>Nom</th><th>Métier</th><th>Qualification</th><th>Agence</th><th></th></tr></thead>
             <tbody id="tb"></tbody>
           </table>
         </div>
-        <p class="hint">L'ajout n'efface pas les champs (pratique pour dupliquer et changer juste le nom/prénom).</p>
       </div>
     </section>
   `;
   const tb=document.getElementById('tb');
   function rowTpl(r,i){
     return `<tr data-i="${i}">
-      <td contenteditable data-k="prenom">${escapeHtml(r.prenom)}</td>
+      <td class="sticky-col" contenteditable data-k="prenom">${escapeHtml(r.prenom)}</td>
       <td contenteditable data-k="nom">${escapeHtml(r.nom)}</td>
       <td contenteditable data-k="metier">${escapeHtml(r.metier||"")}</td>
       <td contenteditable data-k="qualification">${escapeHtml(r.qualification||"")}</td>
@@ -321,15 +326,15 @@ function renderAgences(){
         <div class="toolbar"><button class="btn" id="save">Enregistrer</button></div>
       </div>
       <div class="panel-b">
-        <div class="grid cols-3" style="margin-bottom:12px">
-          <div class="field"><label class="pill">Nom</label><input id="aNom" type="text" /></div>
-          <div class="field"><label class="pill">Email(s)</label><input id="aEmail" type="email" placeholder="plusieurs séparés par des virgules"/></div>
-          <div class="field"><label class="pill">&nbsp;</label><button class="btn primary" id="add">Ajouter l'agence</button></div>
+        <div class="field" style="gap:12px; margin-bottom:12px">
+          <label class="pill">Nom</label><input id="aNom" type="text" />
+          <label class="pill">Email(s)</label><input id="aEmail" type="email" placeholder="plusieurs séparés par des virgules"/>
+          <button class="btn primary" id="add">Ajouter</button>
         </div>
 
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Nom</th><th>Email(s)</th><th></th></tr></thead>
+            <thead><tr><th class="sticky-col">Nom</th><th>Email(s)</th><th></th></tr></thead>
             <tbody id="tb"></tbody>
           </table>
         </div>
@@ -338,7 +343,7 @@ function renderAgences(){
   `;
   const tb=document.getElementById('tb');
   function rowTpl(r,i){ return `<tr data-i="${i}">
-    <td contenteditable data-k="nom">${escapeHtml(r.nom)}</td>
+    <td class="sticky-col" contenteditable data-k="nom">${escapeHtml(r.nom)}</td>
     <td contenteditable data-k="email">${escapeHtml(r.email||"")}</td>
     <td><button class="btn ghost del">Suppr.</button></td>
   </tr>`;}
@@ -379,19 +384,19 @@ function renderChantiers(){
         <div class="toolbar"><button class="btn" id="save">Enregistrer</button></div>
       </div>
       <div class="panel-b">
-        <div class="grid cols-3" style="margin-bottom:12px">
-          <div class="field"><label class="pill">Code</label><input id="cCode" type="text" /></div>
-          <div class="field"><label class="pill">Numéro DA</label><input id="cDA" type="text" /></div>
-          <div class="field"><label class="pill">Nom DA</label><input id="cNomDA" type="text" /></div>
-          <div class="field"><label class="pill">Encadrant</label><input id="cEnc" type="text" /></div>
-          <div class="field"><label class="pill">Adresse</label><input id="cAdr" type="text" /></div>
-          <div class="field"><label class="pill">Zone</label><input id="cZone" type="text" /></div>
-          <div class="field"><label class="pill">&nbsp;</label><button class="btn primary" id="add">Ajouter le chantier</button></div>
+        <div class="field" style="gap:12px; margin-bottom:12px">
+          <label class="pill">Code</label><input id="cCode" type="text" />
+          <label class="pill">Numéro DA</label><input id="cDA" type="text" />
+          <label class="pill">Nom DA</label><input id="cNomDA" type="text" />
+          <label class="pill">Encadrant</label><input id="cEnc" type="text" />
+          <label class="pill">Adresse</label><input id="cAdr" type="text" />
+          <label class="pill">Zone</label><input id="cZone" type="text" />
+          <button class="btn primary" id="add">Ajouter</button>
         </div>
 
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Code</th><th>Numéro DA</th><th>Nom DA</th><th>Encadrant</th><th>Adresse</th><th>Zone</th><th></th></tr></thead>
+            <thead><tr><th class="sticky-col">Code</th><th>Numéro DA</th><th>Nom DA</th><th>Encadrant</th><th>Adresse</th><th>Zone</th><th></th></tr></thead>
             <tbody id="tb"></tbody>
           </table>
         </div>
@@ -400,7 +405,7 @@ function renderChantiers(){
   `;
   const tb=document.getElementById('tb');
   function rowTpl(r,i){ return `<tr data-i="${i}">
-    <td contenteditable data-k="code">${escapeHtml(r.code)}</td>
+    <td class="sticky-col" contenteditable data-k="code">${escapeHtml(r.code)}</td>
     <td contenteditable data-k="numDA">${escapeHtml(r.numDA||"")}</td>
     <td contenteditable data-k="nomDA">${escapeHtml(r.nomDA||"")}</td>
     <td contenteditable data-k="encadrant">${escapeHtml(r.encadrant||"")}</td>
@@ -446,7 +451,7 @@ function renderChantiers(){
 }
 
 /* =================
-   PLANNING — TOUS LES JOURS (lecture seule, auto depuis Pointage)
+   PLANNING — READ-ONLY (Lun→Ven, 2 lignes/ouvrier, semaines regroupées, sticky col)
    ================= */
 function renderPlanningDailyReadOnly(){
   const route='/planning';
@@ -455,65 +460,87 @@ function renderPlanningDailyReadOnly(){
   const currentYear = new Date().getFullYear();
   const years = Array.from({length:5},(_,i)=>currentYear-2+i);
   const ySel = parseInt(new URLSearchParams(location.hash.split('?')[1]).get('year') || currentYear, 10);
-  const days = daysOfYear(ySel); // Date[]
+  const days = daysOfYearWeekdays(ySel); // Date[] only Mon-Fri
+
+  // index pointage -> map[ouvrier][dateISO] = {h, c}
+  const map = {};
+  const y0 = new Date(Date.UTC(ySel,0,1));
+  const y1 = new Date(Date.UTC(ySel+1,0,1));
+  pointage.forEach(r=>{
+    const d = new Date(r.date+'T00:00:00Z');
+    if(d >= y0 && d < y1){
+      (map[r.ouvrier] ||= {})[r.date] = { h:+(r.heures||0), c:r.chantier||"" };
+    }
+  });
+
+  // Construire entêtes regroupées par semaine
+  const weeks = []; // {week, count, dates[]}
+  let cur=null;
+  days.forEach(d=>{
+    const {week} = getISOWeek(d);
+    const iso = dateISO(d);
+    if(!cur || cur.week!==week){ cur = {week, count:0, dates:[]}; weeks.push(cur); }
+    cur.count++; cur.dates.push(iso);
+  });
 
   pageRoot.innerHTML = `
     <section class="panel">
       <div class="panel-h">
-        <div class="toolbar"><span class="pill">Planning — ${ySel} (auto, lecture seule)</span></div>
+        <div class="toolbar"><span class="pill">Planning — ${ySel} (auto, Lun→Ven)</span></div>
         <div class="toolbar">
+          <label class="pill">Année</label>
           <select id="yearSel">${years.map(y=>`<option ${y===ySel?'selected':''}>${y}</option>`).join('')}</select>
         </div>
       </div>
       <div class="panel-b">
         <div class="table-wrap">
-          <table style="min-width:1400px">
-            <thead>
-              <tr>
-                <th>Ouvrier</th>
-                ${days.map(d=>{
-                  const m = d.toLocaleDateString('fr-FR',{month:'short'});
-                  const day = d.getUTCDate();
-                  return `<th><div class="dayhead">${m} ${String(day).padStart(2,'0')}</div></th>`;
-                }).join('')}
-              </tr>
-            </thead>
-            <tbody id="tb"></tbody>
+          <table id="planTbl" style="min-width:1400px">
+            <thead id="thead"></thead>
+            <tbody id="tbody"></tbody>
           </table>
         </div>
-        <p class="hint">Cellules non modifiables : le contenu provient du <b>Pointage</b> (chantier du jour, et heures visibles au survol).</p>
       </div>
     </section>
   `;
 
-  const tb = document.getElementById('tb');
+  const thead = document.getElementById('thead');
+  const tbody = document.getElementById('tbody');
 
-  // indexer le pointage pour l'année sélectionnée: map[ouvrier][dateISO] = {h, chantier}
-  const map = {};
-  const yearStart = new Date(Date.UTC(ySel,0,1));
-  const yearEnd = new Date(Date.UTC(ySel+1,0,1));
-  pointage.forEach(r=>{
-    const d = new Date(r.date+'T00:00:00Z');
-    if(d >= yearStart && d < yearEnd){
-      map[r.ouvrier] = map[r.ouvrier] || {};
-      map[r.ouvrier][r.date] = { h: +(r.heures||0), c: r.chantier||"" };
-    }
-  });
+  // Row 1: week groups
+  const thWeeks = [
+    `<tr class="th-group"><th class="sticky-col"></th>${
+      weeks.map(w=>`<th class="weekhead" colspan="${w.count}">S${w.week}</th>`).join('')
+    }</tr>`
+  ];
+  // Row 2: day labels
+  const thDays = [
+    `<tr><th class="sticky-col">Ouvrier</th>${
+      weeks.map(w => w.dates.map(iso=>`<th><div class="dayhead">${escapeHtml(niceDayLabel(iso))}</div></th>`).join('')).join('')
+    }</tr>`
+  ];
+  thead.innerHTML = thWeeks.join('') + thDays.join('');
 
-  function rowTpl(w){
-    const name = fullName(w);
+  function rowTpl(name, type){ // type: 'chantier' or 'heures'
+    const firstCell = type==='chantier' ? name : '<span class="mono" style="opacity:.85">heures</span>';
     return `<tr>
-      <td class="mono">${escapeHtml(name)}</td>
-      ${days.map(d=>{
-        const iso = dateISO(d);
+      <td class="sticky-col">${escapeHtml(firstCell)}</td>
+      ${weeks.map(w => w.dates.map(iso=>{
         const rec = map[name]?.[iso];
-        const txt = rec?.c ? `<span class="cell-tag" title="${formatHeuresFR(rec.h)}">${escapeHtml(rec.c)}</span>` : '';
-        return `<td>${txt}</td>`;
-      }).join('')}
+        if(type==='chantier'){
+          const tag = rec?.c ? `<span class="cell-tag" title="${rec?.h?formatHeuresFR(rec.h):''}">${escapeHtml(rec.c)}</span>` : '';
+          return `<td>${tag}</td>`;
+        } else {
+          const t = rec?.h ? formatHeuresShort(rec.h) : '';
+          return `<td class="mono">${escapeHtml(t)}</td>`;
+        }
+      }).join('')).join('')}
     </tr>`;
   }
-
-  tb.innerHTML = ouvriers.map(rowTpl).join('');
+  ouvriers.forEach(o=>{
+    const name = fullName(o);
+    tbody.insertAdjacentHTML('beforeend', rowTpl(name, 'chantier'));
+    tbody.insertAdjacentHTML('beforeend', rowTpl(name, 'heures'));
+  });
 
   document.getElementById('yearSel').addEventListener('change', ()=>{
     const y = document.getElementById('yearSel').value;
@@ -524,14 +551,12 @@ function renderPlanningDailyReadOnly(){
 }
 
 /* =================
-   POINTAGE — HEBDO (heures + chantier / jour) — reste comme avant
+   POINTAGE — HEBDO (heures + chantier / jour)
    ================= */
 function renderPointageWeekly(){
   const route='/pointage';
   const ouvriers = storage.get(KEYS.ouvriers, DEFAULT_OUVRIERS).map(o=>({ ...o, nomComplet: fullName(o) }));
-  const chantiers= storage.get(KEYS.chantiers, DEFAULT_CHANTIERS).map(c=>c.code);
-  const pointage = storage.get(KEYS.pointage, []); // {date, ouvrier, agence, chantier, heures}
-
+  const pointage = storage.get(KEYS.pointage, []);
   const {year:curY, week:curW} = getISOWeek(new Date());
 
   pageRoot.innerHTML = `
@@ -541,7 +566,8 @@ function renderPointageWeekly(){
         <div class="toolbar">
           <div class="field">
             <label class="pill">Année</label><input type="number" id="pYear" value="${curY}" style="width:110px"/>
-            <label class="pill">Semaine (ISO)</label><input type="number" id="pWeek" value="${curW}" min="1" max="53" style="width:110px"/>
+            <label class="pill">Semaine</label>
+            <select id="pWeek" style="width:110px">${Array.from({length:53},(_,i)=>`<option value="${i+1}" ${i+1===curW?'selected':''}>${i+1}</option>`).join('')}</select>
           </div>
           <button class="btn" id="save">Enregistrer</button>
         </div>
@@ -551,7 +577,7 @@ function renderPointageWeekly(){
           <table>
             <thead>
               <tr>
-                <th>Ouvrier</th>
+                <th class="sticky-col">Ouvrier</th>
                 <th>Lun</th><th>Mar</th><th>Mer</th><th>Jeu</th><th>Ven</th>
                 <th>Total</th>
                 <th>Auto (heures)</th>
@@ -560,7 +586,7 @@ function renderPointageWeekly(){
             <tbody id="tb"></tbody>
             <tfoot>
               <tr>
-                <td style="font-weight:600">Total jour (heures)</td>
+                <td class="sticky-col" style="font-weight:700">Total jour (heures)</td>
                 <td class="mono" id="totLun">0.00</td>
                 <td class="mono" id="totMar">0.00</td>
                 <td class="mono" id="totMer">0.00</td>
@@ -571,7 +597,6 @@ function renderPointageWeekly(){
             </tfoot>
           </table>
         </div>
-        <p class="hint">Chaque case : <b>Heures</b> (0→10 pas 0,5) + <b>Chantier</b> (liste). Le bouton <b>Auto</b> remplit 7,5h lun→jeu & 7h ven (par ouvrier).</p>
       </div>
     </section>
   `;
@@ -584,8 +609,10 @@ function renderPointageWeekly(){
     const opts=[]; for(let v=0; v<=10; v+=0.5){ const sel=(+v===+selVal)?'selected':''; opts.push(`<option value="${v.toFixed(1)}" ${sel}>${v.toFixed(1)}</option>`); }
     return opts.join('');
   }
-  function chantierOptions(selVal){ return `<option value=""></option>` + storage.get(KEYS.chantiers, DEFAULT_CHANTIERS).map(c=>c.code).map(c=>`<option ${c===selVal?'selected':''}>${c}</option>`).join(''); }
-
+  function chantierOptions(selVal){
+    const list = storage.get(KEYS.chantiers, DEFAULT_CHANTIERS).map(c=>c.code);
+    return `<option value=""></option>` + list.map(c=>`<option ${c===selVal?'selected':''}>${c}</option>`).join('');
+  }
   function daysForWeek(year, week){ return weekDatesISO(year, week).slice(0,5); } // lun→ven
 
   function getMapForWeek(year, week){
@@ -607,7 +634,7 @@ function renderPointageWeekly(){
     tb.innerHTML = [...map.values()].map(({worker, jours})=>{
       const total = jours.reduce((s,j)=>s+(+j.h||0),0);
       return `<tr data-worker="${escapeHtml(worker.nomComplet)}">
-        <td class="mono">${escapeHtml(worker.nomComplet)}</td>
+        <td class="sticky-col mono">${escapeHtml(worker.nomComplet)}</td>
         ${jours.map((j,idx)=>`
           <td>
             <div class="pcell">
@@ -663,8 +690,8 @@ function renderPointageWeekly(){
     document.getElementById('totSem').textContent = totSem.toFixed(2);
   }
 
-  pYear.addEventListener('input', ()=>{ renderTable(); /* on garde les mêmes ouvriers */ setDirty(route,true); });
-  pWeek.addEventListener('input', ()=>{ renderTable(); /* idem */ setDirty(route,true); });
+  pYear.addEventListener('input', ()=>{ renderTable(); setDirty(route,true); });
+  pWeek.addEventListener('change', ()=>{ renderTable(); setDirty(route,true); });
 
   async function save(){
     const year = parseInt(pYear.value,10);
@@ -698,7 +725,7 @@ function renderPointageWeekly(){
 }
 
 /* =================
-   DIFFUSION — par Agence (détail jour/jour) + Outlook
+   DIFFUSION — par Agence (détail jour/jour) + Outlook + PNG
    ================= */
 function renderDiffusionParAgence(){
   const route='/diffusion';
@@ -715,22 +742,23 @@ function renderDiffusionParAgence(){
           <div class="field">
             <label class="pill">Année</label>
             <input type="number" id="dYear" value="${curY}" style="width:110px"/>
-            <label class="pill">Semaine (ISO)</label>
-            <input type="number" id="dWeek" value="${curW}" min="1" max="53" style="width:110px"/>
+            <label class="pill">Semaine</label>
+            <select id="dWeek" style="width:110px">${Array.from({length:53},(_,i)=>`<option value="${i+1}" ${i+1===curW?'selected':''}>${i+1}</option>`).join('')}</select>
           </div>
           <button class="btn" id="save">Enregistrer</button>
+          <button class="btn" id="mkimg">Générer images</button>
           <button class="btn primary" id="send">Envoyer les emails (Outlook)</button>
           <button class="btn ghost" id="preview">Aperçu texte</button>
         </div>
       </div>
       <div class="panel-b">
-        <div class="field" style="margin-bottom:10px">
+        <div class="field" style="margin-bottom:10px; gap:14px; flex-wrap:wrap">
           <label class="pill">Agences à contacter</label>
           <div id="agList" class="field" style="gap:14px; flex-wrap:wrap"></div>
         </div>
         <div id="tables"></div>
-        <p class="hint">Chaque agence voit uniquement ses données. Ouverture dans Outlook (via <code>mailto:</code>) — ta <b>signature Outlook</b> sera appliquée par Outlook.</p>
-        <div id="previewOut" class="hint"></div>
+        <div id="imagesOut" style="margin-top:10px"></div>
+        <div id="previewOut" style="margin-top:10px"></div>
       </div>
     </section>
   `;
@@ -739,6 +767,7 @@ function renderDiffusionParAgence(){
   const dWeek = document.getElementById('dWeek');
   const tablesDiv = document.getElementById('tables');
   const agListDiv = document.getElementById('agList');
+  const imagesOut = document.getElementById('imagesOut');
 
   // cases à cocher des agences
   agListDiv.innerHTML = agencesObj.map(a=>{
@@ -746,7 +775,7 @@ function renderDiffusionParAgence(){
     return `<label style="display:flex;align-items:center;gap:6px;border:1px solid var(--line);padding:6px 10px;border-radius:10px;background:#101526">
       <input type="checkbox" class="agChk" value="${safe}" checked />
       <span>${safe}</span>
-      <span class="hint" style="margin:0">(${escapeHtml(a.email||'—')})</span>
+      <span style="opacity:.7">(${escapeHtml(a.email||'—')})</span>
     </label>`;
   }).join('');
 
@@ -779,7 +808,7 @@ function renderDiffusionParAgence(){
   function renderTables(){
     const { byAgency, weekIsoDates } = groupData();
     const agencies = Object.keys(byAgency).sort();
-    if(agencies.length===0){ tablesDiv.innerHTML = `<p class="hint">Aucune donnée pour cette semaine.</p>`; return; }
+    if(agencies.length===0){ tablesDiv.innerHTML = `<p style="opacity:.8">Aucune donnée pour cette semaine.</p>`; return; }
 
     tablesDiv.innerHTML = agencies.map(ag=>{
       const workers = Object.keys(byAgency[ag]).sort();
@@ -792,20 +821,18 @@ function renderDiffusionParAgence(){
           return `<td class="mono">${formatHeuresFR(d.h)}${d.c ? ` — ${escapeHtml(d.c)}`:''}</td>`;
         }).join('');
         return `<tr>
-          <td>${escapeHtml(w)}</td>
+          <td class="sticky-col">${escapeHtml(w)}</td>
           ${tds}
           <td class="mono">${formatHeuresFR(rec.total)}</td>
         </tr>`;
       }).join('');
       return `
-        <div style="margin-bottom:18px">
-          <div class="pill" style="margin-bottom:8px">Agence: ${escapeHtml(ag)}</div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Ouvrier</th>${headDays}<th>Total</th></tr></thead>
-              <tbody>${body}</tbody>
-            </table>
-          </div>
+        <div class="table-wrap cap-target" data-ag="${escapeHtml(ag)}" style="margin-bottom:18px">
+          <div class="pill" style="margin:8px">${escapeHtml(ag)}</div>
+          <table>
+            <thead><tr><th class="sticky-col">Ouvrier</th>${headDays}<th>Total</th></tr></thead>
+            <tbody>${body}</tbody>
+          </table>
         </div>
       `;
     }).join('');
@@ -834,14 +861,43 @@ function renderDiffusionParAgence(){
   }
 
   function openOutlookMail(to, subject, body){
-    // mailto: (Outlook injectera la signature de l’utilisateur)
     const url = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.location.href = url; // ouvre le client mail par défaut (souvent Outlook sur poste)
+    window.location.href = url;
+  }
+
+  async function generateImages(){
+    imagesOut.innerHTML = '';
+    const targets = [...document.querySelectorAll('.cap-target')];
+    for(const box of targets){
+      const ag = box.dataset.ag;
+      const tbl = box.querySelector('table');
+      // capture
+      const canvas = await html2canvas(tbl, { backgroundColor:'#ffffff', scale:2 });
+      const data = canvas.toDataURL('image/png');
+      const img = document.createElement('img'); img.src = data; img.className='thumb';
+      const dl = document.createElement('a'); dl.href = data; dl.download = `pointage_${ag}_S${dWeek.value}-${dYear.value}.png`; dl.className='btn'; dl.textContent='Télécharger PNG';
+      const cp = document.createElement('button'); cp.className='btn'; cp.textContent='Copier l’image';
+      cp.onclick = async ()=>{
+        if(navigator.clipboard && window.ClipboardItem){
+          const blob = await (await fetch(data)).blob();
+          await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+          cp.textContent = 'Copié ✅';
+          setTimeout(()=> cp.textContent='Copier l’image', 1500);
+        } else {
+          alert("Copie d'image non supportée par ce navigateur. Utilise le téléchargement.");
+        }
+      };
+      const wrap = document.createElement('div');
+      wrap.className='imgbox';
+      const title = document.createElement('div'); title.className='pill'; title.textContent=`${ag} — S${dWeek.value}/${dYear.value}`;
+      wrap.appendChild(title); wrap.appendChild(img); wrap.appendChild(cp); wrap.appendChild(dl);
+      imagesOut.appendChild(wrap);
+    }
   }
 
   dYear.addEventListener('input', ()=>{ renderTables(); setDirty(route,true); });
-  dWeek.addEventListener('input', ()=>{ renderTables(); setDirty(route,true); });
-  document.querySelectorAll('.agChk').forEach(c=> c.addEventListener('change', ()=> setDirty(route,true)));
+  dWeek.addEventListener('change', ()=>{ renderTables(); setDirty(route,true); });
+  document.addEventListener('change', (e)=>{ if(e.target.classList?.contains('agChk')) setDirty(route,true); });
 
   async function save(){ setDirty(route,false); }
   saveHandlers[route]=save;
@@ -852,7 +908,7 @@ function renderDiffusionParAgence(){
     const sections = selected.map(ag=>{
       return `<pre style="white-space:pre-wrap;border:1px solid var(--line);border-radius:8px;padding:8px;background:#0e1422">${escapeHtml(buildPlainTextForAgency(ag))}</pre>`;
     }).join('<hr/>');
-    document.getElementById('previewOut').innerHTML = `<div class="hint">Aperçu texte (ce qui partira dans l'email Outlook) :</div>${sections}`;
+    document.getElementById('previewOut').innerHTML = sections;
   }
 
   async function sendEmails(){
@@ -863,7 +919,7 @@ function renderDiffusionParAgence(){
       const to = (mapEmail[ag]||"").trim();
       if(!to){ console.warn("Aucun email pour", ag); continue; }
       const subject = `Synthèse hebdo — ${ag} — Semaine ${dWeek.value}/${dYear.value}`;
-      const body = buildPlainTextForAgency(ag) + `\n\n`; // Outlook appliquera la signature utilisateur
+      const body = `Bonjour,\n\nVeuillez trouver ci-joint l'image du tableau des pointages pour la semaine ${dWeek.value}/${dYear.value} — ${ag}.\n\n(Glisser l'image générée dans cet email)\n`;
       openOutlookMail(to, subject, body);
     }
     setDirty(route,false);
@@ -871,6 +927,7 @@ function renderDiffusionParAgence(){
 
   document.getElementById('save').addEventListener('click', save);
   document.getElementById('preview').addEventListener('click', preview);
+  document.getElementById('mkimg').addEventListener('click', generateImages);
   document.getElementById('send').addEventListener('click', sendEmails);
 
   renderTables(); setDirty(route,false);
@@ -890,12 +947,9 @@ function renderParametres(){
         <div class="toolbar"><button class="btn" id="save">Enregistrer</button></div>
       </div>
       <div class="panel-b">
-        <div class="grid cols-2">
-          <div>
-            <label class="pill">Qualifications (une par ligne)</label>
-            <textarea id="qualifs">${escapeHtml(params.qualifs.join('\n'))}</textarea>
-          </div>
-          <div class="hint">La signature d’email est désormais gérée par <b>Outlook</b> directement.</div>
+        <div>
+          <label class="pill" style="display:inline-block;margin-bottom:6px">Qualifications (une par ligne)</label>
+          <textarea id="qualifs" placeholder="N1&#10;N2&#10;N3P1&#10;N3P2&#10;N4P1&#10;N4P2">${escapeHtml(params.qualifs.join('\n'))}</textarea>
         </div>
       </div>
     </section>
