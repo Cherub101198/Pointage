@@ -1,88 +1,85 @@
 <!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Tableur — Saisie • Diffusion • Paramètres</title>
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
-  <style>
-    :root{
-      --bg:#0f1115; --panel:#171a21; --ink:#e8ebf1; --muted:#9aa4b2;
-      --accent:#4da3ff; --ok:#35c759; --warn:#ff9f0a; --err:#ff453a; --line:#262b36;
-      --chip:#202532; --radius:12px;
-      --font: ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
-    }
-    html,body{height:100%}
-    body{
-      margin:0; background:linear-gradient(180deg,#0d1016,#121723 40%,#0d1016);
-      color:var(--ink); font-family:var(--font); -webkit-font-smoothing:antialiased;
-    }
-    a{color:inherit; text-decoration:none}
-    .wrap{max-width:1200px; margin:24px auto 56px; padding:0 20px;}
-    .header{display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:18px;}
-    .title{font-size: clamp(20px, 2.6vw, 28px); font-weight:700; letter-spacing:.2px;}
-    .badge{display:inline-flex; align-items:center; gap:10px; padding:10px 14px; background:var(--chip);
-      border:1px solid var(--line); border-radius:999px; font-size:14px; color:var(--muted);}
-    .dot{width:10px; height:10px; border-radius:50%; box-shadow:0 0 0 2px rgba(0,0,0,.25) inset;}
-    .dot.orange{background:var(--warn)}
-    .dot.green{background:var(--ok)}
-    .nav{display:flex; gap:8px; background:var(--panel); border:1px solid var(--line); border-radius:999px; padding:6px; flex-wrap:wrap}
-    .tab{padding:8px 14px; border-radius:999px; color:#c9d1e1; border:1px solid transparent}
-    .tab.active{background:#263049; border-color:#35405e}
-    .panel{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; box-shadow: 0 10px 30px rgba(0,0,0,.25); margin-top:14px}
-    .panel-h{display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:1px solid var(--line);}
-    .panel-b{padding:16px;}
-    .toolbar{display:flex; flex-wrap:wrap; gap:10px}
-    .btn{padding:10px 14px; border-radius:10px; border:1px solid var(--line); background:#1d2330; color:var(--ink);
-      font-size:14px; cursor:pointer; transition:.15s transform ease, .2s background ease; user-select:none;}
-    .btn:hover{transform: translateY(-1px)}
-    .btn.primary{background:linear-gradient(180deg,#2d6bff,#2254d7); border-color:#1e3ea8}
-    .btn.ghost{background:transparent}
-    .btn:disabled{opacity:.55; cursor:not-allowed; transform:none}
-    .table-wrap{width:100%; overflow:auto; border-radius:10px; border:1px solid var(--line);}
-    table{width:100%; border-collapse:collapse; min-width:860px; background:#0f131c}
-    thead th{position:sticky; top:0; backdrop-filter: blur(6px); background:#0f131cee; color:#c9d1e1; font-weight:600; text-align:left; font-size:13px; letter-spacing:.2px; border-bottom:1px solid var(--line); padding:10px 12px;}
-    tbody td{border-bottom:1px solid var(--line); padding:9px 12px; font-size:14px; color:#e5e9f3}
-    tbody tr:hover{background:#121829}
-    .pill{display:inline-block; padding:4px 8px; border-radius:999px; font-size:12px; background:#1a2130; border:1px solid var(--line); color:#cbd5e4;}
-    .hint{color:var(--muted); font-size:13px; margin-top:10px}
-    .field{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
-    input[type="text"], input[type="email"], select, textarea{background:#0e1422; color:var(--ink); border:1px solid var(--line); border-radius:10px; padding:10px 12px; font-size:14px;}
-    textarea{width:100%; min-height:120px}
-    .grow{flex:1}
-    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
-    .success{color:var(--ok)}
-    .warn{color:var(--warn)}
-    .grid{display:grid; gap:12px}
-    .grid.cols-2{grid-template-columns: repeat(2, minmax(0, 1fr))}
-    @media (max-width: 860px){ .grid.cols-2{grid-template-columns: 1fr} }
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tableur chantier — Planning • Pointage • Diffusion</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --ink:#e8ebf1; --muted:#9aa4b2;
+    --accent:#4da3ff; --ok:#35c759; --warn:#ff9f0a; --err:#ff453a; --line:#262b36;
+    --chip:#202532; --radius:12px;
+    --font: ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+  }
+  html,body{height:100%}
+  body{margin:0; background:linear-gradient(180deg,#0d1016,#121723 40%,#0d1016); color:var(--ink); font-family:var(--font); -webkit-font-smoothing:antialiased;}
+  a{color:inherit; text-decoration:none}
+  .wrap{max-width:1240px; margin:24px auto 56px; padding:0 20px;}
+  .header{display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:16px;}
+  .title{font-size: clamp(20px, 2.6vw, 28px); font-weight:700}
+  .badge{display:inline-flex; align-items:center; gap:10px; padding:10px 14px; background:var(--chip); border:1px solid var(--line); border-radius:999px; font-size:14px; color:var(--muted);}
+  .dot{width:10px; height:10px; border-radius:50%; box-shadow:0 0 0 2px rgba(0,0,0,.25) inset;}
+  .dot.orange{background:var(--warn)} .dot.green{background:var(--ok)}
+  .nav{display:flex; gap:8px; background:var(--panel); border:1px solid var(--line); border-radius:999px; padding:6px; flex-wrap:wrap}
+  .tab{padding:8px 14px; border-radius:999px; color:#c9d1e1; border:1px solid transparent}
+  .tab.active{background:#263049; border-color:#35405e}
+  .panel{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; box-shadow: 0 10px 30px rgba(0,0,0,.25); margin-top:14px}
+  .panel-h{display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:1px solid var(--line);}
+  .panel-b{padding:16px;}
+  .toolbar{display:flex; flex-wrap:wrap; gap:10px}
+  .btn{padding:10px 14px; border-radius:10px; border:1px solid var(--line); background:#1d2330; color:var(--ink); font-size:14px; cursor:pointer; transition:.15s transform ease, .2s background ease; user-select:none;}
+  .btn:hover{transform: translateY(-1px)} .btn.primary{background:linear-gradient(180deg,#2d6bff,#2254d7); border-color:#1e3ea8}
+  .btn.ghost{background:transparent} .btn.destructive{background:linear-gradient(180deg,#ff5a5f,#d7263d); border-color:#9d1628}
+  .btn:disabled{opacity:.55; cursor:not-allowed; transform:none}
+  .pill{display:inline-block; padding:4px 8px; border-radius:999px; font-size:12px; background:#1a2130; border:1px solid var(--line); color:#cbd5e4;}
+  .hint{color:var(--muted); font-size:13px; margin-top:10px}
+  .field{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+  input[type="text"], input[type="email"], input[type="number"], select, textarea{background:#0e1422; color:var(--ink); border:1px solid var(--line); border-radius:10px; padding:10px 12px; font-size:14px;}
+  textarea{width:100%; min-height:120px}
+  .grow{flex:1} .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
+  .grid{display:grid; gap:12px}
+  .grid.cols-2{grid-template-columns: repeat(2, minmax(0, 1fr))}
+  .grid.cols-3{grid-template-columns: repeat(3, minmax(0, 1fr))}
+  @media (max-width: 980px){ .grid.cols-2,.grid.cols-3{grid-template-columns: 1fr} }
+  .table-wrap{width:100%; overflow:auto; border-radius:10px; border:1px solid var(--line);}
+  table{width:100%; border-collapse:collapse; min-width:900px; background:#0f131c}
+  thead th{position:sticky; top:0; backdrop-filter: blur(6px); background:#0f131cee; color:#c9d1e1; font-weight:600; text-align:left; font-size:13px; letter-spacing:.2px; border-bottom:1px solid var(--line); padding:10px 12px;}
+  tbody td{border-bottom:1px solid var(--line); padding:9px 12px; font-size:14px; color:#e5e9f3}
+  tbody tr:hover{background:#121829}
+  .kpi{display:flex; gap:10px; flex-wrap:wrap}
+  .kpi .card{background:#101526; border:1px solid var(--line); border-radius:12px; padding:12px 14px; min-width:160px}
+  .kpi .card .v{font-size:20px; font-weight:700}
+  /* Modal confirm navigation */
+  .modal-backdrop{position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; align-items:center; justify-content:center; z-index:50}
+  .modal{background:var(--panel); border:1px solid var(--line); border-radius:12px; width:min(520px, 92vw); box-shadow:0 12px 40px rgba(0,0,0,.45)}
+  .modal .m-h{padding:14px 16px; border-bottom:1px solid var(--line); font-weight:600}
+  .modal .m-b{padding:16px}
+  .modal .m-f{display:flex; gap:10px; justify-content:flex-end; padding:12px 16px; border-top:1px solid var(--line)}
+  .show{display:flex}
+</style>
 
-    /* Modal confirm navigation */
-    .modal-backdrop{position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; align-items:center; justify-content:center; z-index:50}
-    .modal{background:var(--panel); border:1px solid var(--line); border-radius:12px; width:min(520px, 92vw); box-shadow:0 12px 40px rgba(0,0,0,.45)}
-    .modal .m-h{padding:14px 16px; border-bottom:1px solid var(--line); font-weight:600}
-    .modal .m-b{padding:16px}
-    .modal .m-f{display:flex; gap:10px; justify-content:flex-end; padding:12px 16px; border-top:1px solid var(--line)}
-    .show{display:flex}
-  </style>
-
-  <!-- EmailJS (pour Diffusion auto sans copier-coller) -->
-  <script defer src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      // ⚠️ REMPLACE PAR TA PUBLIC KEY EMAILJS
-      // eslint-disable-next-line no-undef
-      emailjs.init({ publicKey: "REMPLACE_AVEC_TA_PUBLIC_KEY" });
-    });
-  </script>
+<!-- libs -->
+<script defer src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // ⚠️ Remplacer par ta clé publique EmailJS
+    // eslint-disable-next-line no-undef
+    emailjs.init({ publicKey: "REMPLACE_AVEC_TA_PUBLIC_KEY" });
+  });
+</script>
 </head>
 <body>
   <div class="wrap">
     <div class="header">
-      <div class="title">Tableur — Suivi des heures</div>
+      <div class="title">Tableur chantier — Suivi global</div>
       <nav class="nav" id="nav">
-        <a href="#/saisie" class="tab" data-route="/saisie">Saisie</a>
+        <a href="#/planning"  class="tab" data-route="/planning">Planning</a>
+        <a href="#/pointage"  class="tab" data-route="/pointage">Pointage</a>
         <a href="#/diffusion" class="tab" data-route="/diffusion">Diffusion</a>
+        <a href="#/ouvriers"  class="tab" data-route="/ouvriers">Ouvriers</a>
+        <a href="#/agences"   class="tab" data-route="/agences">Agences</a>
+        <a href="#/chantiers" class="tab" data-route="/chantiers">Chantiers</a>
         <a href="#/parametres" class="tab" data-route="/parametres">Paramètres</a>
       </nav>
       <div class="badge" id="saveBadge">
@@ -90,18 +87,14 @@
         <span id="saveText">Modifications non enregistrées</span>
       </div>
     </div>
-
-    <!-- PAGES -->
     <main id="page"></main>
   </div>
 
-  <!-- Modal de confirmation navigation si non enregistré -->
+  <!-- Modal de confirmation -->
   <div class="modal-backdrop" id="confirmModal">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
       <div class="m-h" id="confirmTitle">Enregistrer les modifications ?</div>
-      <div class="m-b">
-        <p class="hint">Cette page contient des modifications non enregistrées.</p>
-      </div>
+      <div class="m-b"><p class="hint">Des modifications non enregistrées sont présentes sur cette page.</p></div>
       <div class="m-f">
         <button class="btn" id="btnKeep">Continuer sans enregistrer</button>
         <button class="btn primary" id="btnSaveAndGo">Enregistrer et continuer</button>
@@ -110,543 +103,701 @@
     </div>
   </div>
 
-  <script type="module">
-    /******************************
-     * ROUTEUR + état "dirty/saved"
-     ******************************/
-    const pageRoot = document.getElementById('page');
-    const nav = document.getElementById('nav');
+<script type="module">
+/* =========================
+   ROUTER & STATE
+   ========================= */
+const pageRoot = document.getElementById('page');
+const routes = {
+  '/planning': renderPlanning,
+  '/pointage': renderPointageClassic,
+  '/diffusion': renderDiffusion,
+  '/ouvriers': renderOuvriers,
+  '/agences': renderAgences,
+  '/chantiers': renderChantiers,
+  '/parametres': renderParametres,
+};
+const dirtyState = Object.fromEntries(Object.keys(routes).map(r=>[r,false]));
+let currentRoute = '/planning', pendingRoute = null;
+const modal = document.getElementById('confirmModal');
+const btnKeep = document.getElementById('btnKeep');
+const btnSaveAndGo = document.getElementById('btnSaveAndGo');
+const btnCancelNav = document.getElementById('btnCancelNav');
+const saveHandlers = {}; // callbacks d'enregistrement par page
 
-    const routes = {
-      '/saisie': renderSaisie,
-      '/diffusion': renderDiffusion,
-      '/parametres': renderParametres,
-    };
+function setDirty(route, isDirty){ dirtyState[route] = !!isDirty; updateBadge(); }
+function updateBadge(){
+  const dot = document.getElementById('saveDot');
+  const text = document.getElementById('saveText');
+  if(dirtyState[currentRoute]){ dot.classList.remove('green'); dot.classList.add('orange'); text.textContent = "Modifications non enregistrées"; }
+  else { dot.classList.remove('orange'); dot.classList.add('green'); text.textContent = "Enregistré"; }
+}
+function activateTab(route){ document.querySelectorAll('.tab').forEach(a=>a.classList.toggle('active', a.dataset.route === route)); }
+function showConfirm(){ modal.classList.add('show'); }
+function hideConfirm(){ modal.classList.remove('show'); }
+btnCancelNav.addEventListener('click', ()=>{ pendingRoute=null; hideConfirm(); });
+btnKeep.addEventListener('click', ()=>{ hideConfirm(); navigate(pendingRoute, {force:true}); pendingRoute=null; });
+btnSaveAndGo.addEventListener('click', async ()=>{ hideConfirm(); await saveHandlers[currentRoute]?.(); navigate(pendingRoute, {force:true}); pendingRoute=null; });
+window.addEventListener('beforeunload', (e)=>{ if(dirtyState[currentRoute]){ e.preventDefault(); e.returnValue=''; } });
 
-    // état d'édition par page
-    const dirtyState = {
-      '/saisie': false,
-      '/diffusion': false,
-      '/parametres': false,
-    };
-    let currentRoute = '/saisie';
-    let pendingRoute = null;
+function navigate(route, opts={}){
+  if(!routes[route]) route='/planning';
+  if(!opts.force && dirtyState[currentRoute]){ pendingRoute = route; showConfirm(); return; }
+  currentRoute = route; window.location.hash = '#'+route; activateTab(route);
+  routes[route](); updateBadge();
+}
+function handleHash(){
+  const hash = window.location.hash.replace(/^#/, '') || '/planning';
+  if(hash !== currentRoute){ navigate(hash); } else { navigate(currentRoute, {force:true}); }
+}
+window.addEventListener('hashchange', handleHash);
+document.addEventListener('DOMContentLoaded', handleHash);
 
-    function setDirty(route, isDirty){
-      dirtyState[route] = !!isDirty;
-      updateBadge();
-    }
-    function updateBadge(){
-      const dot = document.getElementById('saveDot');
-      const text = document.getElementById('saveText');
-      const isAnyDirty = dirtyState[currentRoute];
-      if(isAnyDirty){
-        dot.classList.remove('green'); dot.classList.add('orange');
-        text.textContent = "Modifications non enregistrées";
-      }else{
-        dot.classList.remove('orange'); dot.classList.add('green');
-        text.textContent = "Enregistré";
-      }
-    }
+/* =========
+   STORAGE
+   ========= */
+const storage = {
+  get(k, fb){ try{ const v = JSON.parse(localStorage.getItem(k)); return v ?? fb; }catch{ return fb; } },
+  set(k, v){ localStorage.setItem(k, JSON.stringify(v)); }
+};
+const KEYS = {
+  ouvriers: 'app_ouvriers',
+  agences: 'app_agences',
+  chantiers: 'app_chantiers',
+  pointage: 'app_pointage', // lignes pointage jour/jour
+  planning: 'app_planning',
+  params: 'app_params',
+  diffusion: 'app_diffusion_rows',
+};
 
-    function activateTab(route){
-      document.querySelectorAll('.tab').forEach(a=>{
-        a.classList.toggle('active', a.dataset.route === route);
+/* =========
+   DONNÉES PAR DÉFAUT
+   ========= */
+const DEFAULT_OUVRIERS = [
+  { nom:"Baudouin RIBERON", agence:"SAMSIC", qualification:"Plâquiste N3P1" },
+  { nom:"Laurent JOLY",    agence:"BPS",    qualification:"Plombier N3P2" },
+  { nom:"Jean-Marc GOUZY", agence:"SAMSIC", qualification:"Polyvalent N4P1" },
+];
+const DEFAULT_AGENCES = [
+  { nom:"SAMSIC", email:"samsic@exemple.com" },
+  { nom:"BPS",    email:"bps@exemple.com" },
+  { nom:"SOVITRAT", email:"sovitrat@exemple.com" },
+];
+const DEFAULT_CHANTIERS = [
+  { code:"M96 W19S", encadrant:"Alexis" },
+  { code:"M91 N10S", encadrant:"Jérémy" },
+  { code:"M65 W01S", encadrant:"Paul" },
+];
+const DEFAULT_PARAMS = {
+  qualifs:["Plâquiste N3P1","Plombier N3P2","Polyvalent N4P1","Électricien N3P1","Peintre N2"],
+  signature:"Cordialement,\nL'équipe Bourdarios",
+};
+const DEFAULT_POINTAGE = [
+  // exemple: chaque ligne = 1 personne un jour, avec heures décimales
+  { date:todayISO(), ouvrier:"Baudouin RIBERON", agence:"SAMSIC", chantier:"M96 W19S", heures:7.50 },
+  { date:todayISO(), ouvrier:"Laurent JOLY", agence:"BPS", chantier:"M91 N10S", heures:6.00 },
+  { date:todayISO(), ouvrier:"Jean-Marc GOUZY", agence:"SAMSIC", chantier:"M65 W01S", heures:8.00 },
+];
+
+/* =========
+   UTILITAIRES
+   ========= */
+function escapeHtml(s=""){ return s.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;"); }
+function formatHeuresFR(v){ const n = Number(v??0); return `${n.toFixed(2).replace(".",",")} Heures`; }
+function parseHeures(t){ const n = parseFloat(String(t).replace(/[^\d.,-]/g,"").replace(",", ".")); return isNaN(n)?0:n; }
+function fmtDate(d){ return new Date(d).toLocaleDateString('fr-FR'); }
+function todayISO(){ const d=new Date(); d.setHours(0,0,0,0); return d.toISOString().slice(0,10); }
+function thisMonday(d=new Date()){ const day=(d.getDay()+6)%7; const m=new Date(d); m.setHours(0,0,0,0); m.setDate(d.getDate()-day); return m; }
+function addDays(d, n){ const x=new Date(d); x.setDate(d.getDate()+n); return x; }
+
+/* =================
+   PAGE: OUVRIERS
+   ================= */
+function renderOuvriers(){
+  const route='/ouvriers';
+  const params = storage.get(KEYS.params, DEFAULT_PARAMS);
+  const rows = storage.get(KEYS.ouvriers, DEFAULT_OUVRIERS);
+  const agences = storage.get(KEYS.agences, DEFAULT_AGENCES).map(a=>a.nom);
+
+  pageRoot.innerHTML = `
+    <section class="panel">
+      <div class="panel-h">
+        <div class="toolbar"><span class="pill">Ouvriers</span></div>
+        <div class="toolbar">
+          <button class="btn" id="add">Ajouter</button>
+          <button class="btn" id="save">Enregistrer</button>
+        </div>
+      </div>
+      <div class="panel-b">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Nom</th><th>Agence</th><th>Qualification</th><th></th></tr></thead>
+            <tbody id="tb"></tbody>
+          </table>
+        </div>
+        <p class="hint">Les qualifications proposées sont définies dans <i>Paramètres</i>.</p>
+      </div>
+    </section>
+  `;
+  const tb=document.getElementById('tb');
+  function rowTpl(r,i){
+    const qualOpts = params.qualifs.map(q=>`<option ${q===r.qualification?'selected':''}>${q}</option>`).join('');
+    const agOpts = agences.map(a=>`<option ${a===r.agence?'selected':''}>${a}</option>`).join('');
+    return `<tr data-i="${i}">
+      <td contenteditable data-k="nom">${escapeHtml(r.nom)}</td>
+      <td><select class="ag">${agOpts}</select></td>
+      <td><select class="ql">${qualOpts}</select></td>
+      <td><button class="btn ghost del">Suppr.</button></td>
+    </tr>`;
+  }
+  function render(){ tb.innerHTML = rows.map(rowTpl).join(''); bind(); }
+  function bind(){
+    tb.querySelectorAll('[contenteditable],select').forEach(el=>{
+      el.addEventListener('input', ()=>setDirty(route,true));
+      el.addEventListener('change', ()=>setDirty(route,true));
+    });
+    tb.querySelectorAll('.del').forEach(b=>{
+      b.addEventListener('click',e=>{
+        const tr=e.target.closest('tr'); const i=+tr.dataset.i; rows.splice(i,1); render(); setDirty(route,true);
       });
-    }
-
-    // Confirmation navigation si dirty
-    const modal = document.getElementById('confirmModal');
-    const btnKeep = document.getElementById('btnKeep');
-    const btnSaveAndGo = document.getElementById('btnSaveAndGo');
-    const btnCancelNav = document.getElementById('btnCancelNav');
-    function showConfirm(){
-      modal.classList.add('show');
-    }
-    function hideConfirm(){
-      modal.classList.remove('show');
-    }
-    btnCancelNav.addEventListener('click', ()=>{ pendingRoute=null; hideConfirm(); });
-    btnKeep.addEventListener('click', ()=>{
-      hideConfirm();
-      // annule les modifs en mémoire (pas d'undo ici ; on bascule juste de page)
-      navigate(pendingRoute, {force:true});
-      pendingRoute = null;
     });
-    btnSaveAndGo.addEventListener('click', async ()=>{
-      hideConfirm();
-      // déclenche le save de la page courante avant de continuer
-      await saveHandlers[currentRoute]?.();
-      navigate(pendingRoute, {force:true});
-      pendingRoute = null;
+  }
+  document.getElementById('add').addEventListener('click', ()=>{ rows.push({nom:"",agence:agences[0]||"",qualification:params.qualifs[0]||""}); render(); setDirty(route,true); });
+  async function save(){
+    const out=[]; tb.querySelectorAll('tr').forEach(tr=>{
+      out.push({ nom:(tr.querySelector('[data-k="nom"]')?.textContent||"").trim(),
+                 agence: tr.querySelector('select.ag')?.value||"",
+                 qualification: tr.querySelector('select.ql')?.value||"" });
     });
+    storage.set(KEYS.ouvriers,out); setDirty(route,false);
+  }
+  saveHandlers[route]=save;
+  document.getElementById('save').addEventListener('click', save);
+  render(); setDirty(route,false);
+}
 
-    // empêcher perte si fermeture onglet
-    window.addEventListener('beforeunload', (e)=>{
-      if(dirtyState[currentRoute]){
-        e.preventDefault();
-        e.returnValue = '';
-      }
+/* =================
+   PAGE: AGENCES
+   ================= */
+function renderAgences(){
+  const route='/agences';
+  const rows = storage.get(KEYS.agences, DEFAULT_AGENCES);
+  pageRoot.innerHTML=`
+    <section class="panel">
+      <div class="panel-h">
+        <div class="toolbar"><span class="pill">Agences</span></div>
+        <div class="toolbar">
+          <button class="btn" id="add">Ajouter</button>
+          <button class="btn" id="save">Enregistrer</button>
+        </div>
+      </div>
+      <div class="panel-b">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Nom</th><th>Email</th><th></th></tr></thead>
+            <tbody id="tb"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  `;
+  const tb=document.getElementById('tb');
+  function rowTpl(r,i){ return `<tr data-i="${i}">
+    <td contenteditable data-k="nom">${escapeHtml(r.nom)}</td>
+    <td contenteditable data-k="email">${escapeHtml(r.email||"")}</td>
+    <td><button class="btn ghost del">Suppr.</button></td>
+  </tr>`;}
+  function render(){ tb.innerHTML=rows.map(rowTpl).join(''); bind(); }
+  function bind(){
+    tb.querySelectorAll('[contenteditable]').forEach(el=>el.addEventListener('input',()=>setDirty(route,true)));
+    tb.querySelectorAll('.del').forEach(b=>b.addEventListener('click',e=>{
+      const tr=e.target.closest('tr'); const i=+tr.dataset.i; rows.splice(i,1); render(); setDirty(route,true);
+    }));
+  }
+  document.getElementById('add').addEventListener('click',()=>{ rows.push({nom:"",email:""}); render(); setDirty(route,true); });
+  async function save(){
+    const out=[]; tb.querySelectorAll('tr').forEach(tr=>{
+      out.push({ nom:(tr.querySelector('[data-k="nom"]')?.textContent||"").trim(),
+                 email:(tr.querySelector('[data-k="email"]')?.textContent||"").trim() });
     });
+    storage.set(KEYS.agences,out); setDirty(route,false);
+  }
+  saveHandlers[route]=save;
+  document.getElementById('save').addEventListener('click', save);
+  render(); setDirty(route,false);
+}
 
-    // Navigation avec garde
-    function navigate(route, opts={}){
-      if(!routes[route]) route='/saisie';
-      if(!opts.force && dirtyState[currentRoute]){
-        pendingRoute = route;
-        showConfirm();
-        return;
-      }
-      currentRoute = route;
-      window.location.hash = '#'+route;
-      activateTab(route);
-      routes[route]();
-      updateBadge();
-    }
+/* =================
+   PAGE: CHANTIERS
+   ================= */
+function renderChantiers(){
+  const route='/chantiers';
+  const rows = storage.get(KEYS.chantiers, DEFAULT_CHANTIERS);
+  pageRoot.innerHTML=`
+    <section class="panel">
+      <div class="panel-h">
+        <div class="toolbar"><span class="pill">Chantiers</span></div>
+        <div class="toolbar">
+          <button class="btn" id="add">Ajouter</button>
+          <button class="btn" id="save">Enregistrer</button>
+        </div>
+      </div>
+      <div class="panel-b">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Code chantier</th><th>Encadrant</th><th></th></tr></thead>
+            <tbody id="tb"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  `;
+  const tb=document.getElementById('tb');
+  function rowTpl(r,i){ return `<tr data-i="${i}">
+    <td contenteditable data-k="code">${escapeHtml(r.code)}</td>
+    <td contenteditable data-k="encadrant">${escapeHtml(r.encadrant||"")}</td>
+    <td><button class="btn ghost del">Suppr.</button></td>
+  </tr>`;}
+  function render(){ tb.innerHTML=rows.map(rowTpl).join(''); bind(); }
+  function bind(){
+    tb.querySelectorAll('[contenteditable]').forEach(el=>el.addEventListener('input',()=>setDirty(route,true)));
+    tb.querySelectorAll('.del').forEach(b=>b.addEventListener('click',e=>{
+      const tr=e.target.closest('tr'); const i=+tr.dataset.i; rows.splice(i,1); render(); setDirty(route,true);
+    }));
+  }
+  document.getElementById('add').addEventListener('click',()=>{ rows.push({code:"",encadrant:""}); render(); setDirty(route,true); });
+  async function save(){
+    const out=[]; tb.querySelectorAll('tr').forEach(tr=>{
+      out.push({ code:(tr.querySelector('[data-k="code"]')?.textContent||"").trim(),
+                 encadrant:(tr.querySelector('[data-k="encadrant"]')?.textContent||"").trim() });
+    });
+    storage.set(KEYS.chantiers,out); setDirty(route,false);
+  }
+  saveHandlers[route]=save;
+  document.getElementById('save').addEventListener('click', save);
+  render(); setDirty(route,false);
+}
 
-    function handleHash(){
-      const hash = window.location.hash.replace(/^#/, '') || '/saisie';
-      if(hash !== currentRoute){
-        navigate(hash);
-      }else{
-        navigate(currentRoute, {force:true});
-      }
-    }
-    window.addEventListener('hashchange', handleHash);
-    document.addEventListener('DOMContentLoaded', handleHash);
+/* =================
+   PAGE: POINTAGE (classique)
+   ================= */
+function renderPointageClassic(){
+  const route='/pointage';
+  const ouvriers = storage.get(KEYS.ouvriers, DEFAULT_OUVRIERS);
+  const agences = storage.get(KEYS.agences, DEFAULT_AGENCES);
+  const chantiers = storage.get(KEYS.chantiers, DEFAULT_CHANTIERS);
+  const rows = storage.get(KEYS.pointage, DEFAULT_POINTAGE);
 
-    /***********************
-     * Données / Paramètres
-     ***********************/
-    // Base ouvriers demandée + options de qualification
-    const QUALIFS = [
-      "Plâquiste N3P1",
-      "Plombier N3P2",
-      "Polyvalent N4P1", // ajouté
-      "Électricien N3P1",
-      "Peintre N2"
-    ];
-
-    const storage = {
-      get(key, fallback){
-        try{ const v = JSON.parse(localStorage.getItem(key)); return (v ?? fallback); }catch{ return fallback; }
-      },
-      set(key, value){ localStorage.setItem(key, JSON.stringify(value)); }
-    };
-
-    const storeKeys = {
-      saisie: 'tableur_saisie_rows',
-      diffusion: 'tableur_diffusion_rows',
-      params: 'tableur_params',
-    };
-
-    // Données par défaut (préremplies)
-    function defaultRows(){
-      return [
-        { nom: "Baudouin RIBERON", entreprise: "SAMSIC", qualification: "Plâquiste N3P1", heures: 35.5, chantier:"M96 W19S", encadrant:"Alexis" },
-        { nom: "Laurent JOLY", entreprise: "BPS",    qualification: "Plombier N3P2",  heures: 28,   chantier:"M91 N10S", encadrant:"Jérémy" },
-        { nom: "Jean-Marc GOUZY", entreprise: "SAMSIC", qualification: "Polyvalent N4P1", heures: 41.25, chantier:"M65 W01S", encadrant:"Paul" },
-      ];
-    }
-
-    const saveHandlers = {}; // callbacks par page pour "Enregistrer"
-
-    /*****************
-     * Utilitaires UI
-     *****************/
-    function formatHeuresFR(value){
-      const num = Number(value ?? 0);
-      const fixed = num.toFixed(2);
-      const fr = fixed.replace(".", ",");
-      return `${fr} Heures`;
-    }
-    function parseHeures(text){
-      const parsed = (text ?? '').toString().replace(/[^\d.,-]/g,'').replace(",",".");
-      const num = parseFloat(parsed);
-      return isNaN(num) ? 0 : num;
-    }
-    function escapeHtml(s=""){
-      return s
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#39;");
-    }
-
-    /****************
-     * PAGE: SAISIE *
-     ****************/
-    function renderSaisie(){
-      const route = '/saisie';
-      const rows = storage.get(storeKeys.saisie, storage.get(storeKeys.diffusion, defaultRows()));
-      pageRoot.innerHTML = `
-        <section class="panel">
-          <div class="panel-h">
-            <div class="toolbar">
-              <span class="pill">Saisie des heures (édition rapide)</span>
-            </div>
-            <div class="toolbar">
-              <button class="btn" id="btnAddRow">Ajouter une ligne</button>
-              <button class="btn" id="btnSaveSaisie">Enregistrer</button>
-            </div>
+  pageRoot.innerHTML = `
+    <section class="panel">
+      <div class="panel-h">
+        <div class="toolbar"><span class="pill">Pointage (classique)</span></div>
+        <div class="toolbar">
+          <button class="btn" id="add">Ajouter</button>
+          <button class="btn" id="save">Enregistrer</button>
+        </div>
+      </div>
+      <div class="panel-b">
+        <div class="grid cols-3" style="margin-bottom:10px">
+          <div class="field"><label class="pill">Filtre Agence</label>
+            <select id="fAgence"><option value="">Toutes</option>${agences.map(a=>`<option>${a.nom}</option>`).join('')}</select>
           </div>
-          <div class="panel-b">
-            <div class="table-wrap" id="saisieWrap">
-              <table aria-label="Saisie des heures">
-                <thead>
-                  <tr>
-                    <th>Ouvrier</th>
-                    <th>Entreprise</th>
-                    <th>Qualification</th>
-                    <th class="mono">Heures (nombre)</th>
-                    <th>Chantier</th>
-                    <th>Encadrant</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody id="tbodySaisie"></tbody>
-              </table>
-            </div>
-            <p class="hint">Saisis un <b>nombre</b> en heures (ex: 41.25). Le format <span class="mono">XX,XX Heures</span> sera appliqué automatiquement dans <i>Diffusion</i>.</p>
+          <div class="field"><label class="pill">Filtre Chantier</label>
+            <select id="fChantier"><option value="">Tous</option>${chantiers.map(c=>`<option>${c.code}</option>`).join('')}</select>
           </div>
-        </section>
+          <div class="field"><label class="pill">Date</label>
+            <input type="date" id="fDate" value="${todayISO()}"/>
+          </div>
+        </div>
+
+        <div class="kpi" id="kpi"></div>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>Date</th><th>Ouvrier</th><th>Agence</th><th>Chantier</th><th class="mono">Heures (décimal)</th><th></th>
+            </tr></thead>
+            <tbody id="tb"></tbody>
+          </table>
+        </div>
+        <p class="hint">Saisir les heures en <b>décimal</b> (ex: 7.5). Le format <i>XX,XX Heures</i> est appliqué dans Diffusion.</p>
+      </div>
+    </section>
+  `;
+
+  const tb = document.getElementById('tb');
+  const fAgence = document.getElementById('fAgence');
+  const fChantier = document.getElementById('fChantier');
+  const fDate = document.getElementById('fDate');
+  const kpi = document.getElementById('kpi');
+
+  function rowTpl(r,i){
+    const ouOpts = ouvriers.map(o=>`<option ${o.nom===r.ouvrier?'selected':''}>${o.nom}</option>`).join('');
+    const agOpts = agences.map(a=>`<option ${a.nom===r.agence?'selected':''}>${a.nom}</option>`).join('');
+    const chOpts = chantiers.map(c=>`<option ${c.code===r.chantier?'selected':''}>${c.code}</option>`).join('');
+    return `<tr data-i="${i}">
+      <td><input type="date" class="d" value="${r.date}"/></td>
+      <td><select class="o">${ouOpts}</select></td>
+      <td><select class="a">${agOpts}</select></td>
+      <td><select class="c">${chOpts}</select></td>
+      <td contenteditable class="h mono" title="Ex: 7.5">${escapeHtml(String(r.heures))}</td>
+      <td><button class="btn ghost del">Suppr.</button></td>
+    </tr>`;
+  }
+
+  function applyFilters(list){
+    return list.filter(r=>{
+      if(fAgence.value && r.agence!==fAgence.value) return false;
+      if(fChantier.value && r.chantier!==fChantier.value) return false;
+      if(fDate.value && r.date!==fDate.value) return false;
+      return true;
+    });
+  }
+
+  function render(){
+    const filtered = applyFilters(rows);
+    tb.innerHTML = filtered.map((r,i)=>rowTpl(r,i)).join('');
+    bind();
+    // KPIs
+    const total = filtered.reduce((s,r)=>s+(+r.heures||0),0);
+    const parAgence = Object.entries(filtered.reduce((acc,r)=>{acc[r.agence]=(acc[r.agence]||0)+(+r.heures||0);return acc;},{}));
+    kpi.innerHTML = `
+      <div class="card"><div>Total heures</div><div class="v">${total.toFixed(2)}</div></div>
+      ${parAgence.map(([a,h])=>`<div class="card"><div>${escapeHtml(a)}</div><div class="v">${(+h).toFixed(2)}</div></div>`).join('')}
+    `;
+  }
+
+  function bind(){
+    tb.querySelectorAll('input,select,[contenteditable]').forEach(el=>{
+      el.addEventListener('input', ()=>setDirty(route,true));
+      el.addEventListener('change', ()=>setDirty(route,true));
+    });
+    tb.querySelectorAll('.del').forEach(b=>b.addEventListener('click', e=>{
+      const tr=e.target.closest('tr'); const i=+tr.dataset.i;
+      const rec = applyFilters(rows)[i];
+      const idx = rows.findIndex(x=>x===rec);
+      if(idx>-1) rows.splice(idx,1);
+      render(); setDirty(route,true);
+    }));
+  }
+
+  document.getElementById('add').addEventListener('click',()=>{
+    rows.push({date:todayISO(), ouvrier:ouvriers[0]?.nom||"", agence:agences[0]?.nom||"", chantier:chantiers[0]?.code||"", heures:0});
+    render(); setDirty(route,true);
+  });
+  fAgence.addEventListener('change',render);
+  fChantier.addEventListener('change',render);
+  fDate.addEventListener('change',render);
+
+  async function save(){
+    // lire depuis DOM filtré (pour conserver modifs)
+    const filtered = applyFilters(rows);
+    const updates = [];
+    tb.querySelectorAll('tr').forEach((tr, i)=>{
+      const r = filtered[i]; if(!r) return;
+      r.date = tr.querySelector('.d')?.value || r.date;
+      r.ouvrier = tr.querySelector('.o')?.value || r.ouvrier;
+      r.agence = tr.querySelector('.a')?.value || r.agence;
+      r.chantier = tr.querySelector('.c')?.value || r.chantier;
+      const htxt = (tr.querySelector('.h')?.textContent||"").trim();
+      r.heures = parseHeures(htxt);
+      updates.push(r);
+    });
+    storage.set(KEYS.pointage, rows);
+    setDirty(route,false);
+  }
+  saveHandlers[route]=save;
+  document.getElementById('save').addEventListener('click', save);
+
+  render(); setDirty(route,false);
+}
+
+/* =================
+   PAGE: PLANNING (simple hebdo)
+   ================= */
+function renderPlanning(){
+  const route='/planning';
+  const base = thisMonday();
+  const jours = [...Array(7)].map((_,i)=>addDays(base,i));
+  const planning = storage.get(KEYS.planning, {}); // { 'YYYY-MM-DD': 'texte' }
+
+  pageRoot.innerHTML = `
+    <section class="panel">
+      <div class="panel-h">
+        <div class="toolbar"><span class="pill">Planning (semaine du ${fmtDate(base)})</span></div>
+        <div class="toolbar">
+          <button class="btn" id="prev">Semaine -</button>
+          <button class="btn" id="next">Semaine +</button>
+          <button class="btn" id="save">Enregistrer</button>
+        </div>
+      </div>
+      <div class="panel-b">
+        <div class="table-wrap">
+          <table>
+            <thead><tr>${jours.map(d=>`<th>${d.toLocaleDateString('fr-FR',{weekday:'long'})}<br><span class="mono">${d.toISOString().slice(0,10)}</span></th>`).join('')}</tr></thead>
+            <tbody>
+              <tr>
+                ${jours.map(d=>`<td contenteditable data-date="${d.toISOString().slice(0,10)}">${escapeHtml(planning[d.toISOString().slice(0,10)]||"")}</td>`).join('')}
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="hint">Saisis libre (notes, jalons, contraintes). Le contenu reste au format texte.</p>
+      </div>
+    </section>
+  `;
+
+  document.getElementById('prev').addEventListener('click', ()=>{ window.location.hash = '#/planning?offset=-7'; });
+  document.getElementById('next').addEventListener('click', ()=>{ window.location.hash = '#/planning?offset=+7'; });
+  document.querySelector('[data-date]')?.addEventListener('input', ()=>setDirty(route,true));
+  document.querySelectorAll('[data-date]').forEach(el=>el.addEventListener('input', ()=>setDirty(route,true)));
+
+  async function save(){
+    const data = storage.get(KEYS.planning, {});
+    document.querySelectorAll('[data-date]').forEach(el=>{
+      data[el.dataset.date] = el.textContent.trim();
+    });
+    storage.set(KEYS.planning, data);
+    setDirty(route,false);
+  }
+  saveHandlers[route]=save;
+  document.getElementById('save').addEventListener('click', save);
+
+  setDirty(route,false);
+}
+
+/* =================
+   PAGE: DIFFUSION
+   ================= */
+function renderDiffusion(){
+  const route='/diffusion';
+  const pointage = storage.get(KEYS.pointage, DEFAULT_POINTAGE);
+
+  // Regroupement par ouvrier/chantier pour la semaine courante
+  const base = thisMonday();
+  const weekISO = [...Array(7)].map((_,i)=>addDays(base,i).toISOString().slice(0,10));
+  const rows = Object.values(pointage)
+    .filter(r=>weekISO.includes(r.date))
+    .reduce((acc,r)=>{
+      const key = `${r.ouvrier}|${r.agence}|${r.chantier}`;
+      if(!acc[key]) acc[key]={ nom:r.ouvrier, entreprise:r.agence, qualification: findQualif(r.ouvrier), heures:0, chantier:r.chantier, encadrant: findEncadrant(r.chantier) };
+      acc[key].heures += (+r.heures||0);
+      return acc;
+    }, {});
+  const baseRows = Object.values(rows);
+
+  pageRoot.innerHTML = `
+    <section class="panel">
+      <div class="panel-h">
+        <div class="toolbar"><span class="pill">Diffusion — format XX,XX Heures</span></div>
+        <div class="toolbar">
+          <button class="btn" id="save">Enregistrer</button>
+          <button class="btn primary" id="send">Envoyer les emails</button>
+          <button class="btn ghost" id="preview">Aperçu email</button>
+        </div>
+      </div>
+      <div class="panel-b">
+        <div class="grid cols-2" style="margin-bottom:12px">
+          <div class="field">
+            <label class="pill">Destinataires</label>
+            <input class="grow" id="dest" type="email" placeholder="paul@example.com, jeremy@example.com" />
+          </div>
+          <div class="field">
+            <label class="pill">Objet</label>
+            <input class="grow" id="subject" type="text" value="Synthèse des heures — Semaine en cours" />
+          </div>
+        </div>
+
+        <div class="table-wrap" id="diffWrap">
+          <table aria-label="Tableau diffusion">
+            <thead><tr>
+              <th>Ouvrier</th><th>Entreprise</th><th>Qualification</th><th class="mono">Heures</th><th>Chantier</th><th>Encadrant</th>
+            </tr></thead>
+            <tbody id="tbodyDiff"></tbody>
+          </table>
+        </div>
+        <p class="hint">Les heures sont affichées et envoyées au format <span class="mono">XX,XX&nbsp;Heures</span>. Aucun popup : la pastille passe au vert.</p>
+        <div id="previewOut" class="hint"></div>
+      </div>
+    </section>
+  `;
+
+  const tbody = document.getElementById('tbodyDiff');
+  function render(){
+    tbody.innerHTML = "";
+    baseRows.forEach((r)=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td contenteditable data-k="nom">${escapeHtml(r.nom)}</td>
+        <td contenteditable data-k="entreprise">${escapeHtml(r.entreprise)}</td>
+        <td contenteditable data-k="qualification">${escapeHtml(r.qualification||"")}</td>
+        <td contenteditable data-k="heures" class="mono" title="Ex: 41.25">${escapeHtml(formatHeuresFR(r.heures))}</td>
+        <td contenteditable data-k="chantier">${escapeHtml(r.chantier)}</td>
+        <td contenteditable data-k="encadrant">${escapeHtml(r.encadrant||"")}</td>
       `;
-
-      const tbody = document.getElementById('tbodySaisie');
-
-      function rowTpl(r, idx){
-        const options = QUALIFS.map(q=>`<option ${q===r.qualification?'selected':''}>${q}</option>`).join('');
-        return `
-          <tr data-idx="${idx}">
-            <td contenteditable data-k="nom">${escapeHtml(r.nom)}</td>
-            <td contenteditable data-k="entreprise">${escapeHtml(r.entreprise)}</td>
-            <td data-k="qualification">
-              <select class="qualSel">
-                ${options}
-              </select>
-            </td>
-            <td contenteditable data-k="heures" class="mono" title="Ex: 35.5">${escapeHtml(String(r.heures))}</td>
-            <td contenteditable data-k="chantier">${escapeHtml(r.chantier)}</td>
-            <td contenteditable data-k="encadrant">${escapeHtml(r.encadrant)}</td>
-            <td><button class="btn ghost btnDel">Suppr.</button></td>
-          </tr>
-        `;
-      }
-
-      function render(){
-        tbody.innerHTML = rows.map((r, i)=>rowTpl(r,i)).join('');
-        bindRowEvents();
-      }
-
-      function bindRowEvents(){
-        tbody.querySelectorAll('[contenteditable], select').forEach(el=>{
-          el.addEventListener('input', ()=> setDirty(route, true));
-          el.addEventListener('change', ()=> setDirty(route, true));
-        });
-        tbody.querySelectorAll('.btnDel').forEach(btn=>{
-          btn.addEventListener('click', (e)=>{
-            const tr = e.target.closest('tr');
-            const idx = Number(tr.dataset.idx);
-            rows.splice(idx,1);
-            render();
-            setDirty(route, true);
-          });
-        });
-      }
-
-      document.getElementById('btnAddRow').addEventListener('click', ()=>{
-        rows.push({ nom:"", entreprise:"", qualification: QUALIFS[0], heures:0, chantier:"", encadrant:"" });
-        render();
-        setDirty(route, true);
-      });
-
-      async function saveSaisie(){
-        const out = [];
-        tbody.querySelectorAll('tr').forEach(tr=>{
-          const grab = k => (k==='qualification')
-            ? (tr.querySelector('select.qualSel')?.value || "")
-            : (tr.querySelector(`[data-k="${k}"]`)?.textContent || "");
-          out.push({
-            nom: grab('nom').trim(),
-            entreprise: grab('entreprise').trim(),
-            qualification: grab('qualification').trim(),
-            heures: parseHeures(grab('heures')),
-            chantier: grab('chantier').trim(),
-            encadrant: grab('encadrant').trim(),
-          });
-        });
-        storage.set(storeKeys.saisie, out);
-        // pas de message → juste pastille verte
-        setDirty(route, false);
-      }
-      saveHandlers[route] = saveSaisie;
-      document.getElementById('btnSaveSaisie').addEventListener('click', saveSaisie);
-
-      render();
-      // page fraîche : état selon stockage
-      setDirty(route, false);
-    }
-
-    /*******************
-     * PAGE: DIFFUSION *
-     *******************/
-    function renderDiffusion(){
-      const route = '/diffusion';
-      const baseRows = storage.get(storeKeys.saisie, storage.get(storeKeys.diffusion, defaultRows()));
-
-      pageRoot.innerHTML = `
-        <section class="panel">
-          <div class="panel-h">
-            <div class="toolbar">
-              <span class="pill">Diffusion des heures (format XX,XX Heures)</span>
-            </div>
-            <div class="toolbar">
-              <button class="btn" id="btnSaveDiff">Enregistrer</button>
-              <button class="btn primary" id="btnSend">Envoyer les emails</button>
-              <button class="btn ghost" id="btnPreview">Aperçu email</button>
-            </div>
-          </div>
-          <div class="panel-b">
-            <div class="grid cols-2" style="margin-bottom:12px">
-              <div class="field">
-                <label class="pill">Destinataires</label>
-                <input class="grow" id="dest" type="email" placeholder="paul@example.com, jeremy@example.com" />
-              </div>
-              <div class="field">
-                <label class="pill">Objet</label>
-                <input class="grow" id="subject" type="text" value="Synthèse des heures — Semaine en cours" />
-              </div>
-            </div>
-
-            <div class="table-wrap" id="diffWrap">
-              <table aria-label="Tableau diffusion">
-                <thead>
-                  <tr>
-                    <th>Ouvrier</th>
-                    <th>Entreprise</th>
-                    <th>Qualification</th>
-                    <th class="mono">Heures</th>
-                    <th>Chantier</th>
-                    <th>Encadrant</th>
-                  </tr>
-                </thead>
-                <tbody id="tbodyDiff"></tbody>
-              </table>
-            </div>
-
-            <p class="hint">Les heures affichées et envoyées utilisent le format <span class="mono">XX,XX&nbsp;Heures</span>.</p>
-            <div id="previewOut" class="hint"></div>
-          </div>
-        </section>
-      `;
-
-      const tbody = document.getElementById('tbodyDiff');
-
-      function render(){
-        tbody.innerHTML = "";
-        baseRows.forEach((r)=>{
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td contenteditable data-k="nom">${escapeHtml(r.nom)}</td>
-            <td contenteditable data-k="entreprise">${escapeHtml(r.entreprise)}</td>
-            <td contenteditable data-k="qualification">${escapeHtml(r.qualification)}</td>
-            <td contenteditable data-k="heures" class="mono" title="Ex: 41.25">${escapeHtml(formatHeuresFR(r.heures))}</td>
-            <td contenteditable data-k="chantier">${escapeHtml(r.chantier)}</td>
-            <td contenteditable data-k="encadrant">${escapeHtml(r.encadrant)}</td>
-          `;
-          tr.querySelectorAll('[contenteditable]').forEach(cell=>{
-            cell.addEventListener('input', ()=>{
-              setDirty(route, true);
-              if(cell.dataset.k === 'heures'){
-                const txt = cell.textContent.replace(/[^\d.,]/g,"").replace(",",".");
-                const num = parseFloat(txt);
-                if(!isNaN(num)){ cell.dataset.raw = String(num); }
-              }
-            });
-            cell.addEventListener('blur', ()=>{
-              if(cell.dataset.k === 'heures'){
-                const raw = parseFloat((cell.dataset.raw ?? "").toString());
-                if(!isNaN(raw)){
-                  cell.textContent = formatHeuresFR(raw);
-                }else{
-                  const txt = cell.textContent.replace(/[^\d.,]/g,"").replace(",",".");
-                  const num = parseFloat(txt);
-                  cell.textContent = formatHeuresFR(isNaN(num)?0:num);
-                }
-              }
-            });
-          });
-          tbody.appendChild(tr);
-        });
-      }
-
-      function readRows(){
-        const out = [];
-        tbody.querySelectorAll('tr').forEach(tr=>{
-          const grab = k => (tr.querySelector(`[data-k="${k}"]`)?.textContent || "").trim();
-          const hCell = tr.querySelector('[data-k="heures"]');
-          let heures = 0;
-          if(hCell){
-            const parsed = hCell.textContent.replace(/[^\d.,]/g,"").replace(",",".");
-            const num = parseFloat(parsed);
-            heures = isNaN(num) ? 0 : num;
+      tr.querySelectorAll('[contenteditable]').forEach(cell=>{
+        cell.addEventListener('input', ()=>{
+          setDirty(route, true);
+          if(cell.dataset.k === 'heures'){
+            const txt = cell.textContent.replace(/[^\d.,]/g,"").replace(",",".");
+            const num = parseFloat(txt);
+            if(!isNaN(num)){ cell.dataset.raw = String(num); }
           }
-          out.push({
-            nom: grab('nom'),
-            entreprise: grab('entreprise'),
-            qualification: grab('qualification'),
-            heures,
-            chantier: grab('chantier'),
-            encadrant: grab('encadrant'),
-          });
         });
-        return out;
-      }
-
-      function buildEmailHtml(rows){
-        const styles = `
-          table{border-collapse:collapse;width:100%;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
-          th,td{border:1px solid #d5d8df;padding:8px 10px;font-size:14px}
-          th{background:#f2f4f8;text-align:left}
-          .mono{font-family:ui-monospace,Menlo,Consolas,monospace}
-        `;
-        const head = `
-          <tr>
-            <th>Ouvrier</th>
-            <th>Entreprise</th>
-            <th>Qualification</th>
-            <th>Heures</th>
-            <th>Chantier</th>
-            <th>Encadrant</th>
-          </tr>
-        `;
-        const body = rows.map(r=>`
-          <tr>
-            <td>${escapeHtml(r.nom)}</td>
-            <td>${escapeHtml(r.entreprise)}</td>
-            <td>${escapeHtml(r.qualification)}</td>
-            <td class="mono">${escapeHtml(formatHeuresFR(r.heures))}</td>
-            <td>${escapeHtml(r.chantier)}</td>
-            <td>${escapeHtml(r.encadrant)}</td>
-          </tr>
-        `).join("");
-        return `
-          <div style="font:14px system-ui,-apple-system,Segoe UI,Roboto,Arial;color:#0b1220">
-            <p>Bonjour,</p>
-            <p>Veuillez trouver ci-dessous la synthèse des heures :</p>
-            <table role="table" aria-label="Synthèse des heures">
-              <style>${styles}</style>
-              <thead>${head}</thead>
-              <tbody>${body}</tbody>
-            </table>
-            <p style="color:#5f6b7c">— Envoi automatique</p>
-          </div>
-        `;
-      }
-
-      async function saveDiff(){
-        const rows = readRows();
-        storage.set(storeKeys.diffusion, rows);
-        // pas d'alerte → pastille verte
-        setDirty(route, false);
-      }
-      saveHandlers[route] = saveDiff;
-
-      async function preview(){
-        const html = buildEmailHtml(readRows());
-        const out = document.getElementById('previewOut');
-        out.innerHTML = `<div class="success">Aperçu du contenu HTML qui sera envoyé :</div><div style="margin-top:10px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#101525">${html}</div>`;
-      }
-
-      async function sendEmails(){
-        const dest = (document.getElementById('dest').value || "")
-          .split(",").map(s=>s.trim()).filter(Boolean);
-        if(dest.length===0){ alert("Ajoute au moins un destinataire."); return; }
-        const subject = (document.getElementById('subject').value || "Synthèse des heures").trim();
-        const html = buildEmailHtml(readRows());
-
-        // ⚠️ Configure EmailJS: SERVICE_ID + TEMPLATE_ID + publicKey (plus haut)
-        const SERVICE_ID = "REMPLACE_AVEC_TON_SERVICE_ID";
-        const TEMPLATE_ID = "REMPLACE_AVEC_TON_TEMPLATE_ID";
-
-        // eslint-disable-next-line no-undef
-        await emailjs.send(SERVICE_ID, TEMPLATE_ID, {
-          to_emails: dest.join(","),
-          subject,
-          message_html: html
+        cell.addEventListener('blur', ()=>{
+          if(cell.dataset.k === 'heures'){
+            const raw = parseFloat((cell.dataset.raw ?? "").toString());
+            if(!isNaN(raw)){
+              cell.textContent = formatHeuresFR(raw);
+            }else{
+              const txt = cell.textContent.replace(/[^\d.,]/g,"").replace(",",".");
+              const num = parseFloat(txt);
+              cell.textContent = formatHeuresFR(isNaN(num)?0:num);
+            }
+          }
         });
-
-        // après envoi: on considère "enregistré"
-        setDirty(route, false);
-      }
-
-      document.getElementById('btnSaveDiff').addEventListener('click', saveDiff);
-      document.getElementById('btnPreview').addEventListener('click', preview);
-      document.getElementById('btnSend').addEventListener('click', sendEmails);
-
-      // marquer dirty si modifs
-      document.getElementById('diffWrap').addEventListener('input', ()=> setDirty(route, true));
-      document.getElementById('subject').addEventListener('input', ()=> setDirty(route, true));
-      document.getElementById('dest').addEventListener('input', ()=> setDirty(route, true));
-
-      render();
-      setDirty(route, false);
-    }
-
-    /**********************
-     * PAGE: PARAMÈTRES  *
-     **********************/
-    function renderParametres(){
-      const route = '/parametres';
-      const params = storage.get(storeKeys.params, {
-        signature: "Cordialement,\nL'équipe Bourdarios",
-        qualifs: QUALIFS,
       });
-
-      pageRoot.innerHTML = `
-        <section class="panel">
-          <div class="panel-h">
-            <div class="toolbar">
-              <span class="pill">Paramètres généraux</span>
-            </div>
-            <div class="toolbar">
-              <button class="btn" id="btnSaveParams">Enregistrer</button>
-            </div>
-          </div>
-          <div class="panel-b">
-            <div class="grid cols-2">
-              <div>
-                <label class="pill">Signature email</label>
-                <textarea id="signature" placeholder="Signature ajoutée aux emails (optionnel)">${escapeHtml(params.signature)}</textarea>
-                <p class="hint">Cette signature peut être insérée dans vos modèles d'email (si configuré côté EmailJS).</p>
-              </div>
-              <div>
-                <label class="pill">Qualifications (une par ligne)</label>
-                <textarea id="qualifs">${escapeHtml(params.qualifs.join('\n'))}</textarea>
-                <p class="hint">La liste sera proposée dans la page <i>Saisie</i>.</p>
-              </div>
-            </div>
-          </div>
-        </section>
-      `;
-
-      function bind(){
-        document.getElementById('signature').addEventListener('input', ()=> setDirty(route, true));
-        document.getElementById('qualifs').addEventListener('input', ()=> setDirty(route, true));
-        document.getElementById('btnSaveParams').addEventListener('click', async ()=>{
-          const newParams = {
-            signature: document.getElementById('signature').value,
-            qualifs: document.getElementById('qualifs').value.split('\n').map(s=>s.trim()).filter(Boolean),
-          };
-          storage.set(storeKeys.params, newParams);
-          // pas de popup — pastille verte
-          setDirty(route, false);
-        });
+      tbody.appendChild(tr);
+    });
+  }
+  function readRows(){
+    const out = [];
+    tbody.querySelectorAll('tr').forEach(tr=>{
+      const grab = k => (tr.querySelector(`[data-k="${k}"]`)?.textContent || "").trim();
+      const hCell = tr.querySelector('[data-k="heures"]');
+      let heures = 0;
+      if(hCell){
+        const parsed = hCell.textContent.replace(/[^\d.,]/g,"").replace(",",".");
+        const num = parseFloat(parsed);
+        heures = isNaN(num) ? 0 : num;
       }
-      bind();
-      setDirty(route, false);
+      out.push({
+        nom: grab('nom'),
+        entreprise: grab('entreprise'),
+        qualification: grab('qualification'),
+        heures,
+        chantier: grab('chantier'),
+        encadrant: grab('encadrant'),
+      });
+    });
+    return out;
+  }
+  function buildEmailHtml(rows){
+    const styles = `
+      table{border-collapse:collapse;width:100%;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
+      th,td{border:1px solid #d5d8df;padding:8px 10px;font-size:14px}
+      th{background:#f2f4f8;text-align:left}
+      .mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+    `;
+    const head = `
+      <tr><th>Ouvrier</th><th>Entreprise</th><th>Qualification</th><th>Heures</th><th>Chantier</th><th>Encadrant</th></tr>
+    `;
+    const body = rows.map(r=>`
+      <tr>
+        <td>${escapeHtml(r.nom)}</td>
+        <td>${escapeHtml(r.entreprise)}</td>
+        <td>${escapeHtml(r.qualification||"")}</td>
+        <td class="mono">${escapeHtml(formatHeuresFR(r.heures))}</td>
+        <td>${escapeHtml(r.chantier)}</td>
+        <td>${escapeHtml(r.encadrant||"")}</td>
+      </tr>
+    `).join("");
+    return `
+      <div style="font:14px system-ui,-apple-system,Segoe UI,Roboto,Arial;color:#0b1220">
+        <p>Bonjour,</p>
+        <p>Veuillez trouver ci-dessous la synthèse des heures :</p>
+        <table role="table" aria-label="Synthèse des heures">
+          <style>${styles}</style>
+          <thead>${head}</thead>
+          <tbody>${body}</tbody>
+        </table>
+        <p style="color:#5f6b7c">— Envoi automatique</p>
+      </div>
+    `;
+  }
+  async function save(){
+    const rows = readRows();
+    storage.set(KEYS.diffusion, rows);
+    setDirty(route,false);
+  }
+  async function preview(){
+    const html = buildEmailHtml(readRows());
+    document.getElementById('previewOut').innerHTML = `<div class="hint">Aperçu HTML :</div><div style="margin-top:10px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#101525">${html}</div>`;
+  }
+  async function sendEmails(){
+    const dest = (document.getElementById('dest').value || "")
+      .split(",").map(s=>s.trim()).filter(Boolean);
+    if(dest.length===0){ alert("Ajoute au moins un destinataire."); return; }
+    const subject = (document.getElementById('subject').value || "Synthèse des heures").trim();
+    const html = buildEmailHtml(readRows());
+    const SERVICE_ID = "REMPLACE_AVEC_TON_SERVICE_ID";
+    const TEMPLATE_ID = "REMPLACE_AVEC_TON_TEMPLATE_ID";
+    // eslint-disable-next-line no-undef
+    await emailjs.send(SERVICE_ID, TEMPLATE_ID, { to_emails: dest.join(","), subject, message_html: html });
+    setDirty(route,false);
+  }
+
+  document.getElementById('save').addEventListener('click', save);
+  document.getElementById('preview').addEventListener('click', preview);
+  document.getElementById('send').addEventListener('click', sendEmails);
+  document.getElementById('diffWrap').addEventListener('input', ()=> setDirty(route, true));
+  document.getElementById('subject').addEventListener('input', ()=> setDirty(route, true));
+  document.getElementById('dest').addEventListener('input', ()=> setDirty(route, true));
+
+  render(); setDirty(route,false);
+
+  function findQualif(nom){
+    const o = storage.get(KEYS.ouvriers, DEFAULT_OUVRIERS).find(x=>x.nom===nom);
+    return o?.qualification || "";
     }
-  </script>
+  function findEncadrant(code){
+    const c = storage.get(KEYS.chantiers, DEFAULT_CHANTIERS).find(x=>x.code===code);
+    return c?.encadrant || "";
+  }
+}
+
+/* =================
+   PAGE: PARAMÈTRES
+   ================= */
+function renderParametres(){
+  const route='/parametres';
+  const params = storage.get(KEYS.params, DEFAULT_PARAMS);
+
+  pageRoot.innerHTML = `
+    <section class="panel">
+      <div class="panel-h">
+        <div class="toolbar"><span class="pill">Paramètres</span></div>
+        <div class="toolbar"><button class="btn" id="save">Enregistrer</button></div>
+      </div>
+      <div class="panel-b">
+        <div class="grid cols-2">
+          <div>
+            <label class="pill">Signature email</label>
+            <textarea id="signature" placeholder="Signature ajoutée aux emails (optionnel)">${escapeHtml(params.signature)}</textarea>
+          </div>
+          <div>
+            <label class="pill">Qualifications (une par ligne)</label>
+            <textarea id="qualifs">${escapeHtml(params.qualifs.join('\n'))}</textarea>
+          </div>
+        </div>
+      </div>
+    </section>
+  `;
+
+  document.getElementById('signature').addEventListener('input', ()=>setDirty(route,true));
+  document.getElementById('qualifs').addEventListener('input', ()=>setDirty(route,true));
+  async function save(){
+    const newParams = {
+      signature: document.getElementById('signature').value,
+      qualifs: document.getElementById('qualifs').value.split('\n').map(s=>s.trim()).filter(Boolean),
+    };
+    storage.set(KEYS.params, newParams);
+    setDirty(route,false);
+  }
+  saveHandlers[route]=save;
+  document.getElementById('save').addEventListener('click', save);
+  setDirty(route,false);
+}
+</script>
 </body>
 </html>
