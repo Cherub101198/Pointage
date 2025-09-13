@@ -75,7 +75,7 @@
   <script defer src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      // ⚠️ REMPLIS ICI tes identifiants EmailJS
+      // ⚠️ REMPLACE PAR TA PUBLIC KEY EMAILJS
       // eslint-disable-next-line no-undef
       emailjs.init({ publicKey: "REMPLACE_AVEC_TA_PUBLIC_KEY" });
     });
@@ -121,8 +121,7 @@
                 <th>Encadrant</th>
               </tr>
             </thead>
-            <tbody id="tbodyDiffusion">
-            </tbody>
+            <tbody id="tbodyDiffusion"></tbody>
           </table>
         </div>
 
@@ -177,7 +176,7 @@
     const tbody = document.getElementById('tbodyDiffusion');
     function renderTbody(rows){
       tbody.innerHTML = "";
-      rows.forEach((r, idx) => {
+      rows.forEach((r) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td contenteditable data-k="nom">${r.nom}</td>
@@ -187,12 +186,10 @@
           <td contenteditable data-k="chantier">${r.chantier}</td>
           <td contenteditable data-k="encadrant">${r.encadrant}</td>
         `;
-        // Écouteurs pour passer en "dirty" + normaliser la cellule heures
         tr.querySelectorAll('[contenteditable]').forEach(cell => {
           cell.addEventListener('input', () => {
             markDirty();
             if(cell.dataset.k === 'heures'){
-              // Essaye d’extraire un nombre et refait le formatage en live
               const txt = cell.textContent.replace(/[^\d.,]/g,"").replace(",",".");
               const num = parseFloat(txt);
               if(!isNaN(num)){
@@ -206,7 +203,6 @@
               if(!isNaN(raw)){
                 cell.textContent = formatHeuresFR(raw);
               }else{
-                // tente de reparser le contenu
                 const txt = cell.textContent.replace(/[^\d.,]/g,"").replace(",",".");
                 const num = parseFloat(txt);
                 cell.textContent = formatHeuresFR(isNaN(num)?0:num);
@@ -226,7 +222,6 @@
       const out = [];
       tbody.querySelectorAll('tr').forEach(tr=>{
         const grab = k => (tr.querySelector(`[data-k="${k}"]`)?.textContent || "").trim();
-        // heures : retransformer en nombre depuis cellule formatée
         const hCell = tr.querySelector('[data-k="heures"]');
         let heures = 0;
         if(hCell){
@@ -250,10 +245,8 @@
      * Enregistrement (mock local) *
      *******************************/
     function enregistrer(){
-      // Ici, remplace par ton vrai backend si besoin (POST fetch ...).
       const data = readRows();
       localStorage.setItem('diffusion_heures', JSON.stringify(data));
-      // Pas de popup — on bascule juste la pastille en vert
       markSaved();
     }
     document.getElementById('btnEnregistrer').addEventListener('click', enregistrer);
@@ -345,7 +338,6 @@
       const subject = (document.getElementById('objet').value || "Synthèse des heures").trim();
       const html = buildEmailHtml(readRows());
 
-      // EmailJS s’occupe de l’envoi — pas de copier-coller nécessaire.
       // eslint-disable-next-line no-undef
       const res = await emailjs.send(SERVICE_ID, TEMPLATE_ID, {
         to_emails: dest.join(","),
@@ -353,10 +345,8 @@
         message_html: html
       });
 
-      // Optionnel: si tu veux que la pastille passe au vert après envoi réussi
+      // Pastille → verte, pas de popup
       markSaved();
-
-      // Pas de message intrusif ; si tu veux un retour discret, décommente :
       // console.log("Emails envoyés:", res.status, res.text);
     }
     document.getElementById('btnEnvoyerMails').addEventListener('click', envoyerEmails);
