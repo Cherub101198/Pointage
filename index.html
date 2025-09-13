@@ -91,7 +91,7 @@
     <main id="page"></main>
   </div>
 
-  <!-- Modal de confirmation -->
+  <!-- Modal confirmation navigation -->
   <div class="modal-backdrop" id="confirmModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); align-items:center; justify-content:center;">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" style="background:#0f141f; border:1px solid var(--line); border-radius:14px; max-width:520px; width:92%; box-shadow:var(--shadow);">
       <div class="m-h" id="confirmTitle" style="padding:16px; border-bottom:1px solid var(--line); font-weight:700">Enregistrer les modifications ?</div>
@@ -155,19 +155,34 @@ window.addEventListener('hashchange', handleHash);
 document.addEventListener('DOMContentLoaded', handleHash);
 
 /* =========
-   STORAGE
+   STORAGE + MIGRATION (clés stables)
    ========= */
 const storage = {
   get(k, fb){ try{ const v = JSON.parse(localStorage.getItem(k)); return v ?? fb; }catch{ return fb; } },
   set(k, v){ localStorage.setItem(k, JSON.stringify(v)); }
 };
+// Clés stables (ne changer plus)
 const KEYS = {
-  ouvriers:  'app_ouvriers_v11',
-  agences:   'app_agences_v11',
-  chantiers: 'app_chantiers_v11',
-  pointage:  'app_pointage_v11',   // {date, ouvrier, agence, chantier, heures}
-  params:    'app_params_v11',
+  ouvriers:  'app_ouvriers',
+  agences:   'app_agences',
+  chantiers: 'app_chantiers',
+  pointage:  'app_pointage', // {date, ouvrier, agence, chantier, heures}
+  params:    'app_params',
 };
+// Récupérer éventuelles anciennes données (v8..v11) puis basculer vers clés stables
+(function migrate(){
+  const suffixes = ['', '_v8','_v9','_v10','_v11'];
+  const bases = ['ouvriers','agences','chantiers','pointage','params'];
+  bases.forEach(b=>{
+    const stable = KEYS[b];
+    if(localStorage.getItem(stable)) return; // déjà migré
+    for(const s of suffixes){
+      const cand = `app_${b}${s}`;
+      const val = localStorage.getItem(cand);
+      if(val!=null){ localStorage.setItem(stable, val); break; }
+    }
+  });
+})();
 
 /* =========
    DEFAULTS
@@ -187,11 +202,15 @@ const DEFAULT_CHANTIERS = [
   { code:"M91 N10S", numDA:"", nomDA:"", encadrant:"Jérémy", adresse:"", zone:"" },
   { code:"M65 W01S", numDA:"", nomDA:"", encadrant:"Paul",   adresse:"", zone:"" },
 ];
-const DEFAULT_PARAMS = { qualifs:["N1","N2","N3P1","N3P2","N4P1","N4P2"] };
+const DEFAULT_PARAMS = {
+  qualifs:["N1","N2","N3P1","N3P2","N4P1","N4P2"],
+  chantierEmail:"Airbus SANITARY 2025"
+};
 
 /* =========
    UTILS — LOCAL (lundi=1…dimanche=0)
    ========= */
+const debounce = (fn, ms=500)=>{ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; };
 function escapeHtml(s=""){ return s.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;"); }
 function formatHeuresFR(v){ const n = Number(v??0); return `${n.toFixed(2).replace(".",",")} Heures`; }
 function formatHeuresShort(v){ const n = Number(v??0); return n.toFixed(2).replace(".",","); }
@@ -203,13 +222,13 @@ function weekdaysOfYearLocal(year){ const start=new Date(year,0,1), end=new Date
 function niceDayLabel(iso){ const [y,m,da]=iso.split('-').map(Number); const d=new Date(y,m-1,da); return d.toLocaleDateString('fr-FR',{weekday:'short', day:'2-digit', month:'2-digit'}); }
 
 /* =================
-   OUVRIERS — FORM vertical
+   OUVRIERS — autosave
    ================= */
 function renderOuvriers(){
   const route='/ouvriers';
   const params = storage.get(KEYS.params, DEFAULT_PARAMS);
   const agences = storage.get(KEYS.agences, DEFAULT_AGENCES).map(a=>a.nom);
-  const rows = storage.get(KEYS.ouvriers, DEFAULT_OUVRIERS);
+  let rows = storage.get(KEYS.ouvriers, DEFAULT_OUVRIERS);
 
   pageRoot.innerHTML = `
     <section class="panel">
@@ -222,7 +241,7 @@ function renderOuvriers(){
           <div class="row"><label>Prénom</label><input id="iPrenom" type="text" /></div>
           <div class="row"><label>Nom</label><input id="iNom" type="text" /></div>
           <div class="row"><label>Métier</label><input id="iMetier" type="text" /></div>
-          <div class="row"><label>Qualification</label><select id="iQualif">${params.qualifs.map(q=>`<option>${q}</option>`).join('')}</select></div>
+          <div class="row"><label>Qualification</label><select id="iQualif">${(params.qualifs||DEFAULT_PARAMS.qualifs).map(q=>`<option>${q}</option>`).join('')}</select></div>
           <div class="row"><label>Agence</label><select id="iAgence">${agences.map(a=>`<option>${a}</option>`).join('')}</select></div>
           <div class="row"><button class="btn primary" id="add">Ajouter l'ouvrier</button></div>
         </div>
@@ -237,6 +256,10 @@ function renderOuvriers(){
     </section>
   `;
   const tb=document.getElementById('tb');
+
+  const saveNow = ()=>{ storage.set(KEYS.ouvriers, rows); setDirty(route,false); };
+  const saveDebounced = debounce(saveNow, 600);
+
   function rowTpl(r,i){
     return `<tr data-i="${i}">
       <td class="sticky-col" contenteditable data-k="prenom">${escapeHtml(r.prenom)}</td>
@@ -249,9 +272,12 @@ function renderOuvriers(){
   }
   function render(){ tb.innerHTML = rows.map(rowTpl).join(''); bind(); }
   function bind(){
-    tb.querySelectorAll('[contenteditable]').forEach(el=>el.addEventListener('input', ()=> setDirty(route,true)));
+    tb.querySelectorAll('[contenteditable]').forEach(el=>el.addEventListener('input', e=>{
+      const tr=e.target.closest('tr'); const i=+tr.dataset.i; const k=e.target.dataset.k;
+      rows[i][k]=e.target.textContent.trim(); setDirty(route,true); saveDebounced();
+    }));
     tb.querySelectorAll('.del').forEach(b=>b.addEventListener('click', e=>{
-      const tr=e.target.closest('tr'); const i=+tr.dataset.i; rows.splice(i,1); render(); setDirty(route,true);
+      const tr=e.target.closest('tr'); const i=+tr.dataset.i; rows.splice(i,1); render(); setDirty(route,true); saveDebounced();
     }));
   }
   document.getElementById('add').addEventListener('click', ()=>{
@@ -262,30 +288,19 @@ function renderOuvriers(){
       metier: document.getElementById('iMetier').value.trim(),
       qualification: document.getElementById('iQualif').value,
       agence: document.getElementById('iAgence').value });
-    render(); setDirty(route,true);
+    render(); setDirty(route,true); saveDebounced();
   });
-  async function save(){
-    const out=[]; tb.querySelectorAll('tr').forEach(tr=>{
-      out.push({
-        prenom:(tr.querySelector('[data-k="prenom"]')?.textContent||"").trim(),
-        nom:(tr.querySelector('[data-k="nom"]')?.textContent||"").trim(),
-        metier:(tr.querySelector('[data-k="metier"]')?.textContent||"").trim(),
-        qualification:(tr.querySelector('[data-k="qualification"]')?.textContent||"").trim(),
-        agence:(tr.querySelector('[data-k="agence"]')?.textContent||"").trim(),
-      });
-    });
-    storage.set(KEYS.ouvriers,out); setDirty(route,false);
-  }
+  async function save(){ saveNow(); }
   saveHandlers[route]=save; document.getElementById('save').addEventListener('click', save);
   render(); setDirty(route,false);
 }
 
 /* =================
-   AGENCES — FORM vertical
+   AGENCES — autosave
    ================= */
 function renderAgences(){
   const route='/agences';
-  const rows = storage.get(KEYS.agences, DEFAULT_AGENCES);
+  let rows = storage.get(KEYS.agences, DEFAULT_AGENCES);
   pageRoot.innerHTML=`
     <section class="panel">
       <div class="panel-h">
@@ -309,6 +324,9 @@ function renderAgences(){
     </section>
   `;
   const tb=document.getElementById('tb');
+  const saveNow = ()=>{ storage.set(KEYS.agences, rows); setDirty(route,false); };
+  const saveDebounced = debounce(saveNow, 600);
+
   function rowTpl(r,i){ return `<tr data-i="${i}">
     <td class="sticky-col" contenteditable data-k="nom">${escapeHtml(r.nom)}</td>
     <td contenteditable data-k="email">${escapeHtml(r.email||"")}</td>
@@ -316,34 +334,31 @@ function renderAgences(){
   </tr>`;}
   function render(){ tb.innerHTML=rows.map(rowTpl).join(''); bind(); }
   function bind(){
-    tb.querySelectorAll('[contenteditable]').forEach(el=>el.addEventListener('input',()=>setDirty(route,true)));
+    tb.querySelectorAll('[contenteditable]').forEach(el=>el.addEventListener('input', e=>{
+      const tr=e.target.closest('tr'); const i=+tr.dataset.i; const k=e.target.dataset.k;
+      rows[i][k]=e.target.textContent.trim(); setDirty(route,true); saveDebounced();
+    }));
     tb.querySelectorAll('.del').forEach(b=>b.addEventListener('click',e=>{
-      const tr=e.target.closest('tr'); const i=+tr.dataset.i; rows.splice(i,1); render(); setDirty(route,true);
+      const tr=e.target.closest('tr'); const i=+tr.dataset.i; rows.splice(i,1); render(); setDirty(route,true); saveDebounced();
     }));
   }
   document.getElementById('add').addEventListener('click',()=>{
     const nom=document.getElementById('aNom').value.trim();
     if(!nom){ alert("Nom requis"); return; }
     rows.push({nom, email: document.getElementById('aEmail').value.trim()});
-    render(); setDirty(route,true);
+    render(); setDirty(route,true); saveDebounced();
   });
-  async function save(){
-    const out=[]; tb.querySelectorAll('tr').forEach(tr=>{
-      out.push({ nom:(tr.querySelector('[data-k="nom"]')?.textContent||"").trim(),
-                 email:(tr.querySelector('[data-k="email"]')?.textContent||"").trim() });
-    });
-    storage.set(KEYS.agences,out); setDirty(route,false);
-  }
+  async function save(){ saveNow(); }
   saveHandlers[route]=save; document.getElementById('save').addEventListener('click', save);
   render(); setDirty(route,false);
 }
 
 /* =================
-   CHANTIERS — FORM vertical
+   CHANTIERS — autosave
    ================= */
 function renderChantiers(){
   const route='/chantiers';
-  const rows = storage.get(KEYS.chantiers, DEFAULT_CHANTIERS);
+  let rows = storage.get(KEYS.chantiers, DEFAULT_CHANTIERS);
   pageRoot.innerHTML=`
     <section class="panel">
       <div class="panel-h">
@@ -371,6 +386,9 @@ function renderChantiers(){
     </section>
   `;
   const tb=document.getElementById('tb');
+  const saveNow = ()=>{ storage.set(KEYS.chantiers, rows); setDirty(route,false); };
+  const saveDebounced = debounce(saveNow, 600);
+
   function rowTpl(r,i){ return `<tr data-i="${i}">
     <td class="sticky-col" contenteditable data-k="code">${escapeHtml(r.code)}</td>
     <td contenteditable data-k="numDA">${escapeHtml(r.numDA||"")}</td>
@@ -382,9 +400,12 @@ function renderChantiers(){
   </tr>`;}
   function render(){ tb.innerHTML=rows.map(rowTpl).join(''); bind(); }
   function bind(){
-    tb.querySelectorAll('[contenteditable]').forEach(el=>el.addEventListener('input',()=>setDirty(route,true)));
+    tb.querySelectorAll('[contenteditable]').forEach(el=>el.addEventListener('input', e=>{
+      const tr=e.target.closest('tr'); const i=+tr.dataset.i; const k=e.target.dataset.k;
+      rows[i][k]=e.target.textContent.trim(); setDirty(route,true); saveDebounced();
+    }));
     tb.querySelectorAll('.del').forEach(b=>b.addEventListener('click',e=>{
-      const tr=e.target.closest('tr'); const i=+tr.dataset.i; rows.splice(i,1); render(); setDirty(route,true);
+      const tr=e.target.closest('tr'); const i=+tr.dataset.i; rows.splice(i,1); render(); setDirty(route,true); saveDebounced();
     }));
   }
   document.getElementById('add').addEventListener('click',()=>{
@@ -398,21 +419,9 @@ function renderChantiers(){
       adresse: document.getElementById('cAdr').value.trim(),
       zone: document.getElementById('cZone').value.trim(),
     });
-    render(); setDirty(route,true);
+    render(); setDirty(route,true); saveDebounced();
   });
-  async function save(){
-    const out=[]; tb.querySelectorAll('tr').forEach(tr=>{
-      out.push({
-        code:(tr.querySelector('[data-k="code"]')?.textContent||"").trim(),
-        numDA:(tr.querySelector('[data-k="numDA"]')?.textContent||"").trim(),
-        nomDA:(tr.querySelector('[data-k="nomDA"]')?.textContent||"").trim(),
-        encadrant:(tr.querySelector('[data-k="encadrant"]')?.textContent||"").trim(),
-        adresse:(tr.querySelector('[data-k="adresse"]')?.textContent||"").trim(),
-        zone:(tr.querySelector('[data-k="zone"]')?.textContent||"").trim(),
-      });
-    });
-    storage.set(KEYS.chantiers,out); setDirty(route,false);
-  }
+  async function save(){ saveNow(); }
   saveHandlers[route]=save; document.getElementById('save').addEventListener('click', save);
   render(); setDirty(route,false);
 }
@@ -429,7 +438,6 @@ function renderPlanningDailyReadOnly(){
   const ySel = parseInt(new URLSearchParams(location.hash.split('?')[1]).get('year') || currentYear, 10);
   const days = weekdaysOfYearLocal(ySel);
 
-  // index pointage -> map[ouvrier][yyyy-mm-dd] = {h, c}
   const map = {};
   const y0 = new Date(ySel,0,1);
   const y1 = new Date(ySel+1,0,1);
@@ -442,8 +450,7 @@ function renderPlanningDailyReadOnly(){
     }
   });
 
-  // Entêtes groupées par semaines
-  const weeks = []; // {week, count, dates[]}
+  const weeks = [];
   let cur=null;
   days.forEach(d=>{
     const {week} = getISOWeekLocal(d);
@@ -513,7 +520,7 @@ function renderPlanningDailyReadOnly(){
 }
 
 /* =================
-   POINTAGE — HEBDO (autosave)
+   POINTAGE — HEBDO (autosave par saisie & avant changement de semaine)
    ================= */
 function renderPointageWeekly(){
   const route='/pointage';
@@ -575,6 +582,7 @@ function renderPointageWeekly(){
     return `<option value=""></option>` + list.map(c=>`<option ${c===selVal?'selected':''}>${c}</option>`).join('');
   }
   function daysForWeek(year, week){ return weekDatesLocal(year, week).slice(0,5); } // Lundi..Vendredi
+
   function getMapForWeek(year, week){
     const dates = daysForWeek(year, week);
     const map = new Map(); // name -> {jours:[{h,c},...]}
@@ -585,6 +593,7 @@ function renderPointageWeekly(){
     });
     return {map, dates};
   }
+
   function persistWeek(year, week){
     const dates = daysForWeek(year, week);
     const keep = storage.get(KEYS.pointage, []).filter(r=> !dates.includes(r.date));
@@ -601,6 +610,7 @@ function renderPointageWeekly(){
     });
     storage.set(KEYS.pointage, keep);
   }
+
   function renderTable(){
     const year = parseInt(pYear.value,10);
     const week = parseInt(pWeek.value,10);
@@ -626,6 +636,7 @@ function renderPointageWeekly(){
     bindRowEvents();
     recomputeTotals();
   }
+
   function bindRowEvents(){
     const curYear = ()=>parseInt(pYear.value,10);
     const curWeek = ()=>parseInt(pWeek.value,10);
@@ -656,6 +667,7 @@ function renderPointageWeekly(){
       });
     });
   }
+
   function recomputeTotals(){
     const idxs=[0,1,2,3,4];
     const colTotals = idxs.map(i=>{
@@ -669,11 +681,8 @@ function renderPointageWeekly(){
     const totSem = colTotals.reduce((s,x)=>s+x,0);
     document.getElementById('totSem').textContent = totSem.toFixed(2);
   }
-  async function save(){
-    const y=parseInt(pYear.value,10), w=parseInt(pWeek.value,10);
-    persistWeek(y,w);
-    setDirty(route,false);
-  }
+
+  async function save(){ const y=parseInt(pYear.value,10), w=parseInt(pWeek.value,10); persistWeek(y,w); setDirty(route,false); }
   saveHandlers[route]=save;
   document.getElementById('save').addEventListener('click', save);
 
@@ -690,11 +699,12 @@ function renderPointageWeekly(){
 }
 
 /* =================
-   DIFFUSION — mails HTML (tableau stylé) par agence
+   DIFFUSION — mails HTML (objet + intro) par agence
    ================= */
 function renderDiffusionParAgence(){
   const route='/diffusion';
   const agencesObj = storage.get(KEYS.agences, DEFAULT_AGENCES);
+  const params = storage.get(KEYS.params, DEFAULT_PARAMS);
   const {year:curY, week:curW} = getISOWeekLocal(new Date());
 
   pageRoot.innerHTML = `
@@ -713,7 +723,10 @@ function renderDiffusionParAgence(){
         </div>
       </div>
       <div class="panel-b">
-        <div class="form-vert" style="margin-bottom:10px">
+        <div class="form-vert" style="margin-bottom:10px; max-width:680px">
+          <div class="row"><label>Nom chantier pour l'email</label>
+            <input id="mailChantier" type="text" value="${escapeHtml(params.chantierEmail || DEFAULT_PARAMS.chantierEmail)}" />
+          </div>
           <div class="row"><label>Agences à contacter</label>
             <div id="agList" class="field" style="gap:14px; flex-wrap:wrap"></div>
           </div>
@@ -725,8 +738,16 @@ function renderDiffusionParAgence(){
 
   const dYear = document.getElementById('dYear');
   const dWeek = document.getElementById('dWeek');
+  const mailChantier = document.getElementById('mailChantier');
   const tablesDiv = document.getElementById('tables');
   const agListDiv = document.getElementById('agList');
+
+  // autosave chantier email param
+  mailChantier.addEventListener('input', debounce(()=>{
+    const p = storage.get(KEYS.params, DEFAULT_PARAMS);
+    p.chantierEmail = mailChantier.value.trim() || DEFAULT_PARAMS.chantierEmail;
+    storage.set(KEYS.params, p); setDirty(route,false);
+  }, 600));
 
   agListDiv.innerHTML = agencesObj.map(a=>{
     const safe = escapeHtml(a.nom);
@@ -756,8 +777,9 @@ function renderDiffusionParAgence(){
     return { byAgency, weekIsoDates };
   }
 
-  // --- HTML email builder (styles inline pour compatibilité Outlook) ---
+  // --- HTML email builder (styles inline + intro) ---
   function buildHtmlEmail(agName){
+    const chantierName = (storage.get(KEYS.params, DEFAULT_PARAMS).chantierEmail || DEFAULT_PARAMS.chantierEmail);
     const { byAgency, weekIsoDates } = groupData();
     const recs = byAgency[agName] || {};
     const workers = Object.keys(recs).sort();
@@ -780,8 +802,13 @@ function renderDiffusionParAgence(){
     }).join('');
 
     const title = `Semaine ${dWeek.value}/${dYear.value} — ${escapeHtml(agName)}`;
+    const intro = `
+      <p style="margin:0 0 12px 0;">Bonjour,</p>
+      <p style="margin:0 0 14px 0;">
+        Ci-après le pointage des ouvriers sur le chantier <strong>${escapeHtml(chantierName)}</strong>
+        pour la semaine <strong>${escapeHtml(dWeek.value)}</strong>.
+      </p>`;
 
-    // Table container avec “carte” sombre claire (couleurs sobres pour Outlook)
     const html = `
 <!doctype html>
 <html>
@@ -789,17 +816,18 @@ function renderDiffusionParAgence(){
     <div style="padding:20px;">
       <div style="max-width:940px; margin:0 auto; background:#0f141f; color:#e9eef6; border-radius:14px; border:1px solid #334158;">
         <div style="padding:14px 16px; border-bottom:1px solid #334158; font-weight:700;">${title}</div>
-        <div style="padding:12px 16px;">
+        <div style="padding:16px;">
+          ${intro}
           <table role="table" cellpadding="0" cellspacing="0" border="0" style="width:100%; border-collapse:separate; border-spacing:0; background:#111727; color:#e9eef6; border:1px solid #334158; border-radius:12px; overflow:hidden;">
             <thead style="background:#0f1523; color:#d6def0;">
               <tr>${head}</tr>
             </thead>
             <tbody>${rows || `<tr><td colspan="${cols.length}" style="padding:12px; color:#cbd5e7;">Aucune donnée</td></tr>`}</tbody>
           </table>
+          <div style="height:18px"></div>
+          <div>Cordialement.</div>
         </div>
       </div>
-      <div style="height:16px"></div>
-      <div style="font-size:12px; color:#5b6a85">Email généré automatiquement.</div>
     </div>
   </body>
 </html>`;
@@ -839,7 +867,7 @@ function renderDiffusionParAgence(){
     }).join('');
   }
 
-  // Ouvre Outlook via mailto avec corps = HTML encodé (certains clients l’affichent en texte)
+  // Ouvre Outlook via mailto avec corps = HTML encodé
   function openOutlookHtml(to, subject, html){
     const url = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(html)}`;
     window.location.href = url;
@@ -848,11 +876,12 @@ function renderDiffusionParAgence(){
   async function sendEmails(){
     const selected = [...document.querySelectorAll('.agChk:checked')].map(c=>c.value);
     if(selected.length===0){ alert("Sélectionne au moins une agence."); return; }
+    const chantierName = (storage.get(KEYS.params, DEFAULT_PARAMS).chantierEmail || DEFAULT_PARAMS.chantierEmail);
     const mapEmail = Object.fromEntries(storage.get(KEYS.agences, DEFAULT_AGENCES).map(a=>[a.nom, a.email||""]));
     for(const ag of selected){
       const to = (mapEmail[ag]||"").trim();
       if(!to){ console.warn("Aucun email pour", ag); continue; }
-      const subject = `Synthèse hebdo — ${ag} — Semaine ${dWeek.value}/${dYear.value}`;
+      const subject = `Pointage ouvriers — ${chantierName} — Semaine ${dWeek.value}/${dYear.value} — ${ag}`;
       const html = buildHtmlEmail(ag);
       openOutlookHtml(to, subject, html);
     }
@@ -863,7 +892,11 @@ function renderDiffusionParAgence(){
   dWeek.addEventListener('change', ()=>{ renderTables(); setDirty(route,true); });
   document.addEventListener('change', (e)=>{ if(e.target.classList?.contains('agChk')) setDirty(route,true); });
 
-  async function save(){ setDirty(route,false); }
+  async function save(){ // rien de spécial ici
+    const p = storage.get(KEYS.params, DEFAULT_PARAMS);
+    p.chantierEmail = mailChantier.value.trim() || DEFAULT_PARAMS.chantierEmail;
+    storage.set(KEYS.params, p); setDirty(route,false);
+  }
   saveHandlers[route]=save;
 
   document.getElementById('save').addEventListener('click', save);
@@ -888,21 +921,33 @@ function renderParametres(){
       <div class="panel-b">
         <div class="form-vert" style="max-width:520px">
           <div class="row"><label>Qualifications (une par ligne)</label>
-            <textarea id="qualifs" placeholder="N1&#10;N2&#10;N3P1&#10;N3P2&#10;N4P1&#10;N4P2">${escapeHtml(params.qualifs.join('\n'))}</textarea>
+            <textarea id="qualifs" placeholder="N1&#10;N2&#10;N3P1&#10;N3P2&#10;N4P1&#10;N4P2">${escapeHtml((params.qualifs||DEFAULT_PARAMS.qualifs).join('\n'))}</textarea>
+          </div>
+          <div class="row"><label>Nom chantier pour l'email</label>
+            <input id="chantierEmail" type="text" value="${escapeHtml(params.chantierEmail || DEFAULT_PARAMS.chantierEmail)}" />
           </div>
         </div>
       </div>
     </section>
   `;
 
-  document.getElementById('qualifs').addEventListener('input', ()=>setDirty(route,true));
-  async function save(){
+  const qualifs = document.getElementById('qualifs');
+  const chantierEmail = document.getElementById('chantierEmail');
+
+  [qualifs, chantierEmail].forEach(el=>el.addEventListener('input', ()=>setDirty(route,true)));
+
+  const saveNow = ()=>{
     const newParams = {
-      qualifs: document.getElementById('qualifs').value.split('\n').map(s=>s.trim()).filter(Boolean),
+      qualifs: qualifs.value.split('\n').map(s=>s.trim()).filter(Boolean),
+      chantierEmail: (chantierEmail.value || DEFAULT_PARAMS.chantierEmail).trim()
     };
     storage.set(KEYS.params, newParams);
     setDirty(route,false);
-  }
+  };
+  const saveDebounced = debounce(saveNow, 700);
+  [qualifs, chantierEmail].forEach(el=>el.addEventListener('input', saveDebounced));
+
+  async function save(){ saveNow(); }
   saveHandlers[route]=save; document.getElementById('save').addEventListener('click', save);
   setDirty(route,false);
 }
