@@ -1,597 +1,387 @@
-<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Pointages Intérim</title>
-<style>
-:root{
-  --bg:#0b1220;--bg2:#0f172a;--panel:#0b122099;--glass:#0b1220cc;--muted:#9aa4b2;--border:#263143;--text:#e5e7eb;
-  --accent:#22d3ee;--accent2:#60a5fa;--danger:#ef4444;--alt:#0f172a;--alt2:#111827
-}
-*{box-sizing:border-box}html,body{height:100%}
-body{margin:0;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;color:var(--text);
-  background:radial-gradient(1200px 800px at 10% -10%,#172554 0%,transparent 60%),radial-gradient(1000px 600px at 90% 10%,#0f766e33 0%,transparent 60%),linear-gradient(180deg,#0b1220 0%,#0f172a 80%) fixed}
-a{color:inherit}
-.container{max-width:1440px;margin:28px auto;padding:0 20px}
-.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-.sp{height:10px}.muted{color:var(--muted)}.right{display:flex;justify-content:flex-end}
-.panel{background:linear-gradient(180deg,rgba(16,24,40,.55),rgba(2,6,23,.45));border:1px solid var(--border);border-radius:16px;
-  box-shadow:0 10px 30px rgba(2,6,23,.4), inset 0 1px 0 rgba(255,255,255,.05);backdrop-filter:saturate(160%) blur(8px);overflow:hidden}
-.panel .hd{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;justify-content:space-between}
-.panel .hd strong{letter-spacing:.2px}
-.panel .bd{padding:16px 18px}
-label{font-size:12px;color:var(--muted);display:block;margin:0 0 6px 2px;letter-spacing:.2px}
-input[type=text],input[type=date],select,textarea{
-  width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:12px;font-size:14px;outline:none;
-  background:#0b1220aa;color:var(--text);box-shadow:inset 0 1px 0 rgba(255,255,255,.03)}
-input::placeholder,textarea::placeholder{color:#6b7280}
-textarea{min-height:48px}
-button{appearance:none;border:1px solid var(--border);background:linear-gradient(180deg,#0b1220,#0b1220);
-  padding:9px 14px;border-radius:999px;font-weight:600;cursor:pointer;color:var(--text);transition:.2s ease;box-shadow:0 1px 0 rgba(255,255,255,.06) inset}
-button:hover{transform:translateY(-1px)}
-button.primary{background:linear-gradient(180deg,#0891b2,#2563eb);border-color:#1f3a8a;color:#eaf2ff;box-shadow:0 8px 18px rgba(99,102,241,.35)}
-.badge{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border:1px solid var(--border);border-radius:999px;background:#0b1220aa;font-size:12px}
-.badges{display:flex;flex-wrap:wrap;gap:8px}
-.grid{display:grid;gap:12px}
-.scroll{overflow:auto}
-table{width:100%;border-collapse:separate;border-spacing:0;min-width:980px}
-th,td{border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:9px 10px;background:linear-gradient(180deg,#0b1220aa,#0b1220aa);vertical-align:top}
-th:first-child,td:first-child{border-left:1px solid var(--border)}tr:first-child th{border-top:1px solid var(--border)}
-th{position:sticky;top:0;background:linear-gradient(180deg,#0b1220ee,#0b1220ee);font-size:13px;text-align:left;z-index:1}
-tfoot td{background:linear-gradient(180deg,#0b1220dd,#0b1220dd);font-weight:700}
-.small{font-size:12px;color:var(--muted)}
-.hidden{display:none}
-.nav{position:sticky;top:0;background:linear-gradient(180deg,rgba(2,6,23,.75),rgba(2,6,23,.4));backdrop-filter:saturate(180%) blur(10px);border-bottom:1px solid var(--border);z-index:20}
-.nav .wrap{max-width:1440px;margin:0 auto;padding:12px 20px;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-.nav a{padding:10px 14px;border:1px solid var(--border);border-radius:12px;text-decoration:none;color:inherit;background:#0b122099}
-.nav a.active{background:linear-gradient(180deg,#0891b2,#2563eb);border-color:#1f3a8a;color:#eaf2ff;box-shadow:0 6px 16px rgba(99,102,241,.35)}
-.brand{display:flex;align-items:center;gap:10px}
-.brand img{height:26px;object-fit:contain;filter:drop-shadow(0 1px 0 #000)}
-.col-week{background:#0b1220; color:#e2e8f0;font-weight:700;text-align:center;border-bottom:1px solid var(--border)}
-.col-day{font-size:11px;color:#c7d2fe}
-.alt td{background:linear-gradient(180deg,#101827aa,#0d1626aa)}
-.kbd{border:1px solid var(--border);border-radius:8px;padding:2px 8px;font-size:12px;background:#0b1220aa}
-hr.sep{border:0;border-top:1px solid var(--border);opacity:.7;margin:8px 0}
-#unsaved-indicator{display:none;align-items:center;gap:8px;margin-left:auto}
-#unsaved-indicator .dot{width:8px;height:8px;border-radius:50%;background:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,.2)}
-</style></head><body>
-<div class="nav"><div class="wrap">
-  <div class="brand"><img id="logo-bourdarios" alt="Bourdarios" src="" referrerpolicy="no-referrer"/><strong>Pointages Intérim</strong></div>
-  <a href="#chantiers" data-page="chantiers">Chantiers</a>
-  <a href="#ouvriers" data-page="ouvriers">Ouvriers</a>
-  <a href="#agences" data-page="agences">Agences</a>
-  <a href="#pointage" data-page="pointage">Pointage hebdo</a>
-  <a href="#planning" data-page="planning" class="active">Planning annuel</a>
-  <a href="#diffusion" data-page="diffusion">Diffusion</a>
-  <div id="unsaved-indicator" class="small"><span class="dot"></span><span>Modifications non enregistrées</span></div>
-  <button id="btn-save-top" class="primary">Enregistrer</button>
-</div></div>
-
-<div class="container">
-
-<!-- CHANTIERS -->
-<section id="page-chantiers" class="hidden">
-  <div class="panel"><div class="hd"><strong>Chantiers</strong><button class="primary btn-save">Enregistrer</button></div>
-    <div class="bd">
-      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(230px,1fr))">
-        <div><label>Nom du chantier</label><input type="text" id="ch-nom" placeholder="Ex : M96 W01S"></div>
-        <div><label>Code DA</label><input type="text" id="ch-code" placeholder="Code DA"></div>
-        <div><label>Nom DA</label><input type="text" id="ch-nomda" placeholder="Nom DA"></div>
-        <div><label>Encadrant</label><input type="text" id="ch-enc" placeholder="Encadrant"></div>
-        <div style="grid-column:1/-1"><label>Adresse</label><input type="text" id="ch-addr" placeholder="Adresse complète"></div>
-        <div style="align-self:end"><button id="btn-add-chantier" class="primary">Ajouter le chantier</button></div>
-      </div>
-      <div class="sp"></div>
-      <div class="scroll"><table id="tbl-chantiers"></table></div>
-    </div>
-  </div>
-</section>
-
-<!-- OUVRIERS -->
-<section id="page-ouvriers" class="hidden">
-  <div class="panel"><div class="hd"><strong>Ouvriers</strong><button class="primary btn-save">Enregistrer</button></div>
-    <div class="bd">
-      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
-        <div><label>Prénom</label><input type="text" id="ov-prenom" placeholder="Jean-Marc"></div>
-        <div><label>Nom</label><input type="text" id="ov-nom" placeholder="DUPONT"></div>
-        <div><label>Agence</label><select id="ov-agence"></select></div>
-        <div><label>Métier</label>
-          <select id="ov-metier">
-            <option></option><option>Polyvalent</option><option>Plaquiste</option><option>Plombier</option>
-            <option>Électricien</option><option>Carreleur</option><option>Peintre</option><option>Jointeur</option>
-            <option>Maçon</option><option>Menuisier</option><option>Manœuvre</option>
-          </select>
-        </div>
-        <div><label>Qualification</label>
-          <select id="ov-qual"><option></option><option>N1P1</option><option>N2P1</option><option>N2P2</option><option>N3P1</option><option>N3P2</option><option>N4P1</option></select>
-        </div>
-        <div style="align-self:end"><button id="btn-add-ouvrier" class="primary">Ajouter l'ouvrier</button></div>
-      </div>
-      <div class="sp"></div>
-      <div class="scroll"><table id="tbl-ouvriers"></table></div>
-    </div>
-  </div>
-</section>
-
-<!-- AGENCES -->
-<section id="page-agences" class="hidden">
-  <div class="panel"><div class="hd"><strong>Agences</strong><button class="primary btn-save">Enregistrer</button></div>
-    <div class="bd">
-      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(230px,1fr))">
-        <div><label>Agence</label><input type="text" id="ag-nom" placeholder="YES / SAMSIC / …"></div>
-        <div><label>Contact e-mail</label><input type="text" id="ag-mail" placeholder="contact@agence.fr"></div>
-        <div style="align-self:end"><button id="btn-add-agence" class="primary">Ajouter l'agence</button></div>
-      </div>
-      <hr class="sep">
-      <div class="scroll"><table id="tbl-agences"></table></div>
-    </div>
-  </div>
-</section>
-
-<!-- POINTAGE HEBDO -->
-<section id="page-pointage" class="hidden">
-  <div class="row" style="justify-content:space-between;align-items:flex-end">
-    <div><h1 style="margin:0 0 4px;font-size:28px">Pointage hebdo</h1><div class="small" id="subtitle"></div></div>
-    <div class="row">
-      <label class="badge"><input type="checkbox" id="chk-weekend"> Inclure week-end</label>
-      <label class="badge"><input type="checkbox" id="chk-lock"> Verrouiller</label>
-      <button class="primary btn-save">Enregistrer</button>
-    </div>
-  </div>
-  <div class="panel" style="margin-top:16px">
-    <div class="hd"><strong>Paramètres & filtres</strong></div>
-    <div class="bd grid" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">
-      <div><label>Semaine à pointer</label><div class="row"><input type="date" id="inp-week-pointer"><button id="btn-week-today">Aujourd'hui</button></div></div>
-      <div><label>Recherche</label><input type="text" id="inp-search" placeholder="Nom, agence, chantier…"></div>
-    </div>
-    <div class="bd row"><div><div class="small">Filtre Agence</div><div id="badges-agencies" class="badges"></div></div><div><div class="small">Filtre Chantier</div><div id="badges-chantiers" class="badges"></div></div></div>
-  </div>
-  <div class="panel" style="margin-top:16px">
-    <div class="hd"><strong>Saisie hebdomadaire</strong><div class="small">Lignes = ouvriers. « Heures classiques » : 7,5 lun-jeu, 7 ven, 0 we (modifiable).</div></div>
-    <div class="bd scroll"><table id="tbl-rows"></table></div>
-  </div>
-</section>
-
-<!-- PLANNING (page par défaut) -->
-<section id="page-planning">
-  <div class="panel"><div class="hd"><strong>Planning annuel</strong><button class="primary btn-save">Enregistrer</button></div>
-    <div class="bd">
-      <div class="row"><div><label>Année</label><input type="text" id="pl-year" style="width:120px"></div><div style="align-self:end"><button id="btn-pl-generate" class="primary">Générer</button></div></div>
-      <div class="sp"></div><div class="scroll"><table id="tbl-planning"></table></div>
-      <div class="small">2 lignes / ouvrier : <em>Heures</em> (« 00,00 Heures ») puis <em>Chantier</em>. Entêtes « Semaine XX ».</div>
-    </div>
-  </div>
-</section>
-
-<!-- DIFFUSION -->
-<section id="page-diffusion" class="hidden">
-  <div class="panel"><div class="hd"><strong>Diffusion aux agences</strong><button class="primary btn-save">Enregistrer</button></div>
-    <div class="bd">
-      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">
-        <div><label>Semaine à diffuser</label><input type="date" id="df-week"></div>
-        <div><label>Agences</label><div id="df-agencies" class="badges"></div></div>
-      </div>
-      <div class="sp"></div><div class="right"><button id="btn-df-generate" class="primary">Générer les tableaux</button></div>
-      <div class="sp"></div>
-      <div id="df-results"></div>
-      <div class="sp"></div>
-      <div id="df-mails" class="small"></div>
-    </div>
-  </div>
-</section>
-</div>
-
-<script>
-(()=>{"use strict";
-
-/* --------------------- LOGO --------------------- */
-const LOGO_BOURDARIOS_URL="";
-if(LOGO_BOURDARIOS_URL){const img=document.getElementById("logo-bourdarios");if(img)img.src=LOGO_BOURDARIOS_URL}
-
-/* ------------------ CONSTANTES ------------------ */
-const KEYS={ROWS:"ptg_rows_v9",META:"ptg_meta_v9",ENTS:"ptg_entities_v9"};
-const DAY_KEYS=["mon","tue","wed","thu","fri","sat","sun"];
-const WEEKDAYS_FR=["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
-const KEY_FROM_IDX=["sun","mon","tue","wed","thu","fri","sat"];
-const hourOptions=Array.from({length:21},(_,i)=>(i*.5).toFixed(1).replace(/\.0$/,""));
-const $=s=>document.querySelector(s);
-const fmt=d=>new Date(d).toLocaleDateString("fr-FR");
-const isoWeekStart=d=>{let x=new Date(d),g=(x.getDay()+6)%7;x.setDate(x.getDate()-g);x.setHours(0,0,0,0);return x};
-const addDays=(d,n)=>{let x=new Date(d);x.setDate(x.getDate()+n);return x};
-const toDateInput=d=>{let x=new Date(d.getTime()-d.getTimezoneOffset()*6e4);return x.toISOString().slice(0,10)};
-const uid=()=>Math.random().toString(36).slice(2,9);
-const trimLower=s=>(s||"").trim().toLowerCase();
-const toTitleCaseHyphen=n=>(n||"").split("-").map(p=>p?p[0].toUpperCase()+p.slice(1).toLowerCase():"").join("-");
-const toUpper=s=>(s||"").toUpperCase();
-
-/* ----------------- ETAT GLOBAL ------------------ */
-let data={agencies:[],chantiers:[],ouvriers:[],rows:[]};
-let weekStart=isoWeekStart(new Date);
-let search="",agencyFilter=[],chantierFilter=[],lock=false,includeWeekend=false;
-let dirty=false; // modifs utilisateur
-let STORAGE_OK=true;
-
-/* ----------------- PERSISTANCE ------------------ */
-function safeSet(key,val){
-  try{localStorage.setItem(key,JSON.stringify(val));return true}
-  catch(e){console.warn("Storage error:",e);STORAGE_OK=false;return false}
-}
-function safeGet(key){
-  try{const raw=localStorage.getItem(key);return raw?JSON.parse(raw):null}
-  catch(e){console.warn("Storage read error:",e);STORAGE_OK=false;return null}
-}
-function persist(){
-  const ok1=safeSet(KEYS.ENTS,{agencies:data.agencies,chantiers:data.chantiers,ouvriers:data.ouvriers});
-  const ok2=safeSet(KEYS.ROWS,data.rows);
-  const ok3=safeSet(KEYS.META,{weekStart,lock,includeWeekend});
-  if(!(ok1&&ok2&&ok3)){
-    alert("⚠️ Sauvegarde locale indisponible (navigation privée ou quota plein).\nLes données restent tant que la page n’est pas rechargée.");
-  }else{
-    alert("💾 Enregistré.");
-  }
-  setDirty(false);
-}
-function load(){
-  const ents=safeGet(KEYS.ENTS); if(ents){data.agencies=ents.agencies||[];data.chantiers=ents.chantiers||[];data.ouvriers=ents.ouvriers||[]}
-  const rows=safeGet(KEYS.ROWS); if(Array.isArray(rows)) data.rows=rows;
-  const meta=safeGet(KEYS.META); if(meta){ if(meta.weekStart)weekStart=new Date(meta.weekStart); lock=!!meta.lock; includeWeekend=!!meta.includeWeekend }
-}
-function setDirty(v){dirty=v; const ind=$("#unsaved-indicator"); if(ind) ind.style.display=v?"inline-flex":"none"}
-load();
-
-/* ----------------- DONNÉES PAR DÉFAUT ----------------- */
-if(!data.agencies.length) data.agencies=[{name:"SAMSIC",email:""},{name:"BPS",email:""},{name:"SOVITRAT",email:""},{name:"YES",email:""}];
-if(!data.chantiers.length) data.chantiers=[
-  {id:uid(),name:"M96 W18S",code:"1224",nomda:"Airbus sanitaires 2025",enc:"Christophe",addr:"10 avenue Yves Brunaud"},
-  {id:uid(),name:"M01 N00S",code:"1224",nomda:"Airbus sanitaires 2025",enc:"Alexis",addr:"10 avenue Yves Brunaud"}
-];
-if(!data.ouvriers.length) data.ouvriers=[
-  {id:uid(),first:"Baudouin",last:"RIBERON",agency:"SAMSIC",metier:"Plaquiste",qual:"N3P1"},
-  {id:uid(),first:"Laurent",last:"JOLY",agency:"BPS",metier:"Plombier",qual:"N3P2"},
-  {id:uid(),first:"Jean-Marc",last:"GOUZY",agency:"SAMSIC",metier:"Polyvalent",qual:"N4P1"}
-];
-
-/* ----------------- CALCUL SEMAINE ----------------- */
-function toWeekKey(d){
-  const s=isoWeekStart(d);
-  let t=new Date(Date.UTC(s.getFullYear(),s.getMonth(),s.getDate())),dn=t.getUTCDay()||7;
-  t.setUTCDate(t.getUTCDate()+4-dn);
-  const yStart=new Date(Date.UTC(t.getUTCFullYear(),0,1));
-  const w=Math.ceil((((t-yStart)/864e5)+1)/7);
-  return `${t.getUTCFullYear()}-W${String(w).padStart(2,"0")}`;
-}
-
-/* ----------------- NAVIGATION SÛRE ----------------- */
-function show(page){
-  ["chantiers","ouvriers","agences","pointage","planning","diffusion"].forEach(p=>{
-    const el=$("#page-"+p); if(el) el.classList.toggle("hidden",p!==page)
-  });
-  document.querySelectorAll(".nav a").forEach(a=>a.classList.toggle("active",a.dataset.page===page));
-  if(page==="chantiers")renderChantiers();
-  if(page==="ouvriers")renderOuvriers();
-  if(page==="agences")renderAgences();
-  if(page==="pointage")renderPointage();
-  if(page==="planning")renderPlanning();
-  if(page==="diffusion")renderDiffusionBadges();
-}
-function confirmNav(nextPage){
-  if(!dirty){ show(nextPage); return }
-  const ok=confirm("Des modifications n'ont pas été enregistrées.\nVoulez-vous les enregistrer avant de changer de page ?");
-  if(ok) persist();
-  show(nextPage);
-}
-document.querySelectorAll(".nav a").forEach(a=>{
-  a.addEventListener("click",e=>{ e.preventDefault(); confirmNav(a.dataset.page) });
-});
-window.addEventListener("beforeunload",e=>{ if(!dirty) return; e.preventDefault(); e.returnValue="" });
-
-function bindSaveButtons(){
-  document.querySelectorAll(".btn-save").forEach(b=> b.onclick=()=>persist());
-  $("#btn-save-top").onclick=()=>persist();
-}
-
-/* ----------------- HELPERS UI ----------------- */
-function setSubtitle(){ const el=$("#subtitle"); if(el) el.textContent=`Semaine du ${fmt(isoWeekStart(weekStart))}` }
-function fillWeekInputs(){ const a=$("#inp-week-pointer"); if(a) a.value=toDateInput(weekStart); const b=$("#df-week"); if(b) b.value=toDateInput(weekStart) }
-function hoursSelect(v){ const s=document.createElement("select"); s.innerHTML=hourOptions.map(x=>`<option value="${x}" ${String(v)===String(x)?"selected":""}>${x}</option>`).join(""); s.onchange=()=>setDirty(true); return s }
-function chantierSelect(val){ const s=document.createElement("select"); s.innerHTML='<option value=""></option>'+data.chantiers.map(c=>`<option ${val===c.name?"selected":""}>${c.name}</option>`).join(""); s.onchange=()=>setDirty(true); return s }
-
-/* ----------------- AGENCES ----------------- */
-function renderAgences(){
-  const tbl=$("#tbl-agences"); tbl.innerHTML="";
-  const th=document.createElement("thead"), trh=document.createElement("tr");
-  ["Agence","E-mail"," "].forEach(h=>{const th1=document.createElement("th"); th1.textContent=h; trh.appendChild(th1) });
-  th.appendChild(trh); tbl.appendChild(th);
-  const tb=document.createElement("tbody");
-  data.agencies.forEach(a=>{
-    const tr=document.createElement("tr");
-    let td=document.createElement("td"); const inpn=document.createElement("input"); inpn.value=a.name; inpn.oninput=()=>{a.name=inpn.value; setDirty(true)}; td.appendChild(inpn); tr.appendChild(td);
-    td=document.createElement("td"); const inpe=document.createElement("input"); inpe.value=a.email||""; inpe.oninput=()=>{a.email=inpe.value; setDirty(true)}; td.appendChild(inpe); tr.appendChild(td);
-    td=document.createElement("td"); const del=document.createElement("button"); del.textContent="×"; del.onclick=()=>{ if(confirm("Supprimer ?")){ data.agencies=data.agencies.filter(x=>x!==a); setDirty(true); renderAgences() }}; td.appendChild(del); tr.appendChild(td);
-    tb.appendChild(tr)
-  });
-  tbl.appendChild(tb);
-}
-$("#btn-add-agence")?.addEventListener("click",()=>{
-  const n=$("#ag-nom").value.trim(), m=$("#ag-mail").value.trim();
-  const dup=data.agencies.some(a=>trimLower(a.name)===trimLower(n)&&trimLower(a.email||"")===trimLower(m||""));
-  if(dup){ alert("Cette agence existe déjà."); return }
-  if(n){ data.agencies.unshift({name:n,email:m}); setDirty(true); renderAgences() }
-});
-
-/* ----------------- CHANTIERS ----------------- */
-function renderChantiers(){
-  const tbl=$("#tbl-chantiers"); tbl.innerHTML="";
-  const th=document.createElement("thead"), trh=document.createElement("tr");
-  ["Nom chantier","Code DA","Nom DA","Encadrant","Adresse"," "].forEach(h=>{const th1=document.createElement("th"); th1.textContent=h; trh.appendChild(th1) });
-  th.appendChild(trh); tbl.appendChild(th);
-  const tb=document.createElement("tbody");
-  data.chantiers.forEach(c=>{
-    const tr=document.createElement("tr");
-    let td=document.createElement("td"); const in1=document.createElement("input"); in1.value=c.name||""; in1.oninput=()=>{c.name=in1.value.toUpperCase(); setDirty(true)}; td.appendChild(in1); tr.appendChild(td);
-    td=document.createElement("td"); const in2=document.createElement("input"); in2.value=c.code||""; in2.oninput=()=>{c.code=in2.value; setDirty(true)}; td.appendChild(in2); tr.appendChild(td);
-    td=document.createElement("td"); const in3=document.createElement("input"); in3.value=c.nomda||""; in3.oninput=()=>{c.nomda=in3.value; setDirty(true)}; td.appendChild(in3); tr.appendChild(td);
-    td=document.createElement("td"); const in4=document.createElement("input"); in4.value=c.enc||""; in4.oninput=()=>{c.enc=in4.value; setDirty(true)}; td.appendChild(in4); tr.appendChild(td);
-    td=document.createElement("td"); const in5=document.createElement("input"); in5.value=c.addr||""; in5.oninput=()=>{c.addr=in5.value; setDirty(true)}; td.appendChild(in5); tr.appendChild(td);
-    td=document.createElement("td"); const del=document.createElement("button"); del.textContent="×"; del.onclick=()=>{ if(confirm("Supprimer ?")){ data.chantiers=data.chantiers.filter(x=>x!==c); setDirty(true); renderChantiers() }}; td.appendChild(del); tr.appendChild(td);
-    tb.appendChild(tr)
-  });
-  tbl.appendChild(tb);
-}
-$("#btn-add-chantier")?.addEventListener("click",()=>{
-  const nom=toUpper($("#ch-nom").value||""),code=$("#ch-code").value.trim(),nomda=$("#ch-nomda").value.trim(),enc=$("#ch-enc").value.trim(),addr=$("#ch-addr").value.trim();
-  const dup=data.chantiers.some(c=>toUpper(c.name)===nom&&trimLower(c.code)===trimLower(code)&&trimLower(c.nomda)===trimLower(nomda)&&trimLower(c.enc)===trimLower(enc)&&trimLower(c.addr)===trimLower(addr));
-  if(dup){ alert("Ce chantier existe déjà."); return }
-  if(nom){ data.chantiers.unshift({id:uid(),name:nom,code,nomda,enc,addr}); setDirty(true); renderChantiers() }
-});
-
-/* ----------------- OUVRIERS ----------------- */
-function renderOuvriers(){
-  const sel=$("#ov-agence"); sel.innerHTML='<option value=""></option>'+data.agencies.map(a=>`<option>${a.name}</option>`).join("");
-  const tbl=$("#tbl-ouvriers"); tbl.innerHTML="";
-  const thead=document.createElement("thead"), trh=document.createElement("tr");
-  ["Prénom","Nom","Agence","Métier","Qualification"," "].forEach(h=>{const th=document.createElement("th"); th.textContent=h; trh.appendChild(th) });
-  thead.appendChild(trh); tbl.appendChild(thead);
-  const tb=document.createElement("tbody");
-  data.ouvriers.forEach(o=>{
-    const tr=document.createElement("tr");
-    let td=document.createElement("td"); const inpf=document.createElement("input"); inpf.value=o.first||""; inpf.oninput=()=>{o.first=inpf.value; setDirty(true)}; inpf.onblur=()=>{inpf.value=toTitleCaseHyphen(inpf.value)}; td.appendChild(inpf); tr.appendChild(td);
-    td=document.createElement("td"); const inpl=document.createElement("input"); inpl.value=o.last||""; inpl.oninput=()=>{o.last=inpl.value; setDirty(true)}; inpl.onblur=()=>{inpl.value=toUpper(inpl.value)}; td.appendChild(inpl); tr.appendChild(td);
-    td=document.createElement("td"); const s=document.createElement("select"); s.innerHTML='<option value=""></option>'+data.agencies.map(a=>`<option ${o.agency===a.name?"selected":""}>${a.name}</option>`).join(""); s.onchange=()=>{o.agency=s.value; setDirty(true)}; td.appendChild(s); tr.appendChild(td);
-    td=document.createElement("td"); const met=document.createElement("select"); met.innerHTML='<option></option><option>Polyvalent</option><option>Plaquiste</option><option>Plombier</option><option>Électricien</option><option>Carreleur</option><option>Peintre</option><option>Jointeur</option><option>Maçon</option><option>Menuisier</option><option>Manœuvre</option>'; met.value=o.metier||""; met.onchange=()=>{o.metier=met.value; setDirty(true)}; td.appendChild(met); tr.appendChild(td);
-    td=document.createElement("td"); const q=document.createElement("select"); q.innerHTML='<option></option><option>N1P1</option><option>N2P1</option><option>N2P2</option><option>N3P1</option><option>N3P2</option><option>N4P1</option>'; q.value=o.qual||""; q.onchange=()=>{o.qual=q.value; setDirty(true)}; td.appendChild(q); tr.appendChild(td);
-    td=document.createElement("td"); const del=document.createElement("button"); del.textContent="×"; del.onclick=()=>{ if(confirm("Supprimer ?")){ data.ouvriers=data.ouvriers.filter(x=>x.id!==o.id); data.rows=data.rows.filter(r=>r.workerId!==o.id); setDirty(true); renderOuvriers() }}; td.appendChild(del); tr.appendChild(td);
-    tb.appendChild(tr)
-  });
-  tbl.appendChild(tb);
-}
-$("#btn-add-ouvrier")?.addEventListener("click",()=>{
-  const f=toTitleCaseHyphen($("#ov-prenom").value.trim()), l=toUpper($("#ov-nom").value.trim()), ag=$("#ov-agence").value, met=$("#ov-metier").value, qual=$("#ov-qual").value;
-  const dup=data.ouvriers.some(o=>trimLower(o.first)===trimLower(f)&&trimLower(o.last)===trimLower(l)&&trimLower(o.agency)===trimLower(ag)&&trimLower(o.metier)===trimLower(met)&&trimLower(o.qual)===trimLower(qual));
-  if(dup){ alert("Cet ouvrier existe déjà."); return }
-  if(f||l){ data.ouvriers.unshift({id:uid(),first:f,last:l,agency:ag||"",metier:met||"",qual:qual||""}); setDirty(true); renderOuvriers() }
-});
-
-/* ----------------- POINTAGE ----------------- */
-function rowsForWeek(ws){ return data.rows.filter(r=>r.week===toWeekKey(ws)) }
-function ensureWeekRows(ws){
-  const wk=toWeekKey(ws);
-  const have=new Set(rowsForWeek(ws).map(r=>r.workerId));
-  let added=false;
-  data.ouvriers.forEach(o=>{
-    if(!have.has(o.id)){
-      data.rows.push({id:uid(),week:wk,workerId:o.id,days:{mon:{h:0,chantier:""},tue:{h:0,chantier:""},wed:{h:0,chantier:""},thu:{h:0,chantier:""},fri:{h:0,chantier:""},sat:{h:0,chantier:""},sun:{h:0,chantier:""}}});
-      added=true;
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tableur — Diffusion</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <style>
+    :root{
+      --bg:#0f1115; --panel:#171a21; --ink:#e8ebf1; --muted:#9aa4b2;
+      --accent:#4da3ff; --ok:#35c759; --warn:#ff9f0a; --err:#ff453a; --line:#262b36;
+      --chip:#202532;
+      --radius:12px;
+      --font: ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
     }
-  });
-  // pas de dirty ici (préparation silencieuse)
-  if(added && !STORAGE_OK){ /* mode volatile */ }
-}
-function workerById(id){ return data.ouvriers.find(o=>o.id===id)||{first:"",last:"",agency:"",metier:"",qual:""} }
-function filtered(list){
-  return list.filter(r=>{
-    const w=workerById(r.workerId);
-    const chs=Object.values(r.days||{}).map(d=>d.chantier).filter(Boolean);
-    const okA=agencyFilter.length?agencyFilter.includes(w.agency):true;
-    const okC=chantierFilter.length?chs.some(c=>chantierFilter.includes(c)):true;
-    const okS=!search||(`${w.first} ${w.last} ${w.agency} ${w.metier} ${w.qual} ${chs.join(" ")}`.toLowerCase().includes(search.toLowerCase()));
-    return okA&&okC&&okS;
-  });
-}
-function totalsPerDay(list,showKeys){
-  const t={mon:0,tue:0,wed:0,thu:0,fri:0,sat:0,sun:0};
-  filtered(list).forEach(r=>{ showKeys.forEach(k=>{ const v=r.days?.[k]?.h; if(typeof v==="number") t[k]+=v; }) });
-  return t;
-}
-function renderBadgeFilters(){
-  const bag=$("#badges-agencies"); bag.innerHTML="";
-  const allA=Array.from(new Set(data.agencies.map(a=>a.name).concat(data.ouvriers.map(o=>o.agency).filter(Boolean)))).sort();
-  allA.forEach(a=>{ const b=document.createElement("button"); b.className="badge"; b.textContent=a; if(agencyFilter.includes(a)) b.style.background="linear-gradient(180deg,#0891b2,#2563eb)"; b.onclick=()=>{ agencyFilter=agencyFilter.includes(a)?agencyFilter.filter(x=>x!==a):[...agencyFilter,a]; renderPointage() }; bag.appendChild(b) });
-  const rz=document.createElement("button"); rz.className="badge"; rz.textContent="Réinitialiser"; rz.onclick=()=>{ agencyFilter=[]; renderPointage() }; bag.appendChild(rz);
-
-  const bch=$("#badges-chantiers"); bch.innerHTML="";
-  const allC=Array.from(new Set(data.chantiers.map(c=>c.name).concat(data.rows.flatMap(r=>Object.values(r.days||{}).map(d=>d.chantier||""))))).filter(Boolean).sort();
-  allC.forEach(c=>{ const b=document.createElement("button"); b.className="badge"; b.textContent=c; if(chantierFilter.includes(c)) b.style.background="linear-gradient(180deg,#0891b2,#2563eb)"; b.onclick=()=>{ chantierFilter=chantierFilter.includes(c)?chantierFilter.filter(x=>x!==c):[...chantierFilter,c]; renderPointage() }; bch.appendChild(b) });
-  const rz2=document.createElement("button"); rz2.className="badge"; rz2.textContent="Réinitialiser"; rz2.onclick=()=>{ chantierFilter=[]; renderPointage() }; bch.appendChild(rz2);
-}
-function setSubtitle(){ const el=$("#subtitle"); if(el) el.textContent=`Semaine du ${fmt(isoWeekStart(weekStart))}` }
-function applyClassicHours(r){ r.days.mon.h=7.5;r.days.tue.h=7.5;r.days.wed.h=7.5;r.days.thu.h=7.5;r.days.fri.h=7;r.days.sat.h=0;r.days.sun.h=0; setDirty(true) }
-
-function renderPointage(){
-  ensureWeekRows(weekStart);
-  setSubtitle(); fillWeekInputs(); renderBadgeFilters();
-  const showDays=includeWeekend?["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"]:["Lun","Mar","Mer","Jeu","Ven"];
-  const showKeys=includeWeekend?DAY_KEYS:DAY_KEYS.slice(0,5);
-
-  const tbl=$("#tbl-rows"); tbl.innerHTML="";
-  const thead=document.createElement("thead"), trh=document.createElement("tr");
-  ["Agence","Prénom","Nom","Métier","Qualification"].concat(showDays).concat(["Total","Heures classiques"]).forEach(h=>{
-    const th=document.createElement("th");
-    if(showDays.includes(h)){
-      const idx=["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"].indexOf(h);
-      const d=addDays(isoWeekStart(weekStart),idx);
-      th.innerHTML=`<div>${h}</div><div class='small'>${("0"+d.getDate()).slice(-2)}/${("0"+(d.getMonth()+1)).slice(-2)}</div>`;
-    }else th.textContent=h;
-    trh.appendChild(th)
-  });
-  thead.appendChild(trh); tbl.appendChild(thead);
-
-  const list=filtered(rowsForWeek(weekStart)); const tbody=document.createElement("tbody");
-  list.forEach((r,idx)=>{
-    const w=workerById(r.workerId);
-    const tr=document.createElement("tr"); if(idx%2===0) tr.className="alt";
-    let td=document.createElement("td"); td.textContent=w.agency||""; tr.appendChild(td);
-    td=document.createElement("td"); td.textContent=toTitleCaseHyphen(w.first)||""; tr.appendChild(td);
-    td=document.createElement("td"); td.textContent=toUpper(w.last)||""; tr.appendChild(td);
-    td=document.createElement("td"); td.textContent=w.metier||""; tr.appendChild(td);
-    td=document.createElement("td"); td.textContent=w.qual||""; tr.appendChild(td);
-    showKeys.forEach(k=>{
-      const cell=document.createElement("td"), wrap=document.createElement("div");
-      const selH=hoursSelect((typeof r.days?.[k]?.h==="number")?r.days[k].h:""); selH.disabled=lock;
-      selH.onchange=()=>{ r.days=r.days||{}; r.days[k]=r.days[k]||{h:"",chantier:""}; r.days[k].h=Number(selH.value); setDirty(true); renderPointage() };
-      const selC=chantierSelect(r.days?.[k]?.chantier||""); selC.disabled=lock;
-      selC.onchange=()=>{ r.days=r.days||{}; r.days[k]=r.days[k]||{h:"",chantier:""}; r.days[k].chantier=selC.value; setDirty(true) };
-      wrap.appendChild(selH); wrap.appendChild(document.createElement("div")).className="sp"; wrap.appendChild(selC);
-      cell.appendChild(wrap); tr.appendChild(cell);
-    });
-    td=document.createElement("td"); td.style.textAlign="right"; td.style.fontWeight="700"; td.textContent=String(showKeys.reduce((a,k)=>a+(r.days?.[k]?.h||0),0)); tr.appendChild(td);
-    td=document.createElement("td"); const b=document.createElement("button"); b.textContent="Heures classiques"; b.onclick=()=>{applyClassicHours(r); renderPointage()}; td.appendChild(b); tr.appendChild(td);
-    tbody.appendChild(tr);
-  });
-  tbl.appendChild(tbody);
-
-  const tfoot=document.createElement("tfoot"), trf=document.createElement("tr"), tdb=document.createElement("td"); tdb.colSpan=5; trf.appendChild(tdb);
-  const tday=totalsPerDay(rowsForWeek(weekStart),showKeys);
-  showKeys.forEach(k=>{ const td=document.createElement("td"); td.style.textAlign="center"; td.style.fontWeight="700"; td.textContent=String(tday[k]); trf.appendChild(td) });
-  const tdt=document.createElement("td"); tdt.style.fontWeight="800"; tdt.style.textAlign="right"; tdt.textContent=String(showKeys.reduce((a,k)=>a+(tday[k]||0),0)); trf.appendChild(tdt);
-  trf.appendChild(document.createElement("td")); tfoot.appendChild(trf); tbl.appendChild(tfoot);
-}
-$("#btn-week-today")?.addEventListener("click",()=>{ weekStart=isoWeekStart(new Date); fillWeekInputs(); setSubtitle(); renderPointage() });
-$("#inp-week-pointer")?.addEventListener("change",e=>{ weekStart=isoWeekStart(new Date(e.target.value)); fillWeekInputs(); setSubtitle(); renderPointage() });
-$("#chk-lock")?.addEventListener("change",()=>{ lock=$("#chk-lock").checked; setDirty(true); renderPointage() });
-$("#chk-weekend")?.addEventListener("change",e=>{ includeWeekend=e.target.checked; renderPointage() });
-$("#inp-search")?.addEventListener("input",e=>{ search=e.target.value; renderPointage() });
-
-/* ----------------- PLANNING ----------------- */
-function renderPlanning(){
-  const tbl=$("#tbl-planning"); tbl.innerHTML="";
-  const y=parseInt($("#pl-year").value||String(new Date().getFullYear()),10);
-  if(!y){ tbl.innerHTML='<tr><td class="small">Saisir une année valide.</td></tr>'; return }
-  const start=new Date(y,0,1), end=new Date(y,11,31), days=[];
-  for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)) days.push(new Date(d));
-  const weeks=[]; let cur="";
-  days.forEach(d=>{ const wk=toWeekKey(d); if(wk!==cur){ weeks.push({key:wk,days:[d]}); cur=wk } else weeks[weeks.length-1].days.push(d) });
-
-  const thead=document.createElement("thead"), trW=document.createElement("tr"), trD=document.createElement("tr");
-  const thName=document.createElement("th"); thName.rowSpan=2; thName.textContent="Ouvrier"; trW.appendChild(thName);
-  weeks.forEach(w=>{
-    const th=document.createElement("th"); th.colSpan=w.days.length; th.className="col-week"; th.textContent=`Semaine ${w.key.split("-W")[1]}`; trW.appendChild(th);
-    w.days.forEach(d=>{ const thd=document.createElement("th"); thd.className="col-day"; thd.textContent=`${d.toLocaleDateString("fr-FR",{weekday:"short"})} ${("0"+d.getDate()).slice(-2)}/${("0"+(d.getMonth()+1)).slice(-2)}`; trD.appendChild(thd) })
-  });
-  thead.appendChild(trW); thead.appendChild(trD); tbl.appendChild(thead);
-
-  const tb=document.createElement("tbody");
-  data.ouvriers.forEach((o,idx)=>{
-    const trH=document.createElement("tr"), trC=document.createElement("tr");
-    const tdName=document.createElement("td"); tdName.rowSpan=2; tdName.textContent=`${toTitleCaseHyphen(o.first)} ${toUpper(o.last)}`; trH.appendChild(tdName);
-    if(idx%2===0){ trH.classList.add("alt"); trC.classList.add("alt") }
-    weeks.forEach(w=>{ w.days.forEach(d=>{ const cell=document.createElement("td"); const rr=data.rows.find(r=>r.week===w.key&&r.workerId===o.id);
-      if(rr){ const dk=KEY_FROM_IDX[d.getDay()], de=rr.days?.[dk]; if(de&&de.h>0){ cell.textContent=`${(de.h||0).toFixed(2).replace(".",",")} Heures` } } trH.appendChild(cell) }) });
-    weeks.forEach(w=>{ w.days.forEach(d=>{ const cell=document.createElement("td"); const rr=data.rows.find(r=>r.week===w.key&&r.workerId===o.id);
-      if(rr){ const dk=KEY_FROM_IDX[d.getDay()], de=rr.days?.[dk]; if(de&&de.h>0&&(de.chantier||"")) cell.textContent=de.chantier } trC.appendChild(cell) }) });
-    tb.appendChild(trH); tb.appendChild(trC);
-  });
-  tbl.appendChild(tb);
-}
-$("#btn-pl-generate")?.addEventListener("click",()=>{ renderPlanning() });
-
-/* ----------------- DIFFUSION ----------------- */
-let dfSelected=new Set();
-function renderDiffusionBadges(){
-  const box=$("#df-agencies"); box.innerHTML="";
-  data.agencies.forEach(a=>{ const b=document.createElement("button"); b.className="badge"; b.textContent=a.name; if(dfSelected.has(a.name)) b.style.background="linear-gradient(180deg,#0891b2,#2563eb)";
-    b.onclick=()=>{ dfSelected.has(a.name)?dfSelected.delete(a.name):dfSelected.add(a.name); renderDiffusionBadges() }; box.appendChild(b) });
-  const rz=document.createElement("button"); rz.className="badge"; rz.textContent="Tout";
-  rz.onclick=()=>{ if(dfSelected.size===data.agencies.length) dfSelected.clear(); else dfSelected=new Set(data.agencies.map(a=>a.name)); renderDiffusionBadges() };
-  box.appendChild(rz);
-}
-function makeAgencyTableHTML(ag,wkKey,daysArr){
-  const d0=isoWeekStart(weekStart);
-  let head=`<thead><tr><th rowspan="2" style="text-align:left;padding:6px 8px;border:1px solid #ddd;background:#f8fafc">Ouvrier</th><th colspan="${daysArr.length}" style="border:1px solid #ddd;background:#eef6ff;padding:6px 8px;text-align:center">Semaine ${wkKey.split("-W")[1]}</th></tr><tr>`;
-  daysArr.forEach((_,i)=>{const d=new Date(d0);d.setDate(d0.getDate()+i);head+=`<th style="border:1px solid #ddd;padding:6px 8px;background:#f8fafc">${WEEKDAYS_FR[i]} ${("0"+d.getDate()).slice(-2)}/${("0"+(d.getMonth()+1)).slice(-2)}</th>`});head+=`</tr></thead>`;
-  const rows=data.rows.filter(r=>r.week===wkKey).map(r=>({r,w:data.ouvriers.find(o=>o.id===r.workerId)})).filter(x=>x.w&&x.w.agency===ag);
-  let body="<tbody>";
-  rows.forEach(({w,r},idx)=>{const bg=idx%2===0?"background:#f6fbff;":"";body+=`<tr style="${bg}"><td rowspan="2" style="border:1px solid #ddd;padding:6px 8px;font-weight:600">${toTitleCaseHyphen(w.first)} ${toUpper(w.last)}</td>`;
-    for(let i=0;i<daysArr.length;i++){const k=DAY_KEYS[i],h=r.days?.[k]?.h||0;body+=`<td style="border:1px solid #ddd;padding:6px 8px">${h>0?String(h.toFixed(2)).replace(".",","):""}</td>`}body+=`</tr><tr style="${bg}">`;
-    for(let i=0;i<daysArr.length;i++){const k=DAY_KEYS[i],h=r.days?.[k]?.h||0,c=r.days?.[k]?.chantier||"";body+=`<td style="border:1px solid #ddd;padding:6px 8px">${h>0?c:""}</td>`}body+=`</tr>`;});
-  body+="</tbody>";
-  return `<table style="border-collapse:collapse;width:100%;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#111827">${head}${body}</table>`;
-}
-async function copyHtmlToClipboard(html){
-  try{
-    if(navigator.clipboard && window.ClipboardItem){
-      const blob=new Blob([html],{type:"text/html"});
-      const item=new ClipboardItem({"text/html":blob,"text/plain":new Blob([html.replace(/<[^>]+>/g,"")],{type:"text/plain"})});
-      await navigator.clipboard.write([item]); alert("Tableau copié au format HTML. Collez-le dans votre e-mail.");
-    }else{
-      const temp=document.createElement("div"); temp.contentEditable=true; temp.style.position="fixed"; temp.style.left="-9999px"; document.body.appendChild(temp); temp.innerHTML=html;
-      const range=document.createRange(); range.selectNodeContents(temp); const sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(range); document.execCommand("copy"); document.body.removeChild(temp);
-      alert("Tableau copié (fallback).");
+    html,body{height:100%}
+    body{
+      margin:0; background:linear-gradient(180deg,#0d1016,#121723 40%,#0d1016);
+      color:var(--ink); font-family:var(--font); -webkit-font-smoothing:antialiased;
     }
-  }catch(e){ alert("Impossible de copier automatiquement. Sélectionnez et copiez manuellement : "+e.message) }
-}
-function renderDiffusionTables(){
-  const zone=$("#df-results"), mailZone=$("#df-mails"); zone.innerHTML=""; mailZone.innerHTML="";
-  const dSel=$("#df-week").value; const selectedDate=dSel?new Date(dSel):weekStart; weekStart=isoWeekStart(selectedDate);
-  const wk=toWeekKey(weekStart); const weekNo=wk.split("-W")[1];
-  const days=(includeWeekend?WEEKDAYS_FR:WEEKDAYS_FR.slice(0,5)); const dayCount=days.length; const d0=isoWeekStart(weekStart);
-  const agenciesToShow=(dfSelected.size?[...dfSelected]:data.agencies.map(a=>a.name)).sort();
-
-  agenciesToShow.forEach(ag=>{
-    const rows=data.rows.filter(r=>r.week===wk).map(r=>({r,w:data.ouvriers.find(o=>o.id===r.workerId)})).filter(x=>x.w&&x.w.agency===ag);
-    if(!rows.length) return;
-
-    const tbl=document.createElement("table"); tbl.style.width="100%"; tbl.style.borderCollapse="collapse";
-    const thead=document.createElement("thead");
-    const tr1=document.createElement("tr"); const thName=document.createElement("th"); thName.rowSpan=2; thName.textContent="Ouvrier"; tr1.appendChild(thName);
-    const thWeek=document.createElement("th"); thWeek.className="col-week"; thWeek.colSpan=dayCount; thWeek.textContent=`Semaine ${weekNo}`; tr1.appendChild(thWeek); thead.appendChild(tr1);
-    const tr2=document.createElement("tr");
-    for(let i=0;i<dayCount;i++){ const d=new Date(d0); d.setDate(d0.getDate()+i); const thd=document.createElement("th"); thd.textContent=`${days[i]} ${("0"+d.getDate()).slice(-2)}/${("0"+(d.getMonth()+1)).slice(-2)}`; tr2.appendChild(thd) }
-    thead.appendChild(tr2); tbl.appendChild(thead);
-
-    const tbody=document.createElement("tbody");
-    rows.forEach(({w,r},idx)=>{
-      const trH=document.createElement("tr"), trC=document.createElement("tr"); if(idx%2===0){ trH.className="alt"; trC.className="alt" }
-      const tdName=document.createElement("td"); tdName.rowSpan=2; tdName.textContent=`${toTitleCaseHyphen(w.first)} ${toUpper(w.last)}`; trH.appendChild(tdName);
-      for(let i=0;i<dayCount;i++){ const td=document.createElement("td"); const k=DAY_KEYS[i], h=r.days?.[k]?.h||0; td.textContent=h>0?String(h.toFixed(2)).replace(".",","):""; trH.appendChild(td) }
-      for(let i=0;i<dayCount;i++){ const td=document.createElement("td"); const k=DAY_KEYS[i], h=r.days?.[k]?.h||0, c=r.days?.[k]?.chantier||""; td.textContent=h>0?c:""; trC.appendChild(td) }
-      tbody.appendChild(trH); tbody.appendChild(trC);
+    .wrap{max-width:1120px; margin:32px auto; padding:0 20px;}
+    .header{
+      display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:20px;
+    }
+    .title{font-size: clamp(20px, 2.6vw, 28px); font-weight:700; letter-spacing:.2px;}
+    .badge{
+      display:inline-flex; align-items:center; gap:10px; padding:10px 14px; background:var(--chip);
+      border:1px solid var(--line); border-radius:999px; font-size:14px; color:var(--muted);
+    }
+    .dot{width:10px; height:10px; border-radius:50%; box-shadow:0 0 0 2px rgba(0,0,0,.25) inset;}
+    .dot.orange{background:var(--warn)}
+    .dot.green{background:var(--ok)}
+    .panel{
+      background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+    .panel-h{
+      display:flex; align-items:center; justify-content:space-between; padding:16px 18px; border-bottom:1px solid var(--line);
+    }
+    .panel-b{padding:16px 18px;}
+    .toolbar{display:flex; flex-wrap:wrap; gap:10px}
+    .btn{
+      padding:10px 14px; border-radius:10px; border:1px solid var(--line); background:#1d2330; color:var(--ink);
+      font-size:14px; cursor:pointer; transition:.15s transform ease, .2s background ease; user-select:none;
+    }
+    .btn:hover{transform: translateY(-1px)}
+    .btn.primary{background:linear-gradient(180deg,#2d6bff,#2254d7); border-color:#1e3ea8}
+    .btn.ghost{background:transparent}
+    .btn:disabled{opacity:.55; cursor:not-allowed; transform:none}
+    .table-wrap{
+      width:100%; overflow:auto; border-radius:10px; border:1px solid var(--line);
+    }
+    table{width:100%; border-collapse:collapse; min-width:720px; background:#0f131c}
+    thead th{
+      position:sticky; top:0; backdrop-filter: blur(6px);
+      background:#0f131cee; color:#c9d1e1; font-weight:600; text-align:left; font-size:13px; letter-spacing:.2px;
+      border-bottom:1px solid var(--line); padding:12px 12px;
+    }
+    tbody td{border-bottom:1px solid var(--line); padding:10px 12px; font-size:14px; color:#e5e9f3}
+    tbody tr:hover{background:#121829}
+    .pill{
+      display:inline-block; padding:4px 8px; border-radius:999px; font-size:12px; background:#1a2130; border:1px solid var(--line); color:#cbd5e4;
+    }
+    .hint{color:var(--muted); font-size:13px; margin-top:10px}
+    .field{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    input[type="text"], input[type="email"]{
+      background:#0e1422; color:var(--ink); border:1px solid var(--line); border-radius:10px; padding:10px 12px; font-size:14px;
+    }
+    .grow{flex:1}
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
+    .success{color:var(--ok)}
+    .warn{color:var(--warn)}
+  </style>
+  <!-- EmailJS SDK -->
+  <script defer src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // ⚠️ REMPLIS ICI tes identifiants EmailJS
+      // eslint-disable-next-line no-undef
+      emailjs.init({ publicKey: "REMPLACE_AVEC_TA_PUBLIC_KEY" });
     });
-    tbl.appendChild(tbody);
+  </script>
+</head>
+<body>
+  <div class="wrap">
+    <div class="header">
+      <div class="title">Diffusion des heures</div>
+      <div class="badge" id="saveBadge">
+        <span class="dot orange" id="saveDot"></span>
+        <span id="saveText">Modifications non enregistrées</span>
+      </div>
+    </div>
 
-    const wrap=document.createElement("div"); wrap.className="panel"; wrap.style.marginBottom="16px";
-    const hd=document.createElement("div"); hd.className="hd"; hd.innerHTML=`<strong>${ag}</strong> — Semaine ${weekNo}`; wrap.appendChild(hd);
-    const bd=document.createElement("div"); bd.className="bd"; bd.appendChild(tbl); wrap.appendChild(bd); zone.appendChild(wrap);
+    <div class="panel">
+      <div class="panel-h">
+        <div class="toolbar">
+          <button class="btn" id="btnEnregistrer">Enregistrer</button>
+          <button class="btn primary" id="btnEnvoyerMails">Envoyer les emails</button>
+          <button class="btn ghost" id="btnApercu">Aperçu email</button>
+        </div>
+      </div>
+      <div class="panel-b">
+        <div class="field" style="margin-bottom:12px;">
+          <label class="pill">Destinataires (séparés par des virgules)</label>
+          <input class="grow" id="destinataires" type="email" placeholder="paul@example.com, jeremy@example.com" />
+        </div>
+        <div class="field" style="margin-bottom:12px;">
+          <label class="pill">Objet</label>
+          <input class="grow" id="objet" type="text" value="Synthèse des heures — Semaine en cours" />
+        </div>
 
-    const agencyObj=data.agencies.find(a=>a.name===ag);
-    const htmlTable=makeAgencyTableHTML(ag,wk,days);
-    const subject=encodeURIComponent(`Pointages - ${ag} - Semaine ${weekNo}`);
-    const href=`mailto:${encodeURIComponent(agencyObj?.email||"")}?subject=${subject}`;
-    const box=document.createElement("div"); box.className="badges";
-    const b1=document.createElement("a"); b1.className="badge"; b1.href="#"; b1.textContent="📋 Copier le tableau (HTML)"; b1.onclick=(e)=>{e.preventDefault(); copyHtmlToClipboard(htmlTable)};
-    const b2=document.createElement("a"); b2.className="badge"; b2.href=href; b2.textContent="📧 Ouvrir l’e-mail";
-    box.appendChild(b1); box.appendChild(b2); mailZone.appendChild(box);
-  });
+        <div class="table-wrap" id="tableWrap">
+          <table id="tabDiffusion" aria-label="Tableau de diffusion des heures">
+            <thead>
+              <tr>
+                <th>Ouvrier</th>
+                <th>Entreprise</th>
+                <th>Qualification</th>
+                <th class="mono">Heures</th>
+                <th>Chantier</th>
+                <th>Encadrant</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyDiffusion">
+            </tbody>
+          </table>
+        </div>
 
-  if(!zone.children.length) zone.innerHTML='<div class="small">Aucune donnée pour cette sélection.</div>';
-}
-document.getElementById("btn-df-generate")?.addEventListener("click",renderDiffusionTables);
+        <p class="hint">
+          Les heures sont affichées et envoyées au format <span class="mono">XX,XX&nbsp;Heures</span>.  
+          L’envoi des mails est automatique (sans copier-coller) via EmailJS.
+        </p>
 
-/* ----------------- INIT ----------------- */
-function init(){
-  const yInput=$("#pl-year"); if(yInput) yInput.value=String(new Date().getFullYear());
-  fillWeekInputs(); setSubtitle(); bindSaveButtons();
-  show("planning"); renderPlanning();
-  setDirty(false);
-}
-init();
+        <div id="apercuOut" class="hint"></div>
+      </div>
+    </div>
+  </div>
 
-})();
-</script>
-</body></html>
+  <script type="module">
+    /*********************
+     * Données d'exemple *
+     *********************/
+    const donnees = [
+      { nom: "Baudouin RIBERON", entreprise: "SAMSIC", qualification: "Plâquiste N3P1", heures: 35.5, chantier:"M96 W19S", encadrant:"Alexis" },
+      { nom: "Laurent JOLY", entreprise: "BPS", qualification: "Plombier N3P2", heures: 28, chantier:"M91 N10S", encadrant:"Jérémy" },
+      { nom: "Jean-Marc GOUZY", entreprise: "SAMSIC", qualification: "Polyvalent N4P1", heures: 41.25, chantier:"M65 W01S", encadrant:"Paul" },
+    ];
+
+    /***********************
+     * Utilitaires format  *
+     ***********************/
+    function formatHeuresFR(value){
+      const num = Number(value ?? 0);
+      const fixed = num.toFixed(2);            // "41.25"
+      const fr = fixed.replace(".", ",");      // "41,25"
+      return `${fr} Heures`;
+    }
+
+    function markDirty(){
+      const dot = document.getElementById('saveDot');
+      const text = document.getElementById('saveText');
+      dot.classList.remove('green');
+      dot.classList.add('orange');
+      text.textContent = "Modifications non enregistrées";
+    }
+    function markSaved(){
+      const dot = document.getElementById('saveDot');
+      const text = document.getElementById('saveText');
+      dot.classList.remove('orange');
+      dot.classList.add('green');
+      text.textContent = "Enregistré";
+    }
+
+    /************************
+     * Rendu du tableau UI  *
+     ************************/
+    const tbody = document.getElementById('tbodyDiffusion');
+    function renderTbody(rows){
+      tbody.innerHTML = "";
+      rows.forEach((r, idx) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td contenteditable data-k="nom">${r.nom}</td>
+          <td contenteditable data-k="entreprise">${r.entreprise}</td>
+          <td contenteditable data-k="qualification">${r.qualification}</td>
+          <td contenteditable data-k="heures" class="mono" title="Saisir un nombre (ex: 35.5)">${formatHeuresFR(r.heures)}</td>
+          <td contenteditable data-k="chantier">${r.chantier}</td>
+          <td contenteditable data-k="encadrant">${r.encadrant}</td>
+        `;
+        // Écouteurs pour passer en "dirty" + normaliser la cellule heures
+        tr.querySelectorAll('[contenteditable]').forEach(cell => {
+          cell.addEventListener('input', () => {
+            markDirty();
+            if(cell.dataset.k === 'heures'){
+              // Essaye d’extraire un nombre et refait le formatage en live
+              const txt = cell.textContent.replace(/[^\d.,]/g,"").replace(",",".");
+              const num = parseFloat(txt);
+              if(!isNaN(num)){
+                cell.dataset.raw = String(num);
+              }
+            }
+          });
+          cell.addEventListener('blur', () => {
+            if(cell.dataset.k === 'heures'){
+              const raw = parseFloat((cell.dataset.raw ?? "").toString());
+              if(!isNaN(raw)){
+                cell.textContent = formatHeuresFR(raw);
+              }else{
+                // tente de reparser le contenu
+                const txt = cell.textContent.replace(/[^\d.,]/g,"").replace(",",".");
+                const num = parseFloat(txt);
+                cell.textContent = formatHeuresFR(isNaN(num)?0:num);
+              }
+            }
+          });
+        });
+        tbody.appendChild(tr);
+      });
+    }
+    renderTbody(donnees);
+
+    /*********************************
+     * Extraction données depuis DOM *
+     *********************************/
+    function readRows(){
+      const out = [];
+      tbody.querySelectorAll('tr').forEach(tr=>{
+        const grab = k => (tr.querySelector(`[data-k="${k}"]`)?.textContent || "").trim();
+        // heures : retransformer en nombre depuis cellule formatée
+        const hCell = tr.querySelector('[data-k="heures"]');
+        let heures = 0;
+        if(hCell){
+          const parsed = hCell.textContent.replace(/[^\d.,]/g,"").replace(",",".");
+          const num = parseFloat(parsed);
+          heures = isNaN(num) ? 0 : num;
+        }
+        out.push({
+          nom: grab('nom'),
+          entreprise: grab('entreprise'),
+          qualification: grab('qualification'),
+          heures,
+          chantier: grab('chantier'),
+          encadrant: grab('encadrant'),
+        });
+      });
+      return out;
+    }
+
+    /*******************************
+     * Enregistrement (mock local) *
+     *******************************/
+    function enregistrer(){
+      // Ici, remplace par ton vrai backend si besoin (POST fetch ...).
+      const data = readRows();
+      localStorage.setItem('diffusion_heures', JSON.stringify(data));
+      // Pas de popup — on bascule juste la pastille en vert
+      markSaved();
+    }
+    document.getElementById('btnEnregistrer').addEventListener('click', enregistrer);
+
+    /****************************************
+     * Génération du tableau HTML pour mail *
+     ****************************************/
+    function buildEmailHtml(rows){
+      const styles = `
+        table{border-collapse:collapse;width:100%;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
+        th,td{border:1px solid #d5d8df;padding:8px 10px;font-size:14px}
+        th{background:#f2f4f8;text-align:left}
+        .mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+      `;
+      const head = `
+        <tr>
+          <th>Ouvrier</th>
+          <th>Entreprise</th>
+          <th>Qualification</th>
+          <th>Heures</th>
+          <th>Chantier</th>
+          <th>Encadrant</th>
+        </tr>
+      `;
+      const body = rows.map(r=>`
+        <tr>
+          <td>${escapeHtml(r.nom)}</td>
+          <td>${escapeHtml(r.entreprise)}</td>
+          <td>${escapeHtml(r.qualification)}</td>
+          <td class="mono">${escapeHtml(formatHeuresFR(r.heures))}</td>
+          <td>${escapeHtml(r.chantier)}</td>
+          <td>${escapeHtml(r.encadrant)}</td>
+        </tr>
+      `).join("");
+      return `
+        <div style="font:14px system-ui,-apple-system,Segoe UI,Roboto,Arial;color:#0b1220">
+          <p>Bonjour,</p>
+          <p>Veuillez trouver ci-dessous la synthèse des heures :</p>
+          <table role="table" aria-label="Synthèse des heures">
+            <style>${styles}</style>
+            <thead>${head}</thead>
+            <tbody>${body}</tbody>
+          </table>
+          <p style="color:#5f6b7c">— Envoi automatique</p>
+        </div>
+      `;
+    }
+    function escapeHtml(s=""){
+      return s
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#39;");
+    }
+
+    /***********************
+     * Aperçu dans la page *
+     ***********************/
+    document.getElementById('btnApercu').addEventListener('click', () => {
+      const html = buildEmailHtml(readRows());
+      const out = document.getElementById('apercuOut');
+      out.innerHTML = `<div class="success">Aperçu du contenu HTML qui sera envoyé :</div><div style="margin-top:10px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#101525">${html}</div>`;
+    });
+
+    /*****************
+     * Envoi EmailJS *
+     *****************
+     * Prérequis :
+     * 1) Crée un compte https://www.emailjs.com/
+     * 2) Ajoute un service (SMTP relay / Gmail / autre)
+     * 3) Crée un template avec les variables: to_emails, subject, message_html
+     * 4) Remplace ci-dessous: SERVICE_ID, TEMPLATE_ID et la publicKey plus haut
+     */
+    const SERVICE_ID = "REMPLACE_AVEC_TON_SERVICE_ID";
+    const TEMPLATE_ID = "REMPLACE_AVEC_TON_TEMPLATE_ID";
+
+    async function envoyerEmails(){
+      const dest = (document.getElementById('destinataires').value || "")
+        .split(",")
+        .map(s=>s.trim())
+        .filter(Boolean);
+
+      if(dest.length === 0){
+        alert("Ajoute au moins un destinataire (séparés par des virgules).");
+        return;
+      }
+
+      const subject = (document.getElementById('objet').value || "Synthèse des heures").trim();
+      const html = buildEmailHtml(readRows());
+
+      // EmailJS s’occupe de l’envoi — pas de copier-coller nécessaire.
+      // eslint-disable-next-line no-undef
+      const res = await emailjs.send(SERVICE_ID, TEMPLATE_ID, {
+        to_emails: dest.join(","),
+        subject,
+        message_html: html
+      });
+
+      // Optionnel: si tu veux que la pastille passe au vert après envoi réussi
+      markSaved();
+
+      // Pas de message intrusif ; si tu veux un retour discret, décommente :
+      // console.log("Emails envoyés:", res.status, res.text);
+    }
+    document.getElementById('btnEnvoyerMails').addEventListener('click', envoyerEmails);
+
+    /*****************************************
+     * Détection de modifs → pastille orange *
+     *****************************************/
+    document.getElementById('tableWrap').addEventListener('input', markDirty);
+    document.getElementById('destinataires').addEventListener('input', markDirty);
+    document.getElementById('objet').addEventListener('input', markDirty);
+
+    /********************************************
+     * Récup auto depuis localStorage à l’ouverture
+     ********************************************/
+    (function restore(){
+      const raw = localStorage.getItem('diffusion_heures');
+      if(!raw) return;
+      try{
+        const rows = JSON.parse(raw);
+        if(Array.isArray(rows) && rows.length){
+          renderTbody(rows);
+          markSaved();
+        }
+      }catch(e){/* ignore */}
+    })();
+  </script>
+</body>
+</html>
