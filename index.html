@@ -35,7 +35,6 @@
   .btn{padding:10px 14px; border-radius:12px; border:1px solid var(--line); background:#1b2435; color:#e8effb; font-size:14px; cursor:pointer; transition:.15s transform ease, .2s background ease; user-select:none;}
   .btn:hover{transform: translateY(-1px)} .btn.primary{background:linear-gradient(180deg,#2e6cff,#214fd3); border-color:#1e3ea8}
   .btn.ghost{background:transparent}
-  .btn.destructive{background:linear-gradient(180deg,#ff5a5f,#d7263d); border-color:#9d1628}
   .btn:disabled{opacity:.55; cursor:not-allowed; transform:none}
   .pill{display:inline-block; padding:5px 10px; border-radius:999px; font-size:12px; background:#161f31; border:1px solid var(--line); color:#cbd5e7;}
   .field{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
@@ -56,16 +55,13 @@
   }
   thead .th-group{font-size:12px; text-align:center; border-bottom:0}
   tbody td{border-bottom:1px solid var(--line); padding:9px 12px; font-size:14px; color:#e5e9f3; white-space:nowrap}
-  tbody tr:nth-child(4n+1), tbody tr:nth-child(4n+2){ background:#0f1725; } /* regroupe les doubles lignes par ouvrier */
   tbody tr:hover{background:#121a2c}
   tfoot td{background:#0f141f; font-weight:600}
-
   /* Sticky first column for all table types */
   table .sticky-col{
     position: sticky; left:0; z-index:2; background:linear-gradient(180deg,#0f1523,#0d121d);
     border-right:1px solid var(--line);
   }
-  /* Planning day headers */
   .dayhead{writing-mode:vertical-rl; transform:rotate(180deg); font-size:11px; white-space:nowrap; color:#b9c7e1}
   .weekhead{font-weight:700; text-align:center}
   .cell-tag{display:inline-block; padding:4px 6px; border-radius:6px; background:#0f1a2b; border:1px solid var(--line); font-size:12px}
@@ -73,6 +69,8 @@
   .pcell select{width:100%}
   .imgbox{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:8px}
   .imgbox .thumb{max-width:100%; border:1px solid var(--line); border-radius:10px}
+  .form-vert .row{display:flex; flex-direction:column; margin-bottom:10px}
+  .form-vert label{font-size:12px; color:#cbd5e7; margin-bottom:6px}
 </style>
 
 <!-- html2canvas pour captures PNG des tableaux Diffusion -->
@@ -120,7 +118,7 @@ const pageRoot = document.getElementById('page');
 const routes = {
   '/planning': renderPlanningDailyReadOnly,  // Planning auto, non éditable
   '/pointage': renderPointageWeekly,         // Heures + chantier / jour
-  '/diffusion': renderDiffusionParAgence,    // Détail jour/jour + Outlook + PNG
+  '/diffusion': renderDiffusionParAgence,    // Détail jour/jour + Outlook + PNG auto
   '/ouvriers': renderOuvriers,
   '/agences': renderAgences,
   '/chantiers': renderChantiers,
@@ -170,11 +168,11 @@ const storage = {
   set(k, v){ localStorage.setItem(k, JSON.stringify(v)); }
 };
 const KEYS = {
-  ouvriers:  'app_ouvriers_v5',
-  agences:   'app_agences_v5',
-  chantiers: 'app_chantiers_v5',
-  pointage:  'app_pointage_v5',   // {date, ouvrier, agence, chantier, heures}
-  params:    'app_params_v5',     // sans signature
+  ouvriers:  'app_ouvriers_v6',
+  agences:   'app_agences_v6',
+  chantiers: 'app_chantiers_v6',
+  pointage:  'app_pointage_v6',   // {date, ouvrier, agence, chantier, heures}
+  params:    'app_params_v6',     // sans signature
 };
 
 /* =========
@@ -220,13 +218,13 @@ function weekDatesISO(year, week){
   const monday = new Date(simple); monday.setUTCDate(simple.getUTCDate() - dayOfWeek + 1 + (week-1)*7);
   return [...Array(7)].map((_,i)=>new Date(monday.getTime()+i*86400000).toISOString().slice(0,10));
 }
-function daysOfYearWeekdays(year){ // ISO weekdays only (Mon-Fri)
+function daysOfYearWeekdays(year){ // keep Mon-Fri, remove Sat(6) & Sun(0)
   const start = new Date(Date.UTC(year,0,1));
   const end = new Date(Date.UTC(year+1,0,1));
   const out=[];
   for(let d = new Date(start); d < end; d.setUTCDate(d.getUTCDate()+1)){
     const wd = d.getUTCDay(); // 0..6
-    if(wd>=1 && wd<=5){ out.push(new Date(d)); }
+    if(wd>=1 && wd<=5){ out.push(new Date(d)); } // Mon..Fri
   }
   return out;
 }
@@ -234,7 +232,7 @@ function dateISO(d){ const x=new Date(d); x.setHours(0,0,0,0); return x.toISOStr
 function niceDayLabel(iso){ const d = new Date(iso); return d.toLocaleDateString('fr-FR',{weekday:'short', day:'2-digit', month:'2-digit'}); }
 
 /* =================
-   OUVRIERS
+   OUVRIERS — FORM vertical (1 champ/ligne)
    ================= */
 function renderOuvriers(){
   const route='/ouvriers';
@@ -249,15 +247,13 @@ function renderOuvriers(){
         <div class="toolbar"><button class="btn" id="save">Enregistrer</button></div>
       </div>
       <div class="panel-b">
-        <div class="field" style="gap:12px; margin-bottom:12px; flex-wrap:wrap">
-          <label class="pill">Prénom</label><input id="iPrenom" type="text" />
-          <label class="pill">Nom</label><input id="iNom" type="text" />
-          <label class="pill">Métier</label><input id="iMetier" type="text" />
-          <label class="pill">Qualification</label>
-          <select id="iQualif">${params.qualifs.map(q=>`<option>${q}</option>`).join('')}</select>
-          <label class="pill">Agence</label>
-          <select id="iAgence">${agences.map(a=>`<option>${a}</option>`).join('')}</select>
-          <button class="btn primary" id="add">Ajouter l'ouvrier</button>
+        <div class="form-vert" style="max-width:520px; margin-bottom:14px">
+          <div class="row"><label>Prénom</label><input id="iPrenom" type="text" /></div>
+          <div class="row"><label>Nom</label><input id="iNom" type="text" /></div>
+          <div class="row"><label>Métier</label><input id="iMetier" type="text" /></div>
+          <div class="row"><label>Qualification</label><select id="iQualif">${params.qualifs.map(q=>`<option>${q}</option>`).join('')}</select></div>
+          <div class="row"><label>Agence</label><select id="iAgence">${agences.map(a=>`<option>${a}</option>`).join('')}</select></div>
+          <div class="row"><button class="btn primary" id="add">Ajouter l'ouvrier</button></div>
         </div>
 
         <div class="table-wrap">
@@ -314,7 +310,7 @@ function renderOuvriers(){
 }
 
 /* =================
-   AGENCES
+   AGENCES — FORM vertical
    ================= */
 function renderAgences(){
   const route='/agences';
@@ -326,10 +322,10 @@ function renderAgences(){
         <div class="toolbar"><button class="btn" id="save">Enregistrer</button></div>
       </div>
       <div class="panel-b">
-        <div class="field" style="gap:12px; margin-bottom:12px">
-          <label class="pill">Nom</label><input id="aNom" type="text" />
-          <label class="pill">Email(s)</label><input id="aEmail" type="email" placeholder="plusieurs séparés par des virgules"/>
-          <button class="btn primary" id="add">Ajouter</button>
+        <div class="form-vert" style="max-width:520px; margin-bottom:14px">
+          <div class="row"><label>Nom</label><input id="aNom" type="text" /></div>
+          <div class="row"><label>Email(s)</label><input id="aEmail" type="email" placeholder="plusieurs séparés par des virgules"/></div>
+          <div class="row"><button class="btn primary" id="add">Ajouter l'agence</button></div>
         </div>
 
         <div class="table-wrap">
@@ -372,7 +368,7 @@ function renderAgences(){
 }
 
 /* =================
-   CHANTIERS
+   CHANTIERS — FORM vertical
    ================= */
 function renderChantiers(){
   const route='/chantiers';
@@ -384,14 +380,14 @@ function renderChantiers(){
         <div class="toolbar"><button class="btn" id="save">Enregistrer</button></div>
       </div>
       <div class="panel-b">
-        <div class="field" style="gap:12px; margin-bottom:12px">
-          <label class="pill">Code</label><input id="cCode" type="text" />
-          <label class="pill">Numéro DA</label><input id="cDA" type="text" />
-          <label class="pill">Nom DA</label><input id="cNomDA" type="text" />
-          <label class="pill">Encadrant</label><input id="cEnc" type="text" />
-          <label class="pill">Adresse</label><input id="cAdr" type="text" />
-          <label class="pill">Zone</label><input id="cZone" type="text" />
-          <button class="btn primary" id="add">Ajouter</button>
+        <div class="form-vert" style="max-width:520px; margin-bottom:14px">
+          <div class="row"><label>Code</label><input id="cCode" type="text" /></div>
+          <div class="row"><label>Numéro DA</label><input id="cDA" type="text" /></div>
+          <div class="row"><label>Nom DA</label><input id="cNomDA" type="text" /></div>
+          <div class="row"><label>Encadrant</label><input id="cEnc" type="text" /></div>
+          <div class="row"><label>Adresse</label><input id="cAdr" type="text" /></div>
+          <div class="row"><label>Zone</label><input id="cZone" type="text" /></div>
+          <div class="row"><button class="btn primary" id="add">Ajouter le chantier</button></div>
         </div>
 
         <div class="table-wrap">
@@ -451,7 +447,7 @@ function renderChantiers(){
 }
 
 /* =================
-   PLANNING — READ-ONLY (Lun→Ven, 2 lignes/ouvrier, semaines regroupées, sticky col)
+   PLANNING — READ-ONLY (Lun→Ven, 2 lignes/ouvrier: 1=Heures, 2=Chantier)
    ================= */
 function renderPlanningDailyReadOnly(){
   const route='/planning';
@@ -460,7 +456,7 @@ function renderPlanningDailyReadOnly(){
   const currentYear = new Date().getFullYear();
   const years = Array.from({length:5},(_,i)=>currentYear-2+i);
   const ySel = parseInt(new URLSearchParams(location.hash.split('?')[1]).get('year') || currentYear, 10);
-  const days = daysOfYearWeekdays(ySel); // Date[] only Mon-Fri
+  const days = daysOfYearWeekdays(ySel); // Mon-Fri
 
   // index pointage -> map[ouvrier][dateISO] = {h, c}
   const map = {};
@@ -473,7 +469,7 @@ function renderPlanningDailyReadOnly(){
     }
   });
 
-  // Construire entêtes regroupées par semaine
+  // Construire entêtes regroupées par semaine (Mon-Fri uniquement)
   const weeks = []; // {week, count, dates[]}
   let cur=null;
   days.forEach(d=>{
@@ -520,26 +516,32 @@ function renderPlanningDailyReadOnly(){
   ];
   thead.innerHTML = thWeeks.join('') + thDays.join('');
 
-  function rowTpl(name, type){ // type: 'chantier' or 'heures'
-    const firstCell = type==='chantier' ? name : '<span class="mono" style="opacity:.85">heures</span>';
-    return `<tr>
-      <td class="sticky-col">${escapeHtml(firstCell)}</td>
-      ${weeks.map(w => w.dates.map(iso=>{
-        const rec = map[name]?.[iso];
-        if(type==='chantier'){
-          const tag = rec?.c ? `<span class="cell-tag" title="${rec?.h?formatHeuresFR(rec.h):''}">${escapeHtml(rec.c)}</span>` : '';
-          return `<td>${tag}</td>`;
-        } else {
-          const t = rec?.h ? formatHeuresShort(rec.h) : '';
-          return `<td class="mono">${escapeHtml(t)}</td>`;
-        }
-      }).join('')).join('')}
-    </tr>`;
+  function rowTpl(name, type){ // type: 'heures' or 'chantier'
+    const isHeures = type==='heures';
+    const firstCell = isHeures ? `<td class="sticky-col mono" rowspan="1">${escapeHtml(name)}</td>` : '';
+    // On veut le nom fusionné sur 2 lignes -> on l’ajoute seulement à la première ligne
+    const cells = weeks.map(w => w.dates.map(iso=>{
+      const rec = map[name]?.[iso];
+      if(isHeures){
+        const t = rec?.h ? formatHeuresShort(rec.h) : '';
+        return `<td class="mono">${escapeHtml(t)}</td>`;
+      } else {
+        const tag = rec?.c ? `<span class="cell-tag">${escapeHtml(rec.c)}</span>` : '';
+        return `<td>${tag}</td>`;
+      }
+    }).join('')).join('');
+    return { firstCell, cells };
   }
+
+  // On imprime 2 lignes par ouvrier, avec la cellule Nom fusionnée (rowspan=2)
   ouvriers.forEach(o=>{
     const name = fullName(o);
-    tbody.insertAdjacentHTML('beforeend', rowTpl(name, 'chantier'));
-    tbody.insertAdjacentHTML('beforeend', rowTpl(name, 'heures'));
+    const r1 = rowTpl(name,'heures');
+    const r2 = rowTpl(name,'chantier');
+    tbody.insertAdjacentHTML('beforeend', `<tr>
+      <td class="sticky-col mono" rowspan="2">${escapeHtml(name)}</td>${r1.cells}
+    </tr>`);
+    tbody.insertAdjacentHTML('beforeend', `<tr>${r2.cells}</tr>`);
   });
 
   document.getElementById('yearSel').addEventListener('change', ()=>{
@@ -613,7 +615,7 @@ function renderPointageWeekly(){
     const list = storage.get(KEYS.chantiers, DEFAULT_CHANTIERS).map(c=>c.code);
     return `<option value=""></option>` + list.map(c=>`<option ${c===selVal?'selected':''}>${c}</option>`).join('');
   }
-  function daysForWeek(year, week){ return weekDatesISO(year, week).slice(0,5); } // lun→ven
+  function daysForWeek(year, week){ return weekDatesISO(year, week).slice(0,5); } // Mon..Fri
 
   function getMapForWeek(year, week){
     const dates = daysForWeek(year, week);
@@ -679,7 +681,7 @@ function renderPointageWeekly(){
   function recomputeTotals(){
     const idxs=[0,1,2,3,4];
     const colTotals = idxs.map(i=>{
-      let sum=0; tb.querySelectorAll(`select.hsel[data-day="${i}"]`).forEach(s=> sum += (+s.value||0)); return sum;
+      let sum=0; document.querySelectorAll(`select.hsel[data-day="${i}"]`).forEach(s=> sum += (+s.value||0)); return sum;
     });
     document.getElementById('totLun').textContent = colTotals[0].toFixed(2);
     document.getElementById('totMar').textContent = colTotals[1].toFixed(2);
@@ -696,13 +698,13 @@ function renderPointageWeekly(){
   async function save(){
     const year = parseInt(pYear.value,10);
     const week = parseInt(pWeek.value,10);
-    const dates = daysForWeek(year, week); // lun..ven
+    const dates = daysForWeek(year, week); // Mon..Fri
 
     // Filtrer l'ancienne semaine
     const keep = storage.get(KEYS.pointage, []).filter(r=> !dates.includes(r.date));
 
     // Pour chaque ouvrier/jour, enregistrer si heures > 0 ou chantier renseigné
-    tb.querySelectorAll('tr[data-worker]').forEach(tr=>{
+    document.querySelectorAll('tr[data-worker]').forEach(tr=>{
       const ouvrier = tr.dataset.worker;
       const agence = (storage.get(KEYS.ouvriers, DEFAULT_OUVRIERS).find(o=>fullName(o)===ouvrier)?.agence)||"";
       tr.querySelectorAll('.pcell').forEach((cell,dayIdx)=>{
@@ -725,7 +727,7 @@ function renderPointageWeekly(){
 }
 
 /* =================
-   DIFFUSION — par Agence (détail jour/jour) + Outlook + PNG
+   DIFFUSION — par Agence (détail jour/jour) + Outlook + PNG AUTO
    ================= */
 function renderDiffusionParAgence(){
   const route='/diffusion';
@@ -746,19 +748,17 @@ function renderDiffusionParAgence(){
             <select id="dWeek" style="width:110px">${Array.from({length:53},(_,i)=>`<option value="${i+1}" ${i+1===curW?'selected':''}>${i+1}</option>`).join('')}</select>
           </div>
           <button class="btn" id="save">Enregistrer</button>
-          <button class="btn" id="mkimg">Générer images</button>
           <button class="btn primary" id="send">Envoyer les emails (Outlook)</button>
-          <button class="btn ghost" id="preview">Aperçu texte</button>
         </div>
       </div>
       <div class="panel-b">
-        <div class="field" style="margin-bottom:10px; gap:14px; flex-wrap:wrap">
-          <label class="pill">Agences à contacter</label>
-          <div id="agList" class="field" style="gap:14px; flex-wrap:wrap"></div>
+        <div class="form-vert" style="margin-bottom:10px">
+          <div class="row"><label>Agences à contacter</label>
+            <div id="agList" class="field" style="gap:14px; flex-wrap:wrap"></div>
+          </div>
         </div>
         <div id="tables"></div>
         <div id="imagesOut" style="margin-top:10px"></div>
-        <div id="previewOut" style="margin-top:10px"></div>
       </div>
     </section>
   `;
@@ -789,7 +789,7 @@ function renderDiffusionParAgence(){
   function groupData(){
     const year = parseInt(dYear.value,10);
     const week = parseInt(dWeek.value,10);
-    const weekIsoDates = weekDates(year, week).slice(0,5); // lun→ven
+    const weekIsoDates = weekDates(year, week).slice(0,5); // Mon..Fri
     const rows = pointage.filter(r=>weekIsoDates.includes(r.date));
 
     // group: agence -> ouvrier -> { [iso]: {h, c}, total }
@@ -808,7 +808,7 @@ function renderDiffusionParAgence(){
   function renderTables(){
     const { byAgency, weekIsoDates } = groupData();
     const agencies = Object.keys(byAgency).sort();
-    if(agencies.length===0){ tablesDiv.innerHTML = `<p style="opacity:.8">Aucune donnée pour cette semaine.</p>`; return; }
+    if(agencies.length===0){ tablesDiv.innerHTML = `<p style="opacity:.8">Aucune donnée pour cette semaine.</p>`; imagesOut.innerHTML=''; return; }
 
     tablesDiv.innerHTML = agencies.map(ag=>{
       const workers = Object.keys(byAgency[ag]).sort();
@@ -836,33 +836,9 @@ function renderDiffusionParAgence(){
         </div>
       `;
     }).join('');
-  }
 
-  function buildPlainTextForAgency(agencyName){
-    const { byAgency, weekIsoDates } = groupData();
-    const recs = byAgency[agencyName] || {};
-    const workers = Object.keys(recs).sort();
-    const head = ['Ouvrier', ...weekIsoDates.map(niceDayLabel), 'Total'];
-    const rows = [head.join(' | ')];
-    rows.push('-'.repeat(rows[0].length));
-    workers.forEach(w=>{
-      const rec = recs[w];
-      const cols = [w];
-      let tot = 0;
-      weekIsoDates.forEach(iso=>{
-        const d = rec.d[iso];
-        if(!d) cols.push('—');
-        else { cols.push(`${formatHeuresShort(d.h)}h${d.c?` ${d.c}`:''}`); tot += d.h||0; }
-      });
-      cols.push(`${formatHeuresShort(tot)}h`);
-      rows.push(cols.join(' | '));
-    });
-    return rows.join('\n');
-  }
-
-  function openOutlookMail(to, subject, body){
-    const url = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.location.href = url;
+    // Génération auto des images après rendu
+    setTimeout(generateImages, 50);
   }
 
   async function generateImages(){
@@ -871,7 +847,8 @@ function renderDiffusionParAgence(){
     for(const box of targets){
       const ag = box.dataset.ag;
       const tbl = box.querySelector('table');
-      // capture
+
+      // fond clair pour l'export (lisible dans Outlook)
       const canvas = await html2canvas(tbl, { backgroundColor:'#ffffff', scale:2 });
       const data = canvas.toDataURL('image/png');
       const img = document.createElement('img'); img.src = data; img.className='thumb';
@@ -895,6 +872,37 @@ function renderDiffusionParAgence(){
     }
   }
 
+  function openOutlookMail(to, subject, body){
+    const url = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = url;
+  }
+
+  async function sendEmails(){
+    const selected = [...document.querySelectorAll('.agChk:checked')].map(c=>c.value);
+    if(selected.length===0){ alert("Sélectionne au moins une agence."); return; }
+    const mapEmail = Object.fromEntries(storage.get(KEYS.agences, DEFAULT_AGENCES).map(a=>[a.nom, a.email||""]));
+
+    // On copie d'abord chaque image (si supporté), puis on ouvre le mail de l’agence
+    for(const ag of selected){
+      const to = (mapEmail[ag]||"").trim();
+      if(!to) { console.warn("Aucun email pour", ag); continue; }
+
+      // Trouver l’image générée pour cette agence
+      const imgEl = [...imagesOut.querySelectorAll('.imgbox')].find(x=>x.querySelector('.pill')?.textContent?.startsWith(ag))?.querySelector('img');
+      if(imgEl && navigator.clipboard && window.ClipboardItem){
+        try{
+          const blob = await (await fetch(imgEl.src)).blob();
+          await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+        }catch(e){ console.warn('Copie image échouée :', e); }
+      }
+
+      const subject = `Synthèse hebdo — ${ag} — Semaine ${dWeek.value}/${dYear.value}`;
+      const body = `Bonjour,\n\nCollez ici l'image du tableau (Ctrl+V) pour ${ag} — semaine ${dWeek.value}/${dYear.value}.\n`;
+      openOutlookMail(to, subject, body);
+    }
+    setDirty(route,false);
+  }
+
   dYear.addEventListener('input', ()=>{ renderTables(); setDirty(route,true); });
   dWeek.addEventListener('change', ()=>{ renderTables(); setDirty(route,true); });
   document.addEventListener('change', (e)=>{ if(e.target.classList?.contains('agChk')) setDirty(route,true); });
@@ -902,32 +910,7 @@ function renderDiffusionParAgence(){
   async function save(){ setDirty(route,false); }
   saveHandlers[route]=save;
 
-  async function preview(){
-    const selected = [...document.querySelectorAll('.agChk:checked')].map(c=>c.value);
-    if(selected.length===0){ alert("Sélectionne au moins une agence."); return; }
-    const sections = selected.map(ag=>{
-      return `<pre style="white-space:pre-wrap;border:1px solid var(--line);border-radius:8px;padding:8px;background:#0e1422">${escapeHtml(buildPlainTextForAgency(ag))}</pre>`;
-    }).join('<hr/>');
-    document.getElementById('previewOut').innerHTML = sections;
-  }
-
-  async function sendEmails(){
-    const selected = [...document.querySelectorAll('.agChk:checked')].map(c=>c.value);
-    if(selected.length===0){ alert("Sélectionne au moins une agence."); return; }
-    const mapEmail = Object.fromEntries(agencesObj.map(a=>[a.nom, a.email||""]));
-    for(const ag of selected){
-      const to = (mapEmail[ag]||"").trim();
-      if(!to){ console.warn("Aucun email pour", ag); continue; }
-      const subject = `Synthèse hebdo — ${ag} — Semaine ${dWeek.value}/${dYear.value}`;
-      const body = `Bonjour,\n\nVeuillez trouver ci-joint l'image du tableau des pointages pour la semaine ${dWeek.value}/${dYear.value} — ${ag}.\n\n(Glisser l'image générée dans cet email)\n`;
-      openOutlookMail(to, subject, body);
-    }
-    setDirty(route,false);
-  }
-
   document.getElementById('save').addEventListener('click', save);
-  document.getElementById('preview').addEventListener('click', preview);
-  document.getElementById('mkimg').addEventListener('click', generateImages);
   document.getElementById('send').addEventListener('click', sendEmails);
 
   renderTables(); setDirty(route,false);
@@ -947,9 +930,10 @@ function renderParametres(){
         <div class="toolbar"><button class="btn" id="save">Enregistrer</button></div>
       </div>
       <div class="panel-b">
-        <div>
-          <label class="pill" style="display:inline-block;margin-bottom:6px">Qualifications (une par ligne)</label>
-          <textarea id="qualifs" placeholder="N1&#10;N2&#10;N3P1&#10;N3P2&#10;N4P1&#10;N4P2">${escapeHtml(params.qualifs.join('\n'))}</textarea>
+        <div class="form-vert" style="max-width:520px">
+          <div class="row"><label>Qualifications (une par ligne)</label>
+            <textarea id="qualifs" placeholder="N1&#10;N2&#10;N3P1&#10;N3P2&#10;N4P1&#10;N4P2">${escapeHtml(params.qualifs.join('\n'))}</textarea>
+          </div>
         </div>
       </div>
     </section>
