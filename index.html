@@ -92,11 +92,11 @@
   </div>
 
   <!-- Modal de confirmation -->
-  <div class="modal-backdrop" id="confirmModal" style="display:none">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
-      <div class="m-h" id="confirmTitle">Enregistrer les modifications ?</div>
-      <div class="m-b"></div>
-      <div class="m-f">
+  <div class="modal-backdrop" id="confirmModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); align-items:center; justify-content:center;">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" style="background:#0f141f; border:1px solid var(--line); border-radius:14px; max-width:520px; width:92%; box-shadow:var(--shadow);">
+      <div class="m-h" id="confirmTitle" style="padding:16px; border-bottom:1px solid var(--line); font-weight:700">Enregistrer les modifications ?</div>
+      <div class="m-b" style="padding:16px; color:#cbd5e7">Tu as des modifications non enregistrées.</div>
+      <div class="m-f" style="padding:12px 16px; display:flex; gap:8px; justify-content:flex-end;">
         <button class="btn" id="btnKeep">Continuer sans enregistrer</button>
         <button class="btn primary" id="btnSaveAndGo">Enregistrer et continuer</button>
         <button class="btn ghost" id="btnCancelNav">Annuler</button>
@@ -110,9 +110,9 @@
    ========================= */
 const pageRoot = document.getElementById('page');
 const routes = {
-  '/planning': renderPlanningDailyReadOnly,  // Planning auto, L→V (toute l’année)
-  '/pointage': renderPointageWeekly,         // Saisie hebdo
-  '/diffusion': renderDiffusionParAgence,    // Ouvre Outlook (mailto)
+  '/planning': renderPlanningDailyReadOnly,
+  '/pointage': renderPointageWeekly,
+  '/diffusion': renderDiffusionParAgence,
   '/ouvriers': renderOuvriers,
   '/agences': renderAgences,
   '/chantiers': renderChantiers,
@@ -162,11 +162,11 @@ const storage = {
   set(k, v){ localStorage.setItem(k, JSON.stringify(v)); }
 };
 const KEYS = {
-  ouvriers:  'app_ouvriers_v9',
-  agences:   'app_agences_v9',
-  chantiers: 'app_chantiers_v9',
-  pointage:  'app_pointage_v9',   // {date, ouvrier, agence, chantier, heures}
-  params:    'app_params_v9',
+  ouvriers:  'app_ouvriers_v10',
+  agences:   'app_agences_v10',
+  chantiers: 'app_chantiers_v10',
+  pointage:  'app_pointage_v10',   // {date, ouvrier, agence, chantier, heures}
+  params:    'app_params_v10',
 };
 
 /* =========
@@ -190,54 +190,16 @@ const DEFAULT_CHANTIERS = [
 const DEFAULT_PARAMS = { qualifs:["N1","N2","N3P1","N3P2","N4P1","N4P2"] };
 
 /* =========
-   UTILS — ***LOCAL TIME*** (lundi=1…dimanche=0), pas d’UTC
+   UTILS — LOCAL (lundi=1…dimanche=0)
    ========= */
 function escapeHtml(s=""){ return s.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;"); }
 function formatHeuresFR(v){ const n = Number(v??0); return `${n.toFixed(2).replace(".",",")} Heures`; }
 function formatHeuresShort(v){ const n = Number(v??0); return n.toFixed(2).replace(".",","); }
 function fullName(o){ return `${o.prenom} ${o.nom}`.trim(); }
-
-// yyyy-mm-dd basé sur l'heure locale
-function toYMDLocal(d){
-  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
-  return `${y}-${m}-${day}`;
-}
-
-// ISO week (lundi) en LOCAL
-function getISOWeekLocal(d){
-  const date = new Date(d.getFullYear(), d.getMonth(), d.getDate()); // local
-  let day = date.getDay(); if(day===0) day=7;          // 1..7 (lundi..dimanche)
-  // Aller au jeudi de la semaine courante
-  date.setDate(date.getDate() + 4 - day);
-  const yearStart = new Date(date.getFullYear(), 0, 1);
-  const diffDays = Math.floor( (date - yearStart) / 86400000 ) + 1;
-  const weekNo = Math.ceil( diffDays / 7 );
-  return {year: date.getFullYear(), week: weekNo};
-}
-
-// Dates (yyyy-mm-dd) de la semaine (lundi→dimanche) en LOCAL
-function weekDatesLocal(year, week){
-  // Jeudi de la semaine 1 = 4 janvier
-  const simple = new Date(year, 0, 4);
-  let day = simple.getDay(); if(day===0) day=7;
-  const monday = new Date(simple);
-  monday.setDate(simple.getDate() - day + 1 + (week-1)*7);
-  return [...Array(7)].map((_,i)=>{
-    const d = new Date(monday); d.setDate(monday.getDate()+i); return toYMDLocal(d);
-  });
-}
-
-// TOUS LES JOURS OUVRÉS DE L'ANNÉE: lundi→vendredi (jamais samedi/dimanche), en LOCAL
-function weekdaysOfYearLocal(year){
-  const start = new Date(year,0,1);
-  const end = new Date(year+1,0,1);
-  const out=[];
-  for(let d = new Date(start); d < end; d.setDate(d.getDate()+1)){
-    let wd = d.getDay(); if(wd===0) wd=7;       // 1..7
-    if(wd>=1 && wd<=5){ out.push(new Date(d)); } // Lundi..Vendredi
-  }
-  return out;
-}
+function toYMDLocal(d){ const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${day}`; }
+function getISOWeekLocal(d){ const date=new Date(d.getFullYear(), d.getMonth(), d.getDate()); let day=date.getDay(); if(day===0) day=7; date.setDate(date.getDate()+4-day); const yearStart=new Date(date.getFullYear(),0,1); const diffDays=Math.floor((date-yearStart)/86400000)+1; return {year:date.getFullYear(), week:Math.ceil(diffDays/7)}; }
+function weekDatesLocal(year, week){ const simple=new Date(year,0,4); let day=simple.getDay(); if(day===0) day=7; const monday=new Date(simple); monday.setDate(simple.getDate()-day+1+(week-1)*7); return [...Array(7)].map((_,i)=>{ const d=new Date(monday); d.setDate(monday.getDate()+i); return toYMDLocal(d); }); }
+function weekdaysOfYearLocal(year){ const start=new Date(year,0,1), end=new Date(year+1,0,1), out=[]; for(let d=new Date(start); d<end; d.setDate(d.getDate()+1)){ let wd=d.getDay(); if(wd===0) wd=7; if(wd>=1 && wd<=5) out.push(new Date(d)); } return out; }
 function niceDayLabel(iso){ const [y,m,da]=iso.split('-').map(Number); const d=new Date(y,m-1,da); return d.toLocaleDateString('fr-FR',{weekday:'short', day:'2-digit', month:'2-digit'}); }
 
 /* =================
@@ -456,7 +418,7 @@ function renderChantiers(){
 }
 
 /* =================
-   PLANNING — READ-ONLY (toute l’année, L→V, 2 lignes/ouvrier) — ***LOCAL MONDAY***
+   PLANNING — READ-ONLY (toute l’année, L→V)
    ================= */
 function renderPlanningDailyReadOnly(){
   const route='/planning';
@@ -465,7 +427,7 @@ function renderPlanningDailyReadOnly(){
   const currentYear = new Date().getFullYear();
   const years = Array.from({length:5},(_,i)=>currentYear-2+i);
   const ySel = parseInt(new URLSearchParams(location.hash.split('?')[1]).get('year') || currentYear, 10);
-  const days = weekdaysOfYearLocal(ySel); // Lundi→Vendredi uniquement (LOCAL)
+  const days = weekdaysOfYearLocal(ySel);
 
   // index pointage -> map[ouvrier][yyyy-mm-dd] = {h, c}
   const map = {};
@@ -474,13 +436,13 @@ function renderPlanningDailyReadOnly(){
   pointage.forEach(r=>{
     const [Y,M,D] = (r.date||'').split('-').map(Number);
     if(!Y) return;
-    const d = new Date(Y, M-1, D); // local
+    const d = new Date(Y, M-1, D);
     if(d >= y0 && d < y1){
       (map[r.ouvrier] ||= {})[r.date] = { h:+(r.heures||0), c:r.chantier||"" };
     }
   });
 
-  // Entêtes groupées par semaines (LOCAL, lundi)
+  // Entêtes groupées par semaines
   const weeks = []; // {week, count, dates[]}
   let cur=null;
   days.forEach(d=>{
@@ -493,7 +455,7 @@ function renderPlanningDailyReadOnly(){
   pageRoot.innerHTML = `
     <section class="panel">
       <div class="panel-h">
-        <div class="toolbar"><span class="pill">Planning — ${ySel} (Lundi → Vendredi, sans WE)</span></div>
+        <div class="toolbar"><span class="pill">Planning — ${ySel} (Lundi → Vendredi)</span></div>
         <div class="toolbar">
           <label class="pill">Année</label>
           <select id="yearSel">${years.map(y=>`<option ${y===ySel?'selected':''}>${y}</option>`).join('')}</select>
@@ -513,17 +475,14 @@ function renderPlanningDailyReadOnly(){
   const thead = document.getElementById('thead');
   const tbody = document.getElementById('tbody');
 
-  // Ligne 1 : semaines
   const thWeeks = `<tr class="th-group"><th class="sticky-col"></th>${
     weeks.map(w=>`<th class="weekhead" colspan="${w.count}">S${w.week}</th>`).join('')
   }</tr>`;
-  // Ligne 2 : jours (L→V)
   const thDays = `<tr><th class="sticky-col">Ouvrier</th>${
     weeks.map(w => w.dates.map(iso=>`<th><div class="dayhead">${escapeHtml(niceDayLabel(iso))}</div></th>`).join('')).join('')
   }</tr>`;
   thead.innerHTML = thWeeks + thDays;
 
-  // 2 lignes par ouvrier : 1=Heures (XX,XX), 2=Chantier (tag). Nom fusionné (rowspan=2).
   ouvriers.forEach(o=>{
     const name = fullName(o);
     let row1 = `<tr><td class="sticky-col mono" rowspan="2">${escapeHtml(name)}</td>`;
@@ -554,7 +513,7 @@ function renderPlanningDailyReadOnly(){
 }
 
 /* =================
-   POINTAGE — HEBDO (heures + chantier / jour)
+   POINTAGE — HEBDO (auto-sauvegarde par saisie & avant changement de semaine)
    ================= */
 function renderPointageWeekly(){
   const route='/pointage';
@@ -616,17 +575,34 @@ function renderPointageWeekly(){
     const list = storage.get(KEYS.chantiers, DEFAULT_CHANTIERS).map(c=>c.code);
     return `<option value=""></option>` + list.map(c=>`<option ${c===selVal?'selected':''}>${c}</option>`).join('');
   }
-  function daysForWeek(year, week){ return weekDatesLocal(year, week).slice(0,5); } // Lundi..Vendredi (LOCAL)
+  function daysForWeek(year, week){ return weekDatesLocal(year, week).slice(0,5); } // Lundi..Vendredi
 
   function getMapForWeek(year, week){
     const dates = daysForWeek(year, week);
     const map = new Map(); // name -> {jours:[{h,c},...]}
     ouvriers.forEach(o=> map.set(o.nomComplet, { worker:o, jours:dates.map(()=>({h:0,c:""})) }));
-    pointage.filter(r=> dates.includes(r.date)).forEach(r=>{
+    storage.get(KEYS.pointage, []).filter(r=> dates.includes(r.date)).forEach(r=>{
       const idx = dates.indexOf(r.date); const ref = map.get(r.ouvrier);
       if(ref){ ref.jours[idx] = { h:(+r.heures||0), c:(r.chantier||"") }; }
     });
     return {map, dates};
+  }
+
+  function persistWeek(year, week){
+    const dates = daysForWeek(year, week);
+    const keep = storage.get(KEYS.pointage, []).filter(r=> !dates.includes(r.date));
+    document.querySelectorAll('tr[data-worker]').forEach(tr=>{
+      const ouvrier = tr.dataset.worker;
+      const agence = (storage.get(KEYS.ouvriers, DEFAULT_OUVRIERS).find(o=>fullName(o)===ouvrier)?.agence)||"";
+      tr.querySelectorAll('.pcell').forEach((cell,dayIdx)=>{
+        const h = +cell.querySelector('.hsel').value || 0;
+        const c = (cell.querySelector('.csel').value || "").trim();
+        if(h>0 || c){
+          keep.push({ date: dates[dayIdx], ouvrier, agence, chantier: c, heures: h });
+        }
+      });
+    });
+    storage.set(KEYS.pointage, keep);
   }
 
   function renderTable(){
@@ -651,30 +627,39 @@ function renderPointageWeekly(){
       </tr>`;
     }).join('');
 
-    bindRowEvents(dates);
+    bindRowEvents();
     recomputeTotals();
   }
 
-  function bindRowEvents(dates){
+  function bindRowEvents(){
+    const curYear = ()=>parseInt(pYear.value,10);
+    const curWeek = ()=>parseInt(pWeek.value,10);
+
     tb.querySelectorAll('select.hsel').forEach(sel=>{
       sel.addEventListener('change', ()=>{
-        setDirty('/pointage', true);
+        const y=curYear(), w=curWeek();
+        // recalcul total ligne
         const tr = sel.closest('tr');
         const vals = [...tr.querySelectorAll('select.hsel')].map(s=>+s.value||0);
         tr.querySelector('.rowTotal').textContent = vals.reduce((s,h)=>s+h,0).toFixed(2);
+        // autosave immédiat
+        persistWeek(y,w);
+        setDirty('/pointage', true);
         recomputeTotals();
       });
     });
     tb.querySelectorAll('select.csel').forEach(sel=>{
-      sel.addEventListener('change', ()=> setDirty('/pointage', true));
+      sel.addEventListener('change', ()=>{
+        const y=parseInt(pYear.value,10), w=parseInt(pWeek.value,10);
+        persistWeek(y,w);
+        setDirty('/pointage', true);
+      });
     });
     tb.querySelectorAll('.autoOne').forEach(btn=>{
       btn.addEventListener('click', ()=>{
         const tr = btn.closest('tr');
         const selects = [...tr.querySelectorAll('select.hsel')];
-        selects.forEach((s,idx)=>{ s.value = (idx<4 ? 7.5 : 7.0).toFixed(1); });
-        setDirty('/pointage', true);
-        selects.forEach(s=>s.dispatchEvent(new Event('change')));
+        selects.forEach((s,idx)=>{ s.value = (idx<4 ? 7.5 : 7.0).toFixed(1); s.dispatchEvent(new Event('change')); });
       });
     });
   }
@@ -693,45 +678,46 @@ function renderPointageWeekly(){
     document.getElementById('totSem').textContent = totSem.toFixed(2);
   }
 
-  pYear.addEventListener('input', ()=>{ renderTable(); setDirty(route,true); });
-  pWeek.addEventListener('change', ()=>{ renderTable(); setDirty(route,true); });
-
+  // Sauvegarde explicite (bouton)
   async function save(){
-    const year = parseInt(pYear.value,10);
-    const week = parseInt(pWeek.value,10);
-    const dates = weekDatesLocal(year, week).slice(0,5); // L→V
-
-    const keep = storage.get(KEYS.pointage, []).filter(r=> !dates.includes(r.date));
-    document.querySelectorAll('tr[data-worker]').forEach(tr=>{
-      const ouvrier = tr.dataset.worker;
-      const agence = (storage.get(KEYS.ouvriers, DEFAULT_OUVRIERS).find(o=>fullName(o)===ouvrier)?.agence)||"";
-      tr.querySelectorAll('.pcell').forEach((cell,dayIdx)=>{
-        const h = +cell.querySelector('.hsel').value || 0;
-        const c = (cell.querySelector('.csel').value || "").trim();
-        if(h>0 || c){
-          keep.push({ date: dates[dayIdx], ouvrier, agence, chantier: c, heures: h });
-        }
-      });
-    });
-
-    storage.set(KEYS.pointage, keep);
+    const y=parseInt(pYear.value,10), w=parseInt(pWeek.value,10);
+    persistWeek(y,w);
     setDirty(route,false);
   }
   saveHandlers[route]=save;
   document.getElementById('save').addEventListener('click', save);
+
+  // Sauvegarder la semaine visible avant de changer la sélection
+  let lastYear = parseInt(pYear.value,10);
+  let lastWeek = parseInt(pWeek.value,10);
+
+  pYear.addEventListener('focus', ()=>{ lastYear = parseInt(pYear.value,10); });
+  pWeek.addEventListener('focus', ()=>{ lastWeek = parseInt(pWeek.value,10); });
+
+  pYear.addEventListener('change', ()=>{
+    // persiste l'ancienne semaine/année avant de recharger
+    persistWeek(lastYear, lastWeek);
+    setDirty(route,false);
+    lastYear = parseInt(pYear.value,10);
+    renderTable();
+  });
+  pWeek.addEventListener('change', ()=>{
+    persistWeek(lastYear, lastWeek);
+    setDirty(route,false);
+    lastWeek = parseInt(pWeek.value,10);
+    renderTable();
+  });
 
   renderTable();
   setDirty(route,false);
 }
 
 /* =================
-   DIFFUSION — 1 clic = ouvre Outlook avec le tableau texte (par agence)
+   DIFFUSION — mail “tableau” (ASCII/Unicode) par agence, sans téléchargement
    ================= */
 function renderDiffusionParAgence(){
   const route='/diffusion';
-  const pointage = storage.get(KEYS.pointage, []);
   const agencesObj = storage.get(KEYS.agences, DEFAULT_AGENCES);
-
   const {year:curY, week:curW} = getISOWeekLocal(new Date());
 
   pageRoot.innerHTML = `
@@ -780,7 +766,7 @@ function renderDiffusionParAgence(){
     const year = parseInt(dYear.value,10);
     const week = parseInt(dWeek.value,10);
     const weekIsoDates = weekDates(year, week);
-    const rows = pointage.filter(r=>weekIsoDates.includes(r.date));
+    const rows = storage.get(KEYS.pointage, []).filter(r=>weekIsoDates.includes(r.date));
 
     const byAgency = {};
     rows.forEach(r=>{
@@ -794,31 +780,41 @@ function renderDiffusionParAgence(){
     return { byAgency, weekIsoDates };
   }
 
-  function formatBodyAsTableText(agName){
+  function drawBoxTable(headers, rows, widths){
+    const topL='┌', topT='┬', topR='┐', midL='├', midT='┼', midR='┤', botL='└', botT='┴', botR='┘', h='─', v='│';
+    const line = (left,sep,right)=> left + widths.map(w=>h.repeat(w)).join(sep) + right + '\n';
+    const pad = (s,w)=>{ s=(s??'').toString(); if(s.length>w) s=s.slice(0,w); return s + ' '.repeat(w-s.length); };
+
+    let out = line(topL, topT, topR);
+    out += v + headers.map((h,i)=>pad(h,widths[i])).join(v) + v + '\n';
+    out += line(midL, midT, midR);
+    rows.forEach(r=>{ out += v + r.map((c,i)=>pad(c,widths[i])).join(v) + v + '\n'; });
+    out += line(botL, botT, botR);
+    return out;
+  }
+
+  function formatBodyAsBoxTable(agName){
     const { byAgency, weekIsoDates } = groupData();
     const recs = byAgency[agName] || {};
     const workers = Object.keys(recs).sort();
-    const head = ['Ouvrier', ...weekIsoDates.map(niceDayLabel), 'Total'];
-    const widths = [24, 12, 12, 12, 12, 12, 10]; // colonnes fixes pour lisibilité
-    function pad(s, w){ s = (s||'').toString(); if(s.length>w) return s.slice(0,w); return s + ' '.repeat(w-s.length); }
+    const headers = ['Ouvrier', ...weekIsoDates.map(niceDayLabel), 'Total'];
+    const widths = [24, 15, 15, 15, 15, 15, 10]; // un peu plus larges
+    const rows = workers.map(w=>{
+      const rec = recs[w]; let tot=0;
+      const cols = [w];
+      weekIsoDates.forEach(iso=>{
+        const d = rec.d[iso]; let cell='—';
+        if(d){ tot += d.h||0; cell = `${formatHeuresShort(d.h)}h${d.c?` ${d.c}`:''}`; }
+        cols.push(cell);
+      });
+      cols.push(`${formatHeuresShort(tot)}h`);
+      return cols;
+    });
 
     let out = '';
-    out += 'Semaine ' + dWeek.value + '/' + dYear.value + ' — ' + agName + '\n\n';
-    out += head.map((h,i)=>pad(h,widths[i])).join('') + '\n';
-    out += widths.map(w=>'─'.repeat(w)).join('') + '\n';
-    workers.forEach(w=>{
-      const rec = recs[w];
-      let tot = 0;
-      const cols = [ pad(w,widths[0]) ];
-      weekIsoDates.forEach((iso, idx)=>{
-        const d = rec.d[iso];
-        let cell = '—';
-        if(d){ tot += d.h||0; cell = `${formatHeuresShort(d.h)}h${d.c?` ${d.c}`:''}`; }
-        cols.push(pad(cell, widths[idx+1]));
-      });
-      cols.push(pad(`${formatHeuresShort(tot)}h`, widths[6]));
-      out += cols.join('') + '\n';
-    });
+    out += `Semaine ${dWeek.value}/${dYear.value} — ${agName}\n\n`;
+    out += drawBoxTable(headers, rows, widths);
+    out += `\nCordialement.\n`;
     return out;
   }
 
@@ -869,13 +865,13 @@ function renderDiffusionParAgence(){
       const to = (mapEmail[ag]||"").trim();
       if(!to){ console.warn("Aucun email pour", ag); continue; }
       const subject = `Synthèse hebdo — ${ag} — Semaine ${dWeek.value}/${dYear.value}`;
-      const body = formatBodyAsTableText(ag) + '\n';
-      openOutlookMail(to, subject, body); // ouvre le brouillon Outlook directement
+      const body = formatBodyAsBoxTable(ag);
+      openOutlookMail(to, subject, body);
     }
     setDirty(route,false);
   }
 
-  dYear.addEventListener('input', ()=>{ renderTables(); setDirty(route,true); });
+  dYear.addEventListener('change', ()=>{ renderTables(); setDirty(route,true); });
   dWeek.addEventListener('change', ()=>{ renderTables(); setDirty(route,true); });
   document.addEventListener('change', (e)=>{ if(e.target.classList?.contains('agChk')) setDirty(route,true); });
 
