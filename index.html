@@ -112,7 +112,7 @@ const pageRoot = document.getElementById('page');
 const routes = {
   '/planning': renderPlanningDailyReadOnly,  // Planning auto, L→V (toute l’année)
   '/pointage': renderPointageWeekly,         // Saisie hebdo
-  '/diffusion': renderDiffusionParAgence,    // Ouverture Outlook (mailto) 1 clic, sans téléchargement
+  '/diffusion': renderDiffusionParAgence,    // Ouvre Outlook (mailto)
   '/ouvriers': renderOuvriers,
   '/agences': renderAgences,
   '/chantiers': renderChantiers,
@@ -162,11 +162,11 @@ const storage = {
   set(k, v){ localStorage.setItem(k, JSON.stringify(v)); }
 };
 const KEYS = {
-  ouvriers:  'app_ouvriers_v8',
-  agences:   'app_agences_v8',
-  chantiers: 'app_chantiers_v8',
-  pointage:  'app_pointage_v8',   // {date, ouvrier, agence, chantier, heures}
-  params:    'app_params_v8',
+  ouvriers:  'app_ouvriers_v9',
+  agences:   'app_agences_v9',
+  chantiers: 'app_chantiers_v9',
+  pointage:  'app_pointage_v9',   // {date, ouvrier, agence, chantier, heures}
+  params:    'app_params_v9',
 };
 
 /* =========
@@ -190,39 +190,55 @@ const DEFAULT_CHANTIERS = [
 const DEFAULT_PARAMS = { qualifs:["N1","N2","N3P1","N3P2","N4P1","N4P2"] };
 
 /* =========
-   UTILS
+   UTILS — ***LOCAL TIME*** (lundi=1…dimanche=0), pas d’UTC
    ========= */
 function escapeHtml(s=""){ return s.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;"); }
 function formatHeuresFR(v){ const n = Number(v??0); return `${n.toFixed(2).replace(".",",")} Heures`; }
 function formatHeuresShort(v){ const n = Number(v??0); return n.toFixed(2).replace(".",","); }
 function fullName(o){ return `${o.prenom} ${o.nom}`.trim(); }
-function getISOWeek(d){
-  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-  const dayNum = date.getUTCDay() || 7;
-  date.setUTCDate(date.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(date.getUTCFullYear(),0,1));
-  const weekNo = Math.ceil((((date - yearStart) / 86400000) + 1)/7);
-  return {year: date.getUTCFullYear(), week: weekNo};
+
+// yyyy-mm-dd basé sur l'heure locale
+function toYMDLocal(d){
+  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
 }
-function weekDatesISO(year, week){
-  const simple = new Date(Date.UTC(year,0,4));
-  const dayOfWeek = simple.getUTCDay() || 7;
-  const monday = new Date(simple); monday.setUTCDate(simple.getUTCDate() - dayOfWeek + 1 + (week-1)*7);
-  return [...Array(7)].map((_,i)=>new Date(monday.getTime()+i*86400000).toISOString().slice(0,10));
+
+// ISO week (lundi) en LOCAL
+function getISOWeekLocal(d){
+  const date = new Date(d.getFullYear(), d.getMonth(), d.getDate()); // local
+  let day = date.getDay(); if(day===0) day=7;          // 1..7 (lundi..dimanche)
+  // Aller au jeudi de la semaine courante
+  date.setDate(date.getDate() + 4 - day);
+  const yearStart = new Date(date.getFullYear(), 0, 1);
+  const diffDays = Math.floor( (date - yearStart) / 86400000 ) + 1;
+  const weekNo = Math.ceil( diffDays / 7 );
+  return {year: date.getFullYear(), week: weekNo};
 }
-// TOUS LES JOURS OUVRÉS DE L'ANNÉE: lundi→vendredi (jamais samedi/dimanche)
-function weekdaysOfYear(year){
-  const start = new Date(Date.UTC(year,0,1));
-  const end = new Date(Date.UTC(year+1,0,1));
+
+// Dates (yyyy-mm-dd) de la semaine (lundi→dimanche) en LOCAL
+function weekDatesLocal(year, week){
+  // Jeudi de la semaine 1 = 4 janvier
+  const simple = new Date(year, 0, 4);
+  let day = simple.getDay(); if(day===0) day=7;
+  const monday = new Date(simple);
+  monday.setDate(simple.getDate() - day + 1 + (week-1)*7);
+  return [...Array(7)].map((_,i)=>{
+    const d = new Date(monday); d.setDate(monday.getDate()+i); return toYMDLocal(d);
+  });
+}
+
+// TOUS LES JOURS OUVRÉS DE L'ANNÉE: lundi→vendredi (jamais samedi/dimanche), en LOCAL
+function weekdaysOfYearLocal(year){
+  const start = new Date(year,0,1);
+  const end = new Date(year+1,0,1);
   const out=[];
-  for(let d = new Date(start); d < end; d.setUTCDate(d.getUTCDate()+1)){
-    const wd = d.getUTCDay(); // 0=Dim .. 6=Sam
+  for(let d = new Date(start); d < end; d.setDate(d.getDate()+1)){
+    let wd = d.getDay(); if(wd===0) wd=7;       // 1..7
     if(wd>=1 && wd<=5){ out.push(new Date(d)); } // Lundi..Vendredi
   }
   return out;
 }
-function dateISO(d){ const x=new Date(d); x.setHours(0,0,0,0); return x.toISOString().slice(0,10); }
-function niceDayLabel(iso){ const d = new Date(iso); return d.toLocaleDateString('fr-FR',{weekday:'short', day:'2-digit', month:'2-digit'}); }
+function niceDayLabel(iso){ const [y,m,da]=iso.split('-').map(Number); const d=new Date(y,m-1,da); return d.toLocaleDateString('fr-FR',{weekday:'short', day:'2-digit', month:'2-digit'}); }
 
 /* =================
    OUVRIERS — FORM vertical
@@ -440,7 +456,7 @@ function renderChantiers(){
 }
 
 /* =================
-   PLANNING — READ-ONLY (toute l’année, L→V, 2 lignes/ouvrier)
+   PLANNING — READ-ONLY (toute l’année, L→V, 2 lignes/ouvrier) — ***LOCAL MONDAY***
    ================= */
 function renderPlanningDailyReadOnly(){
   const route='/planning';
@@ -449,25 +465,27 @@ function renderPlanningDailyReadOnly(){
   const currentYear = new Date().getFullYear();
   const years = Array.from({length:5},(_,i)=>currentYear-2+i);
   const ySel = parseInt(new URLSearchParams(location.hash.split('?')[1]).get('year') || currentYear, 10);
-  const days = weekdaysOfYear(ySel); // Lundi→Vendredi uniquement
+  const days = weekdaysOfYearLocal(ySel); // Lundi→Vendredi uniquement (LOCAL)
 
-  // index pointage -> map[ouvrier][dateISO] = {h, c}
+  // index pointage -> map[ouvrier][yyyy-mm-dd] = {h, c}
   const map = {};
-  const y0 = new Date(Date.UTC(ySel,0,1));
-  const y1 = new Date(Date.UTC(ySel+1,0,1));
+  const y0 = new Date(ySel,0,1);
+  const y1 = new Date(ySel+1,0,1);
   pointage.forEach(r=>{
-    const d = new Date(r.date+'T00:00:00Z');
+    const [Y,M,D] = (r.date||'').split('-').map(Number);
+    if(!Y) return;
+    const d = new Date(Y, M-1, D); // local
     if(d >= y0 && d < y1){
       (map[r.ouvrier] ||= {})[r.date] = { h:+(r.heures||0), c:r.chantier||"" };
     }
   });
 
-  // Entêtes par semaines (groupage)
+  // Entêtes groupées par semaines (LOCAL, lundi)
   const weeks = []; // {week, count, dates[]}
   let cur=null;
   days.forEach(d=>{
-    const {week} = getISOWeek(d);
-    const iso = dateISO(d);
+    const {week} = getISOWeekLocal(d);
+    const iso = toYMDLocal(d);
     if(!cur || cur.week!==week){ cur = {week, count:0, dates:[]}; weeks.push(cur); }
     cur.count++; cur.dates.push(iso);
   });
@@ -499,7 +517,7 @@ function renderPlanningDailyReadOnly(){
   const thWeeks = `<tr class="th-group"><th class="sticky-col"></th>${
     weeks.map(w=>`<th class="weekhead" colspan="${w.count}">S${w.week}</th>`).join('')
   }</tr>`;
-  // Ligne 2 : jours (L→V seulement)
+  // Ligne 2 : jours (L→V)
   const thDays = `<tr><th class="sticky-col">Ouvrier</th>${
     weeks.map(w => w.dates.map(iso=>`<th><div class="dayhead">${escapeHtml(niceDayLabel(iso))}</div></th>`).join('')).join('')
   }</tr>`;
@@ -542,7 +560,7 @@ function renderPointageWeekly(){
   const route='/pointage';
   const ouvriers = storage.get(KEYS.ouvriers, DEFAULT_OUVRIERS).map(o=>({ ...o, nomComplet: fullName(o) }));
   const pointage = storage.get(KEYS.pointage, []);
-  const {year:curY, week:curW} = getISOWeek(new Date());
+  const {year:curY, week:curW} = getISOWeekLocal(new Date());
 
   pageRoot.innerHTML = `
     <section class="panel">
@@ -598,7 +616,7 @@ function renderPointageWeekly(){
     const list = storage.get(KEYS.chantiers, DEFAULT_CHANTIERS).map(c=>c.code);
     return `<option value=""></option>` + list.map(c=>`<option ${c===selVal?'selected':''}>${c}</option>`).join('');
   }
-  function daysForWeek(year, week){ return weekDatesISO(year, week).slice(0,5); } // Lundi..Vendredi
+  function daysForWeek(year, week){ return weekDatesLocal(year, week).slice(0,5); } // Lundi..Vendredi (LOCAL)
 
   function getMapForWeek(year, week){
     const dates = daysForWeek(year, week);
@@ -681,7 +699,7 @@ function renderPointageWeekly(){
   async function save(){
     const year = parseInt(pYear.value,10);
     const week = parseInt(pWeek.value,10);
-    const dates = daysForWeek(year, week);
+    const dates = weekDatesLocal(year, week).slice(0,5); // L→V
 
     const keep = storage.get(KEYS.pointage, []).filter(r=> !dates.includes(r.date));
     document.querySelectorAll('tr[data-worker]').forEach(tr=>{
@@ -707,14 +725,14 @@ function renderPointageWeekly(){
 }
 
 /* =================
-   DIFFUSION — 1 clic = brouillons Outlook ouverts (mailto), sans téléchargement
+   DIFFUSION — 1 clic = ouvre Outlook avec le tableau texte (par agence)
    ================= */
 function renderDiffusionParAgence(){
   const route='/diffusion';
   const pointage = storage.get(KEYS.pointage, []);
   const agencesObj = storage.get(KEYS.agences, DEFAULT_AGENCES);
 
-  const {year:curY, week:curW} = getISOWeek(new Date());
+  const {year:curY, week:curW} = getISOWeekLocal(new Date());
 
   pageRoot.innerHTML = `
     <section class="panel">
@@ -756,17 +774,12 @@ function renderDiffusionParAgence(){
     </label>`;
   }).join('');
 
-  function weekDates(year, week){
-    const simple = new Date(Date.UTC(year,0,4));
-    const dayOfWeek = simple.getUTCDay() || 7;
-    const monday = new Date(simple); monday.setUTCDate(simple.getUTCDate() - dayOfWeek + 1 + (week-1)*7);
-    return [...Array(7)].map((_,i)=>new Date(monday.getTime()+i*86400000).toISOString().slice(0,10));
-  }
+  function weekDates(year, week){ return weekDatesLocal(year, week).slice(0,5); } // Lun→Ven
 
   function groupData(){
     const year = parseInt(dYear.value,10);
     const week = parseInt(dWeek.value,10);
-    const weekIsoDates = weekDates(year, week).slice(0,5); // Lun→Ven
+    const weekIsoDates = weekDates(year, week);
     const rows = pointage.filter(r=>weekIsoDates.includes(r.date));
 
     const byAgency = {};
@@ -786,8 +799,7 @@ function renderDiffusionParAgence(){
     const recs = byAgency[agName] || {};
     const workers = Object.keys(recs).sort();
     const head = ['Ouvrier', ...weekIsoDates.map(niceDayLabel), 'Total'];
-    // largeur colonnes fixes pour lisibilité dans Outlook (monospace recommandé)
-    const widths = [24, 12, 12, 12, 12, 12, 10];
+    const widths = [24, 12, 12, 12, 12, 12, 10]; // colonnes fixes pour lisibilité
     function pad(s, w){ s = (s||'').toString(); if(s.length>w) return s.slice(0,w); return s + ' '.repeat(w-s.length); }
 
     let out = '';
@@ -811,7 +823,6 @@ function renderDiffusionParAgence(){
   }
 
   function openOutlookMail(to, subject, body){
-    // mailto: ouvre Outlook (ou client par défaut) avec le corps déjà rempli — pas de téléchargement.
     const url = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     window.location.href = url;
   }
@@ -858,8 +869,8 @@ function renderDiffusionParAgence(){
       const to = (mapEmail[ag]||"").trim();
       if(!to){ console.warn("Aucun email pour", ag); continue; }
       const subject = `Synthèse hebdo — ${ag} — Semaine ${dWeek.value}/${dYear.value}`;
-      const body = formatBodyAsTableText(ag) + '\n'; // texte mono lisible, aucune pièce jointe
-      openOutlookMail(to, subject, body);
+      const body = formatBodyAsTableText(ag) + '\n';
+      openOutlookMail(to, subject, body); // ouvre le brouillon Outlook directement
     }
     setDirty(route,false);
   }
