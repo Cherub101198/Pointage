@@ -162,11 +162,11 @@ const storage = {
   set(k, v){ localStorage.setItem(k, JSON.stringify(v)); }
 };
 const KEYS = {
-  ouvriers:  'app_ouvriers_v10',
-  agences:   'app_agences_v10',
-  chantiers: 'app_chantiers_v10',
-  pointage:  'app_pointage_v10',   // {date, ouvrier, agence, chantier, heures}
-  params:    'app_params_v10',
+  ouvriers:  'app_ouvriers_v11',
+  agences:   'app_agences_v11',
+  chantiers: 'app_chantiers_v11',
+  pointage:  'app_pointage_v11',   // {date, ouvrier, agence, chantier, heures}
+  params:    'app_params_v11',
 };
 
 /* =========
@@ -513,12 +513,11 @@ function renderPlanningDailyReadOnly(){
 }
 
 /* =================
-   POINTAGE — HEBDO (auto-sauvegarde par saisie & avant changement de semaine)
+   POINTAGE — HEBDO (autosave)
    ================= */
 function renderPointageWeekly(){
   const route='/pointage';
   const ouvriers = storage.get(KEYS.ouvriers, DEFAULT_OUVRIERS).map(o=>({ ...o, nomComplet: fullName(o) }));
-  const pointage = storage.get(KEYS.pointage, []);
   const {year:curY, week:curW} = getISOWeekLocal(new Date());
 
   pageRoot.innerHTML = `
@@ -576,7 +575,6 @@ function renderPointageWeekly(){
     return `<option value=""></option>` + list.map(c=>`<option ${c===selVal?'selected':''}>${c}</option>`).join('');
   }
   function daysForWeek(year, week){ return weekDatesLocal(year, week).slice(0,5); } // Lundi..Vendredi
-
   function getMapForWeek(year, week){
     const dates = daysForWeek(year, week);
     const map = new Map(); // name -> {jours:[{h,c},...]}
@@ -587,7 +585,6 @@ function renderPointageWeekly(){
     });
     return {map, dates};
   }
-
   function persistWeek(year, week){
     const dates = daysForWeek(year, week);
     const keep = storage.get(KEYS.pointage, []).filter(r=> !dates.includes(r.date));
@@ -604,11 +601,10 @@ function renderPointageWeekly(){
     });
     storage.set(KEYS.pointage, keep);
   }
-
   function renderTable(){
     const year = parseInt(pYear.value,10);
     const week = parseInt(pWeek.value,10);
-    const { map, dates } = getMapForWeek(year, week);
+    const { map } = getMapForWeek(year, week);
 
     tb.innerHTML = [...map.values()].map(({worker, jours})=>{
       const total = jours.reduce((s,j)=>s+(+j.h||0),0);
@@ -630,7 +626,6 @@ function renderPointageWeekly(){
     bindRowEvents();
     recomputeTotals();
   }
-
   function bindRowEvents(){
     const curYear = ()=>parseInt(pYear.value,10);
     const curWeek = ()=>parseInt(pWeek.value,10);
@@ -638,11 +633,9 @@ function renderPointageWeekly(){
     tb.querySelectorAll('select.hsel').forEach(sel=>{
       sel.addEventListener('change', ()=>{
         const y=curYear(), w=curWeek();
-        // recalcul total ligne
         const tr = sel.closest('tr');
         const vals = [...tr.querySelectorAll('select.hsel')].map(s=>+s.value||0);
         tr.querySelector('.rowTotal').textContent = vals.reduce((s,h)=>s+h,0).toFixed(2);
-        // autosave immédiat
         persistWeek(y,w);
         setDirty('/pointage', true);
         recomputeTotals();
@@ -650,7 +643,7 @@ function renderPointageWeekly(){
     });
     tb.querySelectorAll('select.csel').forEach(sel=>{
       sel.addEventListener('change', ()=>{
-        const y=parseInt(pYear.value,10), w=parseInt(pWeek.value,10);
+        const y=curYear(), w=curWeek();
         persistWeek(y,w);
         setDirty('/pointage', true);
       });
@@ -663,7 +656,6 @@ function renderPointageWeekly(){
       });
     });
   }
-
   function recomputeTotals(){
     const idxs=[0,1,2,3,4];
     const colTotals = idxs.map(i=>{
@@ -677,8 +669,6 @@ function renderPointageWeekly(){
     const totSem = colTotals.reduce((s,x)=>s+x,0);
     document.getElementById('totSem').textContent = totSem.toFixed(2);
   }
-
-  // Sauvegarde explicite (bouton)
   async function save(){
     const y=parseInt(pYear.value,10), w=parseInt(pWeek.value,10);
     persistWeek(y,w);
@@ -687,33 +677,20 @@ function renderPointageWeekly(){
   saveHandlers[route]=save;
   document.getElementById('save').addEventListener('click', save);
 
-  // Sauvegarder la semaine visible avant de changer la sélection
+  // Persister avant changement de semaine/année
   let lastYear = parseInt(pYear.value,10);
   let lastWeek = parseInt(pWeek.value,10);
-
   pYear.addEventListener('focus', ()=>{ lastYear = parseInt(pYear.value,10); });
   pWeek.addEventListener('focus', ()=>{ lastWeek = parseInt(pWeek.value,10); });
-
-  pYear.addEventListener('change', ()=>{
-    // persiste l'ancienne semaine/année avant de recharger
-    persistWeek(lastYear, lastWeek);
-    setDirty(route,false);
-    lastYear = parseInt(pYear.value,10);
-    renderTable();
-  });
-  pWeek.addEventListener('change', ()=>{
-    persistWeek(lastYear, lastWeek);
-    setDirty(route,false);
-    lastWeek = parseInt(pWeek.value,10);
-    renderTable();
-  });
+  pYear.addEventListener('change', ()=>{ persistWeek(lastYear, lastWeek); setDirty(route,false); lastYear = parseInt(pYear.value,10); renderTable(); });
+  pWeek.addEventListener('change', ()=>{ persistWeek(lastYear, lastWeek); setDirty(route,false); lastWeek = parseInt(pWeek.value,10); renderTable(); });
 
   renderTable();
   setDirty(route,false);
 }
 
 /* =================
-   DIFFUSION — mail “tableau” (ASCII/Unicode) par agence, sans téléchargement
+   DIFFUSION — mails HTML (tableau stylé) par agence
    ================= */
 function renderDiffusionParAgence(){
   const route='/diffusion';
@@ -761,7 +738,6 @@ function renderDiffusionParAgence(){
   }).join('');
 
   function weekDates(year, week){ return weekDatesLocal(year, week).slice(0,5); } // Lun→Ven
-
   function groupData(){
     const year = parseInt(dYear.value,10);
     const week = parseInt(dWeek.value,10);
@@ -780,47 +756,54 @@ function renderDiffusionParAgence(){
     return { byAgency, weekIsoDates };
   }
 
-  function drawBoxTable(headers, rows, widths){
-    const topL='┌', topT='┬', topR='┐', midL='├', midT='┼', midR='┤', botL='└', botT='┴', botR='┘', h='─', v='│';
-    const line = (left,sep,right)=> left + widths.map(w=>h.repeat(w)).join(sep) + right + '\n';
-    const pad = (s,w)=>{ s=(s??'').toString(); if(s.length>w) s=s.slice(0,w); return s + ' '.repeat(w-s.length); };
-
-    let out = line(topL, topT, topR);
-    out += v + headers.map((h,i)=>pad(h,widths[i])).join(v) + v + '\n';
-    out += line(midL, midT, midR);
-    rows.forEach(r=>{ out += v + r.map((c,i)=>pad(c,widths[i])).join(v) + v + '\n'; });
-    out += line(botL, botT, botR);
-    return out;
-  }
-
-  function formatBodyAsBoxTable(agName){
+  // --- HTML email builder (styles inline pour compatibilité Outlook) ---
+  function buildHtmlEmail(agName){
     const { byAgency, weekIsoDates } = groupData();
     const recs = byAgency[agName] || {};
     const workers = Object.keys(recs).sort();
-    const headers = ['Ouvrier', ...weekIsoDates.map(niceDayLabel), 'Total'];
-    const widths = [24, 15, 15, 15, 15, 15, 10]; // un peu plus larges
+
+    const cols = ['Ouvrier', ...weekIsoDates.map(niceDayLabel), 'Total'];
+    const head = cols.map(h=>`<th style="padding:10px 12px; font-weight:700; text-align:left; border-bottom:1px solid #d0d7e2;">${escapeHtml(h)}</th>`).join('');
     const rows = workers.map(w=>{
-      const rec = recs[w]; let tot=0;
-      const cols = [w];
-      weekIsoDates.forEach(iso=>{
-        const d = rec.d[iso]; let cell='—';
-        if(d){ tot += d.h||0; cell = `${formatHeuresShort(d.h)}h${d.c?` ${d.c}`:''}`; }
-        cols.push(cell);
-      });
-      cols.push(`${formatHeuresShort(tot)}h`);
-      return cols;
-    });
+      const rec = recs[w];
+      const tds = weekIsoDates.map(iso=>{
+        const d = rec.d[iso];
+        if(!d) return `<td style="padding:10px 12px; border-bottom:1px solid #eef1f6;">—</td>`;
+        const cell = `${formatHeuresShort(d.h)} Heures${d.c?` — ${escapeHtml(d.c)}`:''}`;
+        return `<td style="padding:10px 12px; border-bottom:1px solid #eef1f6;">${cell}</td>`;
+      }).join('');
+      return `<tr>
+        <td style="padding:10px 12px; border-bottom:1px solid #eef1f6; font-weight:600;">${escapeHtml(w)}</td>
+        ${tds}
+        <td style="padding:10px 12px; border-bottom:1px solid #eef1f6; font-weight:600;">${formatHeuresShort(rec.total)} Heures</td>
+      </tr>`;
+    }).join('');
 
-    let out = '';
-    out += `Semaine ${dWeek.value}/${dYear.value} — ${agName}\n\n`;
-    out += drawBoxTable(headers, rows, widths);
-    out += `\nCordialement.\n`;
-    return out;
-  }
+    const title = `Semaine ${dWeek.value}/${dYear.value} — ${escapeHtml(agName)}`;
 
-  function openOutlookMail(to, subject, body){
-    const url = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.location.href = url;
+    // Table container avec “carte” sombre claire (couleurs sobres pour Outlook)
+    const html = `
+<!doctype html>
+<html>
+  <body style="margin:0; padding:0; background:#f5f7fb; font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif; color:#0b1220;">
+    <div style="padding:20px;">
+      <div style="max-width:940px; margin:0 auto; background:#0f141f; color:#e9eef6; border-radius:14px; border:1px solid #334158;">
+        <div style="padding:14px 16px; border-bottom:1px solid #334158; font-weight:700;">${title}</div>
+        <div style="padding:12px 16px;">
+          <table role="table" cellpadding="0" cellspacing="0" border="0" style="width:100%; border-collapse:separate; border-spacing:0; background:#111727; color:#e9eef6; border:1px solid #334158; border-radius:12px; overflow:hidden;">
+            <thead style="background:#0f1523; color:#d6def0;">
+              <tr>${head}</tr>
+            </thead>
+            <tbody>${rows || `<tr><td colspan="${cols.length}" style="padding:12px; color:#cbd5e7;">Aucune donnée</td></tr>`}</tbody>
+          </table>
+        </div>
+      </div>
+      <div style="height:16px"></div>
+      <div style="font-size:12px; color:#5b6a85">Email généré automatiquement.</div>
+    </div>
+  </body>
+</html>`;
+    return html;
   }
 
   function renderTables(){
@@ -856,17 +839,22 @@ function renderDiffusionParAgence(){
     }).join('');
   }
 
+  // Ouvre Outlook via mailto avec corps = HTML encodé (certains clients l’affichent en texte)
+  function openOutlookHtml(to, subject, html){
+    const url = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(html)}`;
+    window.location.href = url;
+  }
+
   async function sendEmails(){
     const selected = [...document.querySelectorAll('.agChk:checked')].map(c=>c.value);
     if(selected.length===0){ alert("Sélectionne au moins une agence."); return; }
     const mapEmail = Object.fromEntries(storage.get(KEYS.agences, DEFAULT_AGENCES).map(a=>[a.nom, a.email||""]));
-
     for(const ag of selected){
       const to = (mapEmail[ag]||"").trim();
       if(!to){ console.warn("Aucun email pour", ag); continue; }
       const subject = `Synthèse hebdo — ${ag} — Semaine ${dWeek.value}/${dYear.value}`;
-      const body = formatBodyAsBoxTable(ag);
-      openOutlookMail(to, subject, body);
+      const html = buildHtmlEmail(ag);
+      openOutlookHtml(to, subject, html);
     }
     setDirty(route,false);
   }
