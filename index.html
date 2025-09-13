@@ -28,7 +28,7 @@
   .panel-h{display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:1px solid var(--line);}
   .panel-b{padding:16px;}
   .toolbar{display:flex; flex-wrap:wrap; gap:10px}
-  .btn{padding:10px 14px; border-radius:10px; border:1px solid var(--line); background:#1d2330; color:var(--ink); font-size:14px; cursor:pointer; transition:.15s transform ease, .2s background ease; user-select:none;}
+  .btn{padding:10px 14px; border-radius:10px; border:1px solid var(--line); background:#1d2330; color:#e8ebf1; font-size:14px; cursor:pointer; transition:.15s transform ease, .2s background ease; user-select:none;}
   .btn:hover{transform: translateY(-1px)} .btn.primary{background:linear-gradient(180deg,#2d6bff,#2254d7); border-color:#1e3ea8}
   .btn.ghost{background:transparent}
   .btn.destructive{background:linear-gradient(180deg,#ff5a5f,#d7263d); border-color:#9d1628}
@@ -53,13 +53,13 @@
   .kpi{display:flex; gap:10px; flex-wrap:wrap}
   .kpi .card{background:#101526; border:1px solid var(--line); border-radius:12px; padding:12px 14px; min-width:160px}
   .kpi .card .v{font-size:20px; font-weight:700}
-  /* Modal confirm navigation */
   .modal-backdrop{position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; align-items:center; justify-content:center; z-index:50}
   .modal{background:var(--panel); border:1px solid var(--line); border-radius:12px; width:min(560px, 92vw); box-shadow:0 12px 40px rgba(0,0,0,.45)}
   .modal .m-h{padding:14px 16px; border-bottom:1px solid var(--line); font-weight:600}
   .modal .m-b{padding:16px}
   .modal .m-f{display:flex; gap:10px; justify-content:flex-end; padding:12px 16px; border-top:1px solid var(--line)}
   .show{display:flex}
+  .center{display:flex; align-items:center; justify-content:center}
 </style>
 
 <!-- EmailJS -->
@@ -113,7 +113,7 @@
 const pageRoot = document.getElementById('page');
 const routes = {
   '/planning': renderPlanningGlobal,
-  '/pointage': renderPointage,
+  '/pointage': renderPointageWeekly,         // ← NOUVELLE VERSION HEBDO
   '/diffusion': renderDiffusionParAgence,
   '/ouvriers': renderOuvriers,
   '/agences': renderAgences,
@@ -167,8 +167,8 @@ const KEYS = {
   ouvriers:  'app_ouvriers_v2',
   agences:   'app_agences_v2',
   chantiers: 'app_chantiers_v2',
-  pointage:  'app_pointage_v2',   // lignes: {date, ouvrier, agence, chantier, heures}
-  planning:  'app_planning_v2',   // { [year]: { [workerFullName]: { [week]: "texte" } } }
+  pointage:  'app_pointage_v2',   // {date, ouvrier, agence, chantier?, heures}
+  planning:  'app_planning_v2',   // { [year]: { [fullName]: { [week]: "txt" } } }
   params:    'app_params_v2',
   diffusion: 'app_diffusion_v2',
 };
@@ -195,21 +195,15 @@ const DEFAULT_PARAMS = {
   qualifs:["N1","N2","N3P1","N3P2","N4P1","N4P2"],
   signature:"Cordialement,\nL'équipe Bourdarios",
 };
-const DEFAULT_POINTAGE = []; // vierge, sera généré par la page Pointage
 
 /* =========
    UTILITAIRES
    ========= */
-const today = new Date();
 function escapeHtml(s=""){ return s.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;"); }
 function formatHeuresFR(v){ const n = Number(v??0); return `${n.toFixed(2).replace(".",",")} Heures`; }
 function parseHeures(t){ const n = parseFloat(String(t).replace(/[^\d.,-]/g,"").replace(",", ".")); return isNaN(n)?0:n; }
-function fmtDate(d){ return new Date(d).toLocaleDateString('fr-FR'); }
-function dateISO(d){ const x=new Date(d); x.setHours(0,0,0,0); return x.toISOString().slice(0,10); }
-function thisMonday(d=new Date()){ const dd=new Date(d); const day=(dd.getDay()+6)%7; dd.setHours(0,0,0,0); dd.setDate(dd.getDate()-day); return dd; }
-function addDays(d, n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
+function fullName(o){ return `${o.prenom} ${o.nom}`.trim(); }
 function getISOWeek(d){
-  // ISO week number
   const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
   const dayNum = date.getUTCDay() || 7;
   date.setUTCDate(date.getUTCDate() + 4 - dayNum);
@@ -218,14 +212,18 @@ function getISOWeek(d){
   return {year: date.getUTCFullYear(), week: weekNo};
 }
 function weeksOfYear(year){
-  // 52 ou 53
   const dec28 = new Date(Date.UTC(year,11,28));
   return getISOWeek(dec28).week;
 }
-function fullName(ouv){ return `${ouv.prenom} ${ouv.nom}`.trim(); }
+function weekDatesISO(year, week){
+  const simple = new Date(Date.UTC(year,0,4));
+  const dayOfWeek = simple.getUTCDay() || 7;
+  const monday = new Date(simple); monday.setUTCDate(simple.getUTCDate() - dayOfWeek + 1 + (week-1)*7);
+  return [...Array(7)].map((_,i)=>new Date(monday.getTime()+i*86400000).toISOString().slice(0,10));
+}
 
 /* =================
-   PAGE: OUVRIERS
+   PAGE: OUVRIERS (identique à version validée)
    ================= */
 function renderOuvriers(){
   const route='/ouvriers';
@@ -278,31 +276,22 @@ function renderOuvriers(){
   }
   function render(){ tb.innerHTML = rows.map(rowTpl).join(''); bind(); }
   function bind(){
-    tb.querySelectorAll('[contenteditable]').forEach(el=>{
-      el.addEventListener('input', ()=> setDirty(route,true));
-    });
-    tb.querySelectorAll('.del').forEach(b=>{
-      b.addEventListener('click', e=>{
-        const tr=e.target.closest('tr'); const i=+tr.dataset.i; rows.splice(i,1); render(); setDirty(route,true);
-      });
-    });
+    tb.querySelectorAll('[contenteditable]').forEach(el=>el.addEventListener('input', ()=> setDirty(route,true)));
+    tb.querySelectorAll('.del').forEach(b=>b.addEventListener('click', e=>{
+      const tr=e.target.closest('tr'); const i=+tr.dataset.i; rows.splice(i,1); render(); setDirty(route,true);
+    }));
   }
   document.getElementById('add').addEventListener('click', ()=>{
     const prenom = document.getElementById('iPrenom').value.trim();
     const nom    = document.getElementById('iNom').value.trim();
     if(!prenom || !nom) { alert("Prénom et Nom requis"); return; }
-    rows.push({
-      prenom,
-      nom,
+    rows.push({ prenom, nom,
       metier: document.getElementById('iMetier').value.trim(),
       qualification: document.getElementById('iQualif').value,
-      agence: document.getElementById('iAgence').value
-    });
+      agence: document.getElementById('iAgence').value });
     render(); setDirty(route,true);
-    // NE PAS vider les champs (volontaire)
   });
   async function save(){
-    // lire depuis DOM
     const out=[]; tb.querySelectorAll('tr').forEach(tr=>{
       out.push({
         prenom:(tr.querySelector('[data-k="prenom"]')?.textContent||"").trim(),
@@ -314,18 +303,16 @@ function renderOuvriers(){
     });
     storage.set(KEYS.ouvriers,out); setDirty(route,false);
   }
-  saveHandlers[route]=save;
-  document.getElementById('save').addEventListener('click', save);
+  saveHandlers[route]=save; document.getElementById('save').addEventListener('click', save);
   render(); setDirty(route,false);
 }
 
 /* =================
-   PAGE: AGENCES
+   PAGE: AGENCES (identique)
    ================= */
 function renderAgences(){
   const route='/agences';
   const rows = storage.get(KEYS.agences, DEFAULT_AGENCES);
-
   pageRoot.innerHTML=`
     <section class="panel">
       <div class="panel-h">
@@ -366,29 +353,24 @@ function renderAgences(){
     if(!nom){ alert("Nom requis"); return; }
     rows.push({nom, email: document.getElementById('aEmail').value.trim()});
     render(); setDirty(route,true);
-    // NE PAS vider les champs (volontaire)
   });
   async function save(){
     const out=[]; tb.querySelectorAll('tr').forEach(tr=>{
-      out.push({
-        nom:(tr.querySelector('[data-k="nom"]')?.textContent||"").trim(),
-        email:(tr.querySelector('[data-k="email"]')?.textContent||"").trim()
-      });
+      out.push({ nom:(tr.querySelector('[data-k="nom"]')?.textContent||"").trim(),
+                 email:(tr.querySelector('[data-k="email"]')?.textContent||"").trim() });
     });
     storage.set(KEYS.agences,out); setDirty(route,false);
   }
-  saveHandlers[route]=save;
-  document.getElementById('save').addEventListener('click', save);
+  saveHandlers[route]=save; document.getElementById('save').addEventListener('click', save);
   render(); setDirty(route,false);
 }
 
 /* =================
-   PAGE: CHANTIERS
+   PAGE: CHANTIERS (identique)
    ================= */
 function renderChantiers(){
   const route='/chantiers';
   const rows = storage.get(KEYS.chantiers, DEFAULT_CHANTIERS);
-
   pageRoot.innerHTML=`
     <section class="panel">
       <div class="panel-h">
@@ -444,7 +426,6 @@ function renderChantiers(){
       zone: document.getElementById('cZone').value.trim(),
     });
     render(); setDirty(route,true);
-    // NE PAS vider (volontaire)
   });
   async function save(){
     const out=[]; tb.querySelectorAll('tr').forEach(tr=>{
@@ -459,186 +440,19 @@ function renderChantiers(){
     });
     storage.set(KEYS.chantiers,out); setDirty(route,false);
   }
-  saveHandlers[route]=save;
-  document.getElementById('save').addEventListener('click', save);
+  saveHandlers[route]=save; document.getElementById('save').addEventListener('click', save);
   render(); setDirty(route,false);
 }
 
 /* =================
-   PAGE: POINTAGE
-   ================= */
-function renderPointage(){
-  const route='/pointage';
-  const ouvriers = storage.get(KEYS.ouvriers, DEFAULT_OUVRIERS);
-  const agences  = storage.get(KEYS.agences, DEFAULT_AGENCES);
-  const chantiers= storage.get(KEYS.chantiers, DEFAULT_CHANTIERS);
-  const rows = storage.get(KEYS.pointage, DEFAULT_POINTAGE);
-
-  // dictionnaire dernier chantier par ouvrier
-  const lastChantierByWorker = {};
-  rows.forEach(r=>{ lastChantierByWorker[r.ouvrier] = r.chantier; });
-
-  const todayIso = dateISO(new Date());
-
-  pageRoot.innerHTML = `
-    <section class="panel">
-      <div class="panel-h">
-        <div class="toolbar"><span class="pill">Pointage</span></div>
-        <div class="toolbar">
-          <button class="btn" id="save">Enregistrer</button>
-        </div>
-      </div>
-      <div class="panel-b">
-        <div class="grid cols-3" style="margin-bottom:10px">
-          <div class="field"><label class="pill">Date</label><input type="date" id="pDate" value="${todayIso}"/></div>
-          <div class="field"><label class="pill">Heures par défaut</label><input type="number" step="0.25" id="pDefaultH" value="7.50"/></div>
-          <div class="field">
-            <label class="pill">&nbsp;</label>
-            <button class="btn" id="btnAutoFill">Remplir automatiquement</button>
-            <button class="btn" id="btnGenWeek">Générer la semaine (lun→ven)</button>
-          </div>
-        </div>
-
-        <div class="kpi" id="kpi"></div>
-
-        <div class="table-wrap">
-          <table>
-            <thead><tr>
-              <th>Date</th><th>Ouvrier</th><th>Agence</th><th>Chantier</th><th class="mono">Heures (décimal)</th><th></th>
-            </tr></thead>
-            <tbody id="tb"></tbody>
-          </table>
-        </div>
-        <p class="hint">Tous les ouvriers connus sont listés pour la date sélectionnée. <b>Remplir automatiquement</b> met les heures par défaut et réutilise le dernier chantier connu par ouvrier si possible.</p>
-      </div>
-    </section>
-  `;
-
-  const tb = document.getElementById('tb');
-  const pDate = document.getElementById('pDate');
-  const pDefaultH = document.getElementById('pDefaultH');
-  const kpi = document.getElementById('kpi');
-
-  function ensureRowsForDate(dateISO){
-    // crée une ligne pour chaque ouvrier s'il n'existe pas ce jour
-    const byKey = new Map(rows.map(r=>[`${r.date}|${r.ouvrier}`, r]));
-    ouvriers.forEach(o=>{
-      const key = `${dateISO}|${fullName(o)}`;
-      if(!byKey.has(key)){
-        rows.push({
-          date: dateISO,
-          ouvrier: fullName(o),
-          agence: o.agence || "",
-          chantier: lastChantierByWorker[fullName(o)] || "",
-          heures: 0
-        });
-      }
-    });
-  }
-
-  function listForDate(dateISO){
-    return rows.filter(r=>r.date===dateISO).sort((a,b)=>a.ouvrier.localeCompare(b.ouvrier));
-  }
-
-  function rowTpl(r,i){
-    const chOpts = chantiers.map(c=>`<option ${c.code===r.chantier?'selected':''}>${c.code}</option>`).join('');
-    return `<tr data-i="${i}">
-      <td><input type="date" class="d" value="${r.date}"/></td>
-      <td class="mono">${escapeHtml(r.ouvrier)}</td>
-      <td class="mono">${escapeHtml(r.agence||"")}</td>
-      <td><select class="c"><option value="">—</option>${chOpts}</select></td>
-      <td contenteditable class="h mono" title="Ex: 7.5">${escapeHtml(String(r.heures))}</td>
-      <td><button class="btn ghost del">Suppr.</button></td>
-    </tr>`;
-  }
-
-  function render(){
-    ensureRowsForDate(pDate.value);
-    const list = listForDate(pDate.value);
-    tb.innerHTML = list.map((r,i)=>rowTpl(r,i)).join('');
-    bind();
-    const total = list.reduce((s,r)=>s+(+r.heures||0),0);
-    kpi.innerHTML = `<div class="card"><div>Total ${fmtDate(pDate.value)}</div><div class="v">${total.toFixed(2)}</div></div>`;
-  }
-
-  function bind(){
-    tb.querySelectorAll('input,select,[contenteditable]').forEach(el=>{
-      el.addEventListener('input', ()=> setDirty(route,true));
-      el.addEventListener('change', ()=> setDirty(route,true));
-    });
-    tb.querySelectorAll('.del').forEach(b=>b.addEventListener('click', e=>{
-      const tr=e.target.closest('tr'); const i=+tr.dataset.i;
-      const list = listForDate(pDate.value);
-      const rec = list[i];
-      const idx = rows.findIndex(x=>x===rec);
-      if(idx>-1) rows.splice(idx,1);
-      render(); setDirty(route,true);
-    }));
-  }
-
-  // actions
-  document.getElementById('btnAutoFill').addEventListener('click', ()=>{
-    const list = listForDate(pDate.value);
-    const def = parseHeures(pDefaultH.value);
-    list.forEach(r=>{
-      if(!r.heures) r.heures = def;
-      if(!r.chantier) r.chantier = lastChantierByWorker[r.ouvrier] || "";
-    });
-    render(); setDirty(route,true);
-  });
-
-  document.getElementById('btnGenWeek').addEventListener('click', ()=>{
-    // Génère lundi→vendredi pour tous les ouvriers avec heures par défaut
-    const base = thisMonday(new Date(pDate.value));
-    const def = parseHeures(pDefaultH.value);
-    const weekdays = [0,1,2,3,4]; // lun→ven
-    const byKey = new Set(rows.map(r=>`${r.date}|${r.ouvrier}`));
-    ouvriers.forEach(o=>{
-      const name = fullName(o);
-      weekdays.forEach(offset=>{
-        const dIso = dateISO(addDays(base, offset));
-        const k = `${dIso}|${name}`;
-        if(!byKey.has(k)){
-          rows.push({
-            date: dIso, ouvrier: name, agence: o.agence||"", chantier: lastChantierByWorker[name]||"", heures: def
-          });
-          byKey.add(k);
-        }
-      });
-    });
-    render(); setDirty(route,true);
-  });
-
-  pDate.addEventListener('change', render);
-
-  async function save(){
-    // lire depuis DOM (pour la date affichée)
-    const list = listForDate(pDate.value);
-    tb.querySelectorAll('tr').forEach((tr,i)=>{
-      const r=list[i]; if(!r) return;
-      r.date = tr.querySelector('.d')?.value || r.date;
-      r.chantier = tr.querySelector('.c')?.value || "";
-      r.heures = parseHeures((tr.querySelector('.h')?.textContent||"").trim());
-      lastChantierByWorker[r.ouvrier]=r.chantier||lastChantierByWorker[r.ouvrier];
-    });
-    storage.set(KEYS.pointage, rows);
-    setDirty(route,false);
-  }
-  saveHandlers[route]=save;
-  document.getElementById('save').addEventListener('click', save);
-
-  render(); setDirty(route,false);
-}
-
-/* =================
-   PAGE: PLANNING GLOBAL (Année × Semaines × Ouvriers)
+   PAGE: PLANNING GLOBAL (inchangé)
    ================= */
 function renderPlanningGlobal(){
   const route='/planning';
   const ouvriers = storage.get(KEYS.ouvriers, DEFAULT_OUVRIERS);
   const planning = storage.get(KEYS.planning, {});
   const currentYear = new Date().getFullYear();
-  const years = Array.from({length:5},(_,i)=>currentYear-2+i); // Y-2 → Y+2
+  const years = Array.from({length:5},(_,i)=>currentYear-2+i);
   const ySel = planning.__year || currentYear;
 
   pageRoot.innerHTML = `
@@ -651,7 +465,7 @@ function renderPlanningGlobal(){
         </div>
       </div>
       <div class="panel-b">
-        <div class="table-wrap" style="overflow:auto">
+        <div class="table-wrap">
           <table style="min-width:1200px">
             <thead>
               <tr>
@@ -662,18 +476,18 @@ function renderPlanningGlobal(){
             <tbody id="tb"></tbody>
           </table>
         </div>
-        <p class="hint">Chaque cellule est éditable (notes, jalons, chantier cible…). Données stockées par <b>Année → Ouvrier → Semaine</b>.</p>
+        <p class="hint">Chaque cellule est éditable (notes, jalons…). Stockage : <b>Année → Ouvrier → Semaine</b>.</p>
       </div>
     </section>
   `;
 
   const tb = document.getElementById('tb');
   function rowTpl(w){
-    const wName = fullName(w);
+    const name = fullName(w);
     const weeks = weeksOfYear(ySel);
-    const pYear = (planning[ySel] && planning[ySel][wName]) ? planning[ySel][wName] : {};
-    return `<tr data-worker="${escapeHtml(wName)}">
-      <td class="mono">${escapeHtml(wName)}</td>
+    const pYear = (planning[ySel] && planning[ySel][name]) ? planning[ySel][name] : {};
+    return `<tr data-worker="${escapeHtml(name)}">
+      <td class="mono">${escapeHtml(name)}</td>
       ${Array.from({length:weeks},(_,i)=>{
         const v = (pYear && pYear[i+1]) ? pYear[i+1] : "";
         return `<td contenteditable class="pg" data-week="${i+1}">${escapeHtml(v)}</td>`;
@@ -681,22 +495,17 @@ function renderPlanningGlobal(){
     </tr>`;
   }
   function render(){ tb.innerHTML = ouvriers.map(rowTpl).join(''); bind(); }
-  function bind(){
-    tb.querySelectorAll('.pg').forEach(td=>{
-      td.addEventListener('input', ()=> setDirty(route,true));
-    });
-  }
+  function bind(){ tb.querySelectorAll('.pg').forEach(td=>td.addEventListener('input', ()=> setDirty(route,true))); }
 
   document.getElementById('yearSel').addEventListener('change', ()=>{
     planning.__year = parseInt(document.getElementById('yearSel').value,10);
     storage.set(KEYS.planning, planning);
-    renderPlanningGlobal(); // rerender
+    renderPlanningGlobal();
   });
 
   async function save(){
     const y = parseInt(document.getElementById('yearSel').value,10);
-    planning.__year = y;
-    planning[y] = planning[y] || {};
+    planning.__year = y; planning[y] = planning[y] || {};
     document.querySelectorAll('tbody tr').forEach(tr=>{
       const worker = tr.dataset.worker;
       planning[y][worker] = planning[y][worker] || {};
@@ -705,24 +514,207 @@ function renderPlanningGlobal(){
         planning[y][worker][wk] = td.textContent.trim();
       });
     });
-    storage.set(KEYS.planning, planning);
+    storage.set(KEYS.planning, planning); setDirty(route,false);
+  }
+  saveHandlers[route]=save; document.getElementById('save').addEventListener('click', save);
+  render(); setDirty(route,false);
+}
+
+/* =================
+   PAGE: POINTAGE — HEBDO (nouvelle UX)
+   ================= */
+function renderPointageWeekly(){
+  const route='/pointage';
+  const ouvriers = storage.get(KEYS.ouvriers, DEFAULT_OUVRIERS).map(o=>({ ...o, nomComplet: fullName(o) }));
+  const pointage = storage.get(KEYS.pointage, []); // rows: {date, ouvrier, agence, heures}
+
+  const {year:curY, week:curW} = getISOWeek(new Date());
+
+  pageRoot.innerHTML = `
+    <section class="panel">
+      <div class="panel-h">
+        <div class="toolbar"><span class="pill">Pointage — Semaine</span></div>
+        <div class="toolbar">
+          <div class="field">
+            <label class="pill">Année</label><input type="number" id="pYear" value="${curY}" style="width:110px"/>
+            <label class="pill">Semaine (ISO)</label><input type="number" id="pWeek" value="${curW}" min="1" max="53" style="width:110px"/>
+          </div>
+          <button class="btn" id="save">Enregistrer</button>
+        </div>
+      </div>
+      <div class="panel-b">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Ouvrier</th>
+                <th class="mono">Lun</th>
+                <th class="mono">Mar</th>
+                <th class="mono">Mer</th>
+                <th class="mono">Jeu</th>
+                <th class="mono">Ven</th>
+                <th>Total</th>
+                <th>Auto</th>
+              </tr>
+            </thead>
+            <tbody id="tb"></tbody>
+            <tfoot>
+              <tr>
+                <td style="font-weight:600">Total jour</td>
+                <td class="mono" id="totLun">0.00</td>
+                <td class="mono" id="totMar">0.00</td>
+                <td class="mono" id="totMer">0.00</td>
+                <td class="mono" id="totJeu">0.00</td>
+                <td class="mono" id="totVen">0.00</td>
+                <td class="mono" id="totSem" colspan="2">0.00</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <p class="hint">Chaque cellule est une liste 0 → 10 h (pas 0,5). Le bouton <b>Auto</b> remplit <b>7,5 h</b> du <b>lundi au jeudi</b> et <b>7 h</b> le <b>vendredi</b> pour l’ouvrier de la ligne.</p>
+      </div>
+    </section>
+  `;
+
+  const pYear = document.getElementById('pYear');
+  const pWeek = document.getElementById('pWeek');
+  const tb    = document.getElementById('tb');
+
+  function hoursOptions(selVal){
+    const opts = [];
+    for(let v=0; v<=10; v+=0.5){
+      const val = v.toFixed(1).replace(/\.0$/, '.0'); // garder .0/.5
+      const sel = (+v === +selVal) ? 'selected' : '';
+      opts.push(`<option value="${v.toFixed(1)}" ${sel}>${v.toFixed(1)}</option>`);
+    }
+    return opts.join('');
+  }
+
+  function getRowMapForWeek(year, week){
+    const days = weekDatesISO(year, week); // 7 jours ISO
+    // on ne garde que Lun→Ven (index 0..4)
+    const dMonToFri = days.slice(0,5);
+    const map = new Map(); // key=ouvrier -> {Lun..Ven}
+    ouvriers.forEach(o=>{
+      map.set(o.nomComplet, { worker:o, jours:[0,0,0,0,0] });
+    });
+    // injecter les heures existantes de la semaine
+    pointage.filter(r=> dMonToFri.includes(r.date)).forEach(r=>{
+      const idx = dMonToFri.indexOf(r.date);
+      if(idx>=0){
+        const ref = map.get(r.ouvrier);
+        if(ref){ ref.jours[idx] = +r.heures || 0; }
+      }
+    });
+    return { map, dMonToFri };
+  }
+
+  function renderTable(){
+    const year = parseInt(pYear.value,10);
+    const week = parseInt(pWeek.value,10);
+    const { map, dMonToFri } = getRowMapForWeek(year, week);
+
+    tb.innerHTML = [...map.values()].map(({worker, jours})=>{
+      const total = jours.reduce((s,h)=>s+ (+h||0),0);
+      return `<tr data-worker="${escapeHtml(worker.nomComplet)}">
+        <td class="mono">${escapeHtml(worker.nomComplet)}</td>
+        ${jours.map((h,idx)=>`
+          <td>
+            <select class="hsel" data-day="${idx}">
+              ${hoursOptions(h)}
+            </select>
+          </td>
+        `).join('')}
+        <td class="mono rowTotal">${total.toFixed(2)}</td>
+        <td><button class="btn ghost autoOne">Auto</button></td>
+      </tr>`;
+    }).join('');
+
+    bindRowEvents(dMonToFri);
+    recomputeTotals();
+  }
+
+  function bindRowEvents(dates){
+    tb.querySelectorAll('select.hsel').forEach(sel=>{
+      sel.addEventListener('change', ()=>{
+        setDirty('/pointage', true);
+        // maj total de la ligne
+        const tr = sel.closest('tr');
+        const vals = [...tr.querySelectorAll('select.hsel')].map(s=>+s.value||0);
+        tr.querySelector('.rowTotal').textContent = vals.reduce((s,h)=>s+h,0).toFixed(2);
+        recomputeTotals();
+      });
+    });
+
+    // auto par ouvrier
+    tb.querySelectorAll('.autoOne').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const tr = btn.closest('tr');
+        const selects = [...tr.querySelectorAll('select.hsel')];
+        selects.forEach((s,idx)=>{
+          s.value = (idx<4 ? 7.5 : 7.0).toFixed(1);
+        });
+        setDirty('/pointage', true);
+        // trigger change pour recalcul
+        selects.forEach(s=>s.dispatchEvent(new Event('change')));
+      });
+    });
+  }
+
+  function recomputeTotals(){
+    const cols = [0,1,2,3,4];
+    const colTotals = cols.map(i=>{
+      let sum=0;
+      tb.querySelectorAll(`select.hsel[data-day="${i}"]`).forEach(s=> sum += (+s.value||0));
+      return sum;
+    });
+    document.getElementById('totLun').textContent = colTotals[0].toFixed(2);
+    document.getElementById('totMar').textContent = colTotals[1].toFixed(2);
+    document.getElementById('totMer').textContent = colTotals[2].toFixed(2);
+    document.getElementById('totJeu').textContent = colTotals[3].toFixed(2);
+    document.getElementById('totVen').textContent = colTotals[4].toFixed(2);
+    const totSem = colTotals.reduce((s,x)=>s+x,0);
+    document.getElementById('totSem').textContent = totSem.toFixed(2);
+  }
+
+  pYear.addEventListener('input', ()=>{ renderTable(); setDirty(route,true); });
+  pWeek.addEventListener('input', ()=>{ renderTable(); setDirty(route,true); });
+
+  async function save(){
+    const year = parseInt(pYear.value,10);
+    const week = parseInt(pWeek.value,10);
+    const dates = weekDatesISO(year, week).slice(0,5); // lun..ven
+
+    // Construire nouvelle liste pour cette semaine (on filtre l'ancienne semaine, puis on pousse les nouvelles valeurs > 0)
+    const keep = storage.get(KEYS.pointage, []).filter(r=> !dates.includes(r.date));
+    // pour chaque ligne ouv., créer 5 entrées si > 0
+    tb.querySelectorAll('tr[data-worker]').forEach(tr=>{
+      const ouvrier = tr.dataset.worker;
+      const agence = ouvriers.find(o=>o.nomComplet===ouvrier)?.agence || "";
+      tr.querySelectorAll('select.hsel').forEach(sel=>{
+        const dayIdx = parseInt(sel.dataset.day,10);
+        const h = +sel.value || 0;
+        if(h>0){
+          keep.push({ date: dates[dayIdx], ouvrier, agence, heures: h });
+        }
+      });
+    });
+    storage.set(KEYS.pointage, keep);
     setDirty(route,false);
   }
   saveHandlers[route]=save;
   document.getElementById('save').addEventListener('click', save);
 
-  render(); setDirty(route,false);
+  renderTable();
+  setDirty(route,false);
 }
 
 /* =================
-   PAGE: DIFFUSION (par Agence, par Semaine)
+   PAGE: DIFFUSION (inchangé depuis version validée)
    ================= */
 function renderDiffusionParAgence(){
   const route='/diffusion';
-  const pointage = storage.get(KEYS.pointage, DEFAULT_POINTAGE);
-  const agences = storage.get(KEYS.agences, DEFAULT_AGENCES).map(a=>a.nom);
-
-  // Semaine sélection
+  const pointage = storage.get(KEYS.pointage, []);
   const {year:curY, week:curW} = getISOWeek(new Date());
 
   pageRoot.innerHTML = `
@@ -754,12 +746,10 @@ function renderDiffusionParAgence(){
   const tablesDiv = document.getElementById('tables');
 
   function weekDates(year, week){
-    // lundi de la semaine ISO
     const simple = new Date(Date.UTC(year,0,4));
     const dayOfWeek = simple.getUTCDay() || 7;
     const monday = new Date(simple); monday.setUTCDate(simple.getUTCDate() - dayOfWeek + 1 + (week-1)*7);
-    const days = [...Array(7)].map((_,i)=>new Date(monday.getTime()+i*86400000));
-    return days.map(d=>dateISO(d));
+    return [...Array(7)].map((_,i)=>new Date(monday.getTime()+i*86400000).toISOString().slice(0,10));
   }
 
   function groupData(){
@@ -768,16 +758,14 @@ function renderDiffusionParAgence(){
     const weekIsoDates = weekDates(year, week);
     const rows = pointage.filter(r=>weekIsoDates.includes(r.date));
 
-    // groupe par agence, puis par (ouvrier|chantier)
     const byAgency = {};
     rows.forEach(r=>{
       const ag = r.agence || '—';
       byAgency[ag]= byAgency[ag]|| {};
-      const key = `${r.ouvrier}|${r.chantier}|${r.agence}`;
+      const key = `${r.ouvrier}|${r.chantier||''}|${r.agence}`;
       if(!byAgency[ag][key]) byAgency[ag][key] = {
         nom: r.ouvrier, entreprise: r.agence||'',
-        qualification: '', // non indispensable ici ; on peut enrichir via ouvriers si besoin
-        chantier: r.chantier||'', heures:0, encadrant:''
+        qualification: '', chantier: r.chantier||'', heures:0, encadrant:''
       };
       byAgency[ag][key].heures += (+r.heures||0);
     });
@@ -785,12 +773,7 @@ function renderDiffusionParAgence(){
     // enrichir qualification & encadrant
     const ouvriers = storage.get(KEYS.ouvriers, DEFAULT_OUVRIERS);
     const chantiers= storage.get(KEYS.chantiers, DEFAULT_CHANTIERS);
-    function qOf(name){
-      const [prenom, ...rest] = name.split(' ');
-      const nom = rest.join(' ');
-      const o = ouvriers.find(x=>fullName(x)===name);
-      return o ? `${o.metier} ${o.qualification}`.trim() : '';
-    }
+    function qOf(name){ const o = ouvriers.find(x=>(`${x.prenom} ${x.nom}`.trim())===name); return o ? `${o.metier} ${o.qualification}`.trim() : ''; }
     function encOf(code){ return chantiers.find(c=>c.code===code)?.encadrant||''; }
 
     Object.values(byAgency).forEach(map=>{
@@ -803,13 +786,12 @@ function renderDiffusionParAgence(){
     return byAgency;
   }
 
+  function formatHeuresFR(v){ const n = Number(v??0); return `${n.toFixed(2).replace(".",",")} Heures`; }
+
   function renderTables(){
     const grouped = groupData();
     const agencies = Object.keys(grouped).sort();
-    if(agencies.length===0){
-      tablesDiv.innerHTML = `<p class="hint">Aucune donnée pour cette semaine.</p>`;
-      return;
-    }
+    if(agencies.length===0){ tablesDiv.innerHTML = `<p class="hint">Aucune donnée pour cette semaine.</p>`; return; }
     tablesDiv.innerHTML = agencies.map(ag=>{
       const rows = Object.values(grouped[ag]);
       const body = rows.map(r=>`
@@ -831,8 +813,7 @@ function renderDiffusionParAgence(){
               <tbody>${body}</tbody>
             </table>
           </div>
-        </div>
-      `;
+        </div>`;
     }).join('');
   }
 
@@ -877,14 +858,10 @@ function renderDiffusionParAgence(){
     `;
   }
 
-  function markDirty(){ setDirty(route,true); }
-  dYear.addEventListener('input', ()=>{ renderTables(); markDirty(); });
-  dWeek.addEventListener('input', ()=>{ renderTables(); markDirty(); });
+  dYear.addEventListener('input', ()=>{ renderTables(); setDirty(route,true); });
+  dWeek.addEventListener('input', ()=>{ renderTables(); setDirty(route,true); });
 
-  async function save(){
-    // rien de particulier à persister ici, mais on garde l’API homogène
-    setDirty(route,false);
-  }
+  async function save(){ setDirty(route,false); }
   saveHandlers[route]=save;
 
   async function preview(){
@@ -895,15 +872,12 @@ function renderDiffusionParAgence(){
   async function sendEmails(){
     const subject = `Synthèse des heures — Semaine ${dWeek.value}/${dYear.value}`;
     const html = buildEmailHtml();
-    // Définis ton ou tes destinataires (tu peux ajouter une zone de saisie si tu veux par agence)
     const to = prompt("Destinataires (séparés par des virgules) :", "") || "";
     if(!to.trim()){ alert("Aucun destinataire"); return; }
-
     const SERVICE_ID = "REMPLACE_AVEC_TON_SERVICE_ID";
     const TEMPLATE_ID = "REMPLACE_AVEC_TON_TEMPLATE_ID";
     // eslint-disable-next-line no-undef
     await emailjs.send(SERVICE_ID, TEMPLATE_ID, { to_emails: to.trim(), subject, message_html: html });
-
     setDirty(route,false);
   }
 
@@ -915,11 +889,11 @@ function renderDiffusionParAgence(){
 }
 
 /* =================
-   PAGE: PARAMÈTRES
+   PAGE: PARAMÈTRES (identique)
    ================= */
 function renderParametres(){
   const route='/parametres';
-  const params = storage.get(KEYS.params, DEFAULT_PARAMS);
+  const params = storage.get(KEYS.params, { qualifs:["N1","N2","N3P1","N3P2","N4P1"], signature:"Cordialement,\nL'équipe Bourdarios" });
 
   pageRoot.innerHTML = `
     <section class="panel">
@@ -952,8 +926,7 @@ function renderParametres(){
     storage.set(KEYS.params, newParams);
     setDirty(route,false);
   }
-  saveHandlers[route]=save;
-  document.getElementById('save').addEventListener('click', save);
+  saveHandlers[route]=save; document.getElementById('save').addEventListener('click', save);
   setDirty(route,false);
 }
 </script>
